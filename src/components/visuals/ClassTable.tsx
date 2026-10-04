@@ -1,8 +1,11 @@
 import type React from 'react';
-import { CheckCircle, Layers, Search } from 'lucide-react';
+import { CheckCircle, Search } from 'lucide-react';
 import { CLASS_LIMIT } from '../../lib/dax/daxBuilder';
 import type { ClassRow, KpiFocus } from '../../lib/dax/types';
-import { ErrorNote, LoadingNote } from './StatusNote';
+import { ChartCard } from '../ui/Card';
+import { cx } from '../ui/cx';
+import { ErrorNote, LoadingState, MiniMeter, StatusChip } from '../ui/primitives';
+import { CHART_DEFINITIONS } from './kpiDefinitions';
 
 interface ClassTableProps {
   classes: ClassRow[] | undefined;
@@ -15,6 +18,8 @@ interface ClassTableProps {
   isLoading: boolean;
   isStale: boolean;
   error: unknown;
+  index?: number;
+  className?: string;
 }
 
 function emptyMessage(search: string, kpiFocus: KpiFocus): string {
@@ -26,12 +31,13 @@ function emptyMessage(search: string, kpiFocus: KpiFocus): string {
 
 const FullWidthRow: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <tr>
-    <td colSpan={5} className="p-3">
+    <td colSpan={5} className="!h-auto p-3">
       {children}
     </td>
   </tr>
 );
 
+/** "Which exact classes?" — a table, because precision matters more than pattern here (principle 19). */
 export const ClassTable: React.FC<ClassTableProps> = ({
   classes,
   selectedClass,
@@ -43,6 +49,8 @@ export const ClassTable: React.FC<ClassTableProps> = ({
   isLoading,
   isStale,
   error,
+  index = 0,
+  className,
 }) => {
   let rows: React.ReactNode;
   if (!classes) {
@@ -52,13 +60,13 @@ export const ClassTable: React.FC<ClassTableProps> = ({
       </FullWidthRow>
     ) : isLoading ? (
       <FullWidthRow>
-        <LoadingNote />
+        <LoadingState rows={5} />
       </FullWidthRow>
     ) : null;
   } else if (classes.length === 0) {
     rows = (
       <tr>
-        <td colSpan={5} className="py-12 text-center text-slate-400">
+        <td colSpan={5} className="!h-auto py-12 text-center text-u-label">
           {emptyMessage(search, kpiFocus)}
         </td>
       </tr>
@@ -78,44 +86,34 @@ export const ClassTable: React.FC<ClassTableProps> = ({
           }}
           tabIndex={0}
           aria-selected={isSelected}
-          className={`transition-colors cursor-pointer select-none focus:outline-none focus-visible:bg-slate-100 ${
-            isSelected
-              ? 'bg-indigo-50/80 font-semibold text-indigo-900 border-l-4 border-l-indigo-600'
-              : 'hover:bg-slate-50/80'
-          }`}
+          data-interactive="true"
+          className="select-none"
         >
-          <td className="py-2.5 px-3 flex items-center gap-2">
-            {isSelected && <CheckCircle className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
-            <span className={isSelected ? 'text-indigo-950 font-bold' : 'text-slate-900 font-medium'}>
-              {cls.className}
+          <td>
+            <span className="flex items-center gap-2">
+              {isSelected && <CheckCircle className="h-3.5 w-3.5 shrink-0 text-u-interaction" />}
+              <span className={cx('text-u-title', isSelected ? 'font-bold' : 'font-medium')}>{cls.className}</span>
             </span>
           </td>
-          <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-800">
-            {cls.count.toLocaleString()}
+          <td className="u-num text-right font-semibold text-u-title">{cls.count.toLocaleString()}</td>
+          <td>
+            <span className="flex items-center justify-end gap-2.5">
+              <span className="u-num">{cls.assessed.toLocaleString()}</span>
+              <MiniMeter value={cls.pctAssessed} className="w-14" />
+              <span className="u-num w-9 text-right text-[11px] text-u-label">{(cls.pctAssessed * 100).toFixed(0)}%</span>
+            </span>
           </td>
-          <td className="py-2.5 px-3 text-right font-mono text-slate-600">
-            {cls.assessed.toLocaleString()}{' '}
-            <span className="text-[10px] text-slate-400">({(cls.pctAssessed * 100).toFixed(0)}%)</span>
-          </td>
-          <td className="py-2.5 px-3 text-right font-mono">
+          <td className="text-right">
             {cls.dueForRenewal > 0 ? (
-              <span className="text-amber-700 font-semibold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-[11px]">
+              <StatusChip tone="warn" className="u-num">
                 {cls.dueForRenewal.toLocaleString()}
-              </span>
+              </StatusChip>
             ) : (
-              <span className="text-slate-400">0</span>
+              <span className="u-num text-u-label">0</span>
             )}
           </td>
-          <td className="py-2.5 px-3 text-center">
-            {cls.dueForRenewal > 0 ? (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                Renewal
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Healthy
-              </span>
-            )}
+          <td className="text-center">
+            {cls.dueForRenewal > 0 ? <StatusChip tone="warn">Renewal</StatusChip> : <StatusChip tone="ok">Healthy</StatusChip>}
           </td>
         </tr>
       );
@@ -123,29 +121,27 @@ export const ClassTable: React.FC<ClassTableProps> = ({
   }
 
   return (
-    <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-xs p-5 flex flex-col">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div>
-          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-            <Layers className="w-4 h-4 text-teal-600" />
-            Asset Classes ({scopeLabel})
-          </h3>
-          <p className="text-xs text-slate-500">⚡ Click any row to cross-filter KPIs down to that specific class</p>
-        </div>
-
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+    <ChartCard
+      title={`Asset Classes (${scopeLabel})`}
+      subtitle="Click a row to cross-filter the KPIs down to that class"
+      info={CHART_DEFINITIONS.classes.info}
+      calc={CHART_DEFINITIONS.classes.calc}
+      aside={
+        <label className="relative block">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-u-label" />
           <input
             type="search"
             placeholder="Search classes in model..."
             aria-label="Search asset classes"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-8 pr-3 py-1 text-xs rounded-md border border-slate-200 focus:outline-none focus:border-teal-500 w-48 bg-slate-50"
+            className="u-input w-52 pl-8"
           />
-        </div>
-      </div>
-
+        </label>
+      }
+      index={index}
+      className={className}
+    >
       {classes && error ? (
         <div className="mb-3">
           <ErrorNote error={error} />
@@ -153,29 +149,30 @@ export const ClassTable: React.FC<ClassTableProps> = ({
       ) : null}
 
       <div
-        className={`flex-1 overflow-y-auto max-h-[440px] rounded-lg border border-slate-200 transition-opacity ${
-          isStale ? 'opacity-60' : ''
-        }`}
+        className={cx(
+          'max-h-[440px] overflow-y-auto rounded-[10px] border border-u-card-border transition-opacity',
+          isStale && 'opacity-60'
+        )}
       >
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 sticky top-0 font-semibold z-10">
+        <table className="u-table">
+          <thead>
             <tr>
-              <th className="py-2.5 px-3">Asset Class</th>
-              <th className="py-2.5 px-3 text-right">Inventory</th>
-              <th className="py-2.5 px-3 text-right">Condition Assessed</th>
-              <th className="py-2.5 px-3 text-right">Renewal Due</th>
-              <th className="py-2.5 px-3 text-center">Status</th>
+              <th>Asset Class</th>
+              <th className="!text-right">Inventory</th>
+              <th className="!text-right">Condition Assessed</th>
+              <th className="!text-right">Renewal Due</th>
+              <th className="!text-center">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-700">{rows}</tbody>
+          <tbody>{rows}</tbody>
         </table>
       </div>
 
       {classes && classes.length >= CLASS_LIMIT && (
-        <p className="text-[11px] text-slate-400 mt-2">
+        <p className="mt-2 text-[11px] text-u-label">
           Showing the top {CLASS_LIMIT} classes by inventory. Use search to reach the rest.
         </p>
       )}
-    </div>
+    </ChartCard>
   );
 };

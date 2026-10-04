@@ -7,6 +7,7 @@ import { PowerBIEmbedComponent } from './components/embed/PowerBIEmbed';
 import { UnityAssetsHeader } from './components/layout/UnityAssetsHeader';
 import { UnityAssetsSidebar } from './components/layout/UnityAssetsSidebar';
 import { SemanticModelVisuals } from './components/visuals/SemanticModelVisuals';
+import { Gallery } from './pages/Gallery';
 import { ROUTES, viewFromPath, type ViewId } from './routes';
 import type { HealthStatus } from './types';
 
@@ -40,7 +41,7 @@ export function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-[#f8fafc] text-slate-800 flex flex-col font-sans overflow-hidden">
+    <div className="h-screen w-screen bg-u-canvas text-u-text flex flex-col font-sans overflow-hidden">
       <UnityAssetsHeader
         isChatOpen={isChatOpen}
         onToggleChat={toggleChat}
@@ -55,10 +56,11 @@ export function App() {
           <Routes>
             <Route path={`${ROUTES.visuals}/*`} element={null} />
             <Route path={`${ROUTES.report}/*`} element={null} />
+            <Route path={`${ROUTES.gallery}/*`} element={null} />
             <Route path="*" element={<Navigate to={ROUTES.report} replace />} />
           </Routes>
 
-          <div className="flex-1 h-full min-w-0 flex flex-col bg-white">
+          <div className="flex-1 h-full min-w-0 flex flex-col">
             {visitedViews.has('visuals') && (
               <div className={paneClass(activeView === 'visuals')}>
                 <SemanticModelVisuals active={activeView === 'visuals'} />
@@ -69,6 +71,11 @@ export function App() {
                 <PowerBIEmbedComponent />
               </div>
             )}
+            {activeView === 'gallery' && (
+              <div className={paneClass(true)}>
+                <Gallery />
+              </div>
+            )}
           </div>
 
           {/* Right Copilot Drawer: kept mounted once opened so the conversation survives closing */}
@@ -76,7 +83,7 @@ export function App() {
             <div
               className={
                 isChatOpen
-                  ? 'w-[380px] lg:w-[420px] h-full shrink-0 border-l border-slate-200 shadow-2xl z-20 animate-in slide-in-from-right duration-200'
+                  ? 'u-anim-slide-in w-[380px] lg:w-[420px] h-full shrink-0 border-l border-u-panel-border z-20'
                   : 'hidden'
               }
             >

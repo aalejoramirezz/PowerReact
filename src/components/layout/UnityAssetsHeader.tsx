@@ -1,8 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router';
-import { Grid3X3, Settings, HelpCircle, Languages, Sparkles, Bot } from 'lucide-react';
+import { Bot, Grid3X3, HelpCircle, Languages, Settings, Sparkles } from 'lucide-react';
 import { ROUTES, VIEW_LABELS, type ViewId } from '../../routes';
+import { ThemeToggle } from '../../theme/ThemeToggle';
 import type { HealthStatus } from '../../types';
+import { cx } from '../ui/cx';
 
 interface UnityAssetsHeaderProps {
   isChatOpen: boolean;
@@ -11,115 +13,89 @@ interface UnityAssetsHeaderProps {
   activeView: ViewId | null;
 }
 
-export const UnityAssetsHeader: React.FC<UnityAssetsHeaderProps> = ({
-  isChatOpen,
-  onToggleChat,
-  status,
-  activeView,
-}) => {
+const modeLink = ({ isActive }: { isActive: boolean }) =>
+  cx(
+    'flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 font-medium transition-colors',
+    isActive ? 'bg-u-shell-control-active-bg text-u-shell-header-text' : 'text-u-shell-header-muted hover:text-u-shell-header-text'
+  );
+
+const iconButton =
+  'cursor-pointer rounded p-1.5 text-u-shell-header-muted transition-colors hover:bg-u-shell-control-bg hover:text-u-shell-header-text';
+
+/** Product shell header: DESIGN.md navigation slate in Neo-Glass, the obsidian window tone in Nocturne. */
+export const UnityAssetsHeader: React.FC<UnityAssetsHeaderProps> = ({ isChatOpen, onToggleChat, status, activeView }) => {
   return (
-    <header className="bg-[#243346] text-white h-12 px-4 flex items-center justify-between select-none shrink-0 border-b border-slate-700/40 z-30">
-      {/* Left side: Waffle, Brand, Breadcrumb, and Mode Switcher */}
+    <header className="z-30 flex h-12 shrink-0 select-none items-center justify-between border-b border-u-shell-header-border bg-u-shell-header-bg px-4 text-u-shell-header-text">
+      {/* Left side: waffle, brand, breadcrumb and view switcher */}
       <div className="flex items-center space-x-6">
-        {/* Waffle and Brand */}
         <div className="flex items-center space-x-3">
-          <button className="text-slate-300 hover:text-white p-1 rounded transition-colors cursor-pointer" title="App launcher">
-            <Grid3X3 className="w-4 h-4" />
+          <button className={iconButton} title="App launcher">
+            <Grid3X3 className="h-4 w-4" />
           </button>
-          <span className="font-semibold text-sm tracking-tight text-white">Unity Assets</span>
+          <span className="font-display text-sm font-semibold tracking-tight">Unity Assets</span>
         </div>
 
-        {/* Breadcrumb */}
-        <div className="flex items-center space-x-2 text-xs text-slate-300">
-          <span className="hover:text-white transition-colors cursor-pointer">Home</span>
-          <span className="text-slate-400">/</span>
-          <span className="text-white font-medium">{activeView ? VIEW_LABELS[activeView] : ''}</span>
+        <div className="flex items-center space-x-2 text-xs text-u-shell-header-muted">
+          <span className="cursor-pointer transition-colors hover:text-u-shell-header-text">Home</span>
+          <span aria-hidden="true">/</span>
+          <span className="font-medium text-u-shell-header-text">{activeView ? VIEW_LABELS[activeView] : ''}</span>
         </div>
 
-        {/* Quick View Mode Switcher (iFrame vs Native React DAX) */}
-        <nav className="hidden md:flex items-center bg-[#1b2635] p-0.5 rounded-lg border border-slate-600/70 text-xs">
-          <NavLink
-            to={ROUTES.report}
-            className={({ isActive }) =>
-              `px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
-                isActive ? 'bg-slate-700 text-white shadow-xs' : 'text-slate-400 hover:text-slate-200'
-              }`
-            }
-          >
+        <nav className="hidden items-center rounded-lg border border-u-shell-control-border bg-u-shell-control-bg p-0.5 text-xs md:flex">
+          <NavLink to={ROUTES.report} className={modeLink}>
             Power BI Embed (iFrame)
           </NavLink>
-          <NavLink
-            to={ROUTES.visuals}
-            className={({ isActive }) =>
-              `px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
-                isActive ? 'bg-teal-600 text-white shadow-xs' : 'text-teal-400 hover:text-teal-200'
-              }`
-            }
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-300 animate-pulse" />
+          <NavLink to={ROUTES.visuals} className={modeLink}>
+            <span className="h-1.5 w-1.5 rounded-full bg-u-primary" aria-hidden="true" />
             React Semantic Visuals
           </NavLink>
         </nav>
       </div>
 
-      {/* Right side: Chat with Data Toggle & System Icons */}
+      {/* Right side: chat toggle, theme toggle and system icons */}
       <div className="flex items-center space-x-3">
-        {/* Chat with Data Toggle (HERO TOGGLE) */}
         <button
           onClick={onToggleChat}
-          className={`flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer shadow-sm ${
+          className={cx(
+            'flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-1 text-xs font-medium transition-colors duration-200',
             isChatOpen
-              ? 'bg-gradient-to-r from-emerald-500 via-teal-600 to-indigo-600 text-white ring-1 ring-emerald-300 shadow-emerald-500/20'
-              : 'bg-[#1b2635] hover:bg-[#2c3e53] text-slate-200 border border-slate-600/80 hover:border-indigo-400/80'
-          }`}
+              ? 'border-u-primary bg-u-shell-control-active-bg text-u-shell-header-text'
+              : 'border-u-shell-control-border bg-u-shell-control-bg text-u-shell-header-text hover:border-u-primary'
+          )}
           title="Toggle Data Agent Chat"
           aria-pressed={isChatOpen}
         >
-          {isChatOpen ? (
-            <Bot className="w-3.5 h-3.5 text-white" />
-          ) : (
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-          )}
+          {isChatOpen ? <Bot className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5 text-u-primary" />}
           <span>Chat with Data</span>
-          <span
-            className={`w-2 h-2 rounded-full ${
-              isChatOpen ? 'bg-emerald-300 animate-ping' : 'bg-slate-400'
-            }`}
-          />
+          <span className={cx('h-1.5 w-1.5 rounded-full', isChatOpen ? 'bg-u-primary' : 'bg-u-shell-header-muted')} />
         </button>
 
-        {/* Service Principal Status Pill */}
+        <ThemeToggle />
+
         {status?.configured && (
           <div
-            className="hidden lg:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1b2635] border border-slate-600/70 text-[11px] text-slate-300"
+            className="hidden items-center gap-1.5 rounded-full border border-u-shell-control-border bg-u-shell-control-bg px-2.5 py-0.5 text-[11px] text-u-shell-header-muted lg:flex"
             title={`Tenant: ${status.tenantId} | Client: ${status.clientId || 'Configured'}`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="h-1.5 w-1.5 rounded-full bg-u-primary" />
             <span>SP Active</span>
           </div>
         )}
 
-        {/* Divider */}
-        <div className="h-4 w-[1px] bg-slate-600/60 mx-1"></div>
+        <div className="mx-1 h-4 w-px bg-u-shell-control-border" aria-hidden="true" />
 
-        {/* Settings */}
-        <button className="text-slate-300 hover:text-white p-1.5 rounded transition-colors cursor-pointer" title="Settings">
-          <Settings className="w-4 h-4" />
+        <button className={iconButton} title="Settings">
+          <Settings className="h-4 w-4" />
+        </button>
+        <button className={iconButton} title="Help">
+          <HelpCircle className="h-4 w-4" />
+        </button>
+        <button className={iconButton} title="Language">
+          <Languages className="h-4 w-4" />
         </button>
 
-        {/* Help */}
-        <button className="text-slate-300 hover:text-white p-1.5 rounded transition-colors cursor-pointer" title="Help">
-          <HelpCircle className="w-4 h-4" />
-        </button>
-
-        {/* Language */}
-        <button className="text-slate-300 hover:text-white p-1.5 rounded transition-colors cursor-pointer" title="Language">
-          <Languages className="w-4 h-4" />
-        </button>
-
-        {/* User Avatar */}
         <div
-          className="w-7 h-7 rounded-full bg-[#5b63d3] text-white flex items-center justify-center text-xs font-semibold shadow-inner cursor-pointer"
+          className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-u-shell-control-active-bg text-xs font-semibold text-u-shell-header-text"
           title="Alejandro (Admin)"
         >
           A

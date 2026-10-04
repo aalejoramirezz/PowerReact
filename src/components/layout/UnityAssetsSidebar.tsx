@@ -17,6 +17,7 @@ import {
   MapPin,
   Headphones,
   HeartHandshake,
+  Palette,
   type LucideIcon,
 } from 'lucide-react';
 import { ROUTES } from '../../routes';
@@ -32,6 +33,7 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   { label: 'Asset Management', icon: Package, to: ROUTES.visuals, badge: 'React DAX' },
   { label: 'Report', icon: BarChart2, to: ROUTES.report, badge: 'Embed' },
+  { label: 'Design Gallery', icon: Palette, to: ROUTES.gallery, badge: 'UI' },
   { label: 'Asset Routing', icon: Compass },
   { label: 'Compliance', icon: ClipboardCheck },
   { label: 'Crew Routing', icon: Users },
@@ -49,10 +51,10 @@ const MENU_ITEMS: MenuItem[] = [
 const itemClass = (isActive: boolean, disabled = false) =>
   `w-full flex items-center justify-between px-3 py-2 text-xs transition-colors text-left ${
     disabled
-      ? 'text-slate-400 cursor-not-allowed font-normal'
+      ? 'text-u-sidebar-muted cursor-not-allowed font-normal'
       : isActive
-        ? 'bg-slate-200/70 text-slate-900 font-semibold cursor-pointer'
-        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-normal cursor-pointer'
+        ? 'bg-u-sidebar-active-bg text-u-sidebar-active-text font-semibold cursor-pointer shadow-[inset_3px_0_0_var(--u-interaction)]'
+        : 'text-u-sidebar-text hover:bg-u-sidebar-hover hover:text-u-title font-normal cursor-pointer'
   }`;
 
 export const UnityAssetsSidebar: React.FC = () => {
@@ -63,15 +65,13 @@ export const UnityAssetsSidebar: React.FC = () => {
     return (
       <>
         <div className="flex items-center gap-3 min-w-0">
-          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-slate-900' : 'text-slate-500'}`} />
+          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-u-sidebar-active-text' : 'text-u-sidebar-muted'}`} />
           {!collapsed && <span className="truncate">{item.label}</span>}
         </div>
         {!collapsed && item.badge && (
           <span
             className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full shrink-0 ${
-              item.to === ROUTES.visuals
-                ? 'bg-teal-100 text-teal-800 border border-teal-200'
-                : 'bg-slate-200 text-slate-600'
+              item.to === ROUTES.visuals ? 'bg-u-mark-bg text-u-mark-fg' : 'bg-u-track text-u-label'
             }`}
           >
             {item.badge}
@@ -83,15 +83,15 @@ export const UnityAssetsSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`bg-[#f8fafc] border-r border-slate-200 flex flex-col shrink-0 transition-all duration-200 select-none ${
+      className={`bg-u-sidebar-bg border-r border-u-sidebar-border flex flex-col shrink-0 transition-[width] duration-200 select-none ${
         collapsed ? 'w-12' : 'w-56'
       }`}
     >
       {/* Collapse Toggle */}
-      <div className="h-9 flex items-center justify-end px-2 border-b border-slate-100">
+      <div className="h-9 flex items-center justify-end px-2 border-b border-u-sidebar-border">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-200/50 transition-colors cursor-pointer"
+          className="text-u-sidebar-muted hover:text-u-title p-1 rounded hover:bg-u-sidebar-hover transition-colors cursor-pointer"
           title={collapsed ? 'Expand menu' : 'Collapse menu'}
         >
           {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}

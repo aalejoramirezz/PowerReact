@@ -5,6 +5,8 @@ import { AlertCircle, ExternalLink, FileSpreadsheet, Maximize2, RotateCw, Slider
 import { ApiError, errorMessage } from '../../api/http';
 import { useLatestRef } from '../../hooks/useLatestRef';
 import { logEmbed, useEmbedLogStore } from '../../store/embedLog';
+import { cx } from '../ui/cx';
+import { StatusChip } from '../ui/primitives';
 import { embedConfigQuery, preconfiguredReportsQuery, type ReportSelection } from './embedConfigQuery';
 
 // A single Service per module: it owns the embed registry and the postMessage router
@@ -180,19 +182,19 @@ export const PowerBIEmbedComponent: React.FC = () => {
   const error = embedQuery.error;
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 text-slate-800 overflow-hidden">
-      {/* Slim Light Sub-bar */}
-      <div className="bg-white border-b border-slate-200 px-4 py-2 shrink-0 flex items-center justify-between">
+    <div className="flex h-full flex-col overflow-hidden bg-u-canvas text-u-text">
+      {/* Toolbar */}
+      <div className="flex shrink-0 items-center justify-between border-b border-u-panel-border bg-u-panel-bg px-4 py-2 backdrop-blur-md">
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
-            <label htmlFor="report-select" className="font-semibold text-xs text-slate-800">
+            <label htmlFor="report-select" className="text-xs font-semibold text-u-title">
               Report:
             </label>
             <select
               id="report-select"
               value={selection.code}
               onChange={(e) => handleSelectPreset(e.target.value)}
-              className="text-xs bg-slate-100 hover:bg-slate-200/80 border border-slate-300 text-slate-800 rounded-md px-2.5 py-1 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+              className="u-input cursor-pointer !h-7 !px-2.5"
             >
               {(preconfigured.data ?? []).map((p) => (
                 <option key={p.id} value={p.code}>
@@ -202,34 +204,23 @@ export const PowerBIEmbedComponent: React.FC = () => {
             </select>
           </div>
 
-          <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 font-medium">
-            Active: {config?.tokenType || 'Service Principal'}
-          </span>
+          <StatusChip tone="ok">Active: {config?.tokenType || 'Service Principal'}</StatusChip>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={handleReload}
-            disabled={isLoading}
-            className="p-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition cursor-pointer disabled:opacity-50"
-            title="Reload Report"
-          >
-            <RotateCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
+          <button type="button" onClick={handleReload} disabled={isLoading} className="u-btn-ghost !h-7 !px-2" title="Reload Report">
+            <RotateCw className={cx('h-3.5 w-3.5', isLoading && 'u-spin')} />
           </button>
 
           <button
             type="button"
             onClick={() => setShowFilters(!showFilters)}
             disabled={isPaginated}
-            className={`px-2 py-1 rounded-md text-xs font-medium border transition cursor-pointer flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${
-              showFilters
-                ? 'bg-blue-50 text-blue-700 border-blue-200'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+            aria-pressed={showFilters}
+            className="u-btn-ghost !h-7 !px-2"
             title="Toggle Filter Pane"
           >
-            <Sliders className="w-3 h-3" />
+            <Sliders className="h-3 w-3" />
             <span>Filters</span>
           </button>
 
@@ -237,71 +228,56 @@ export const PowerBIEmbedComponent: React.FC = () => {
             type="button"
             onClick={() => setShowNav(!showNav)}
             disabled={isPaginated}
-            className={`px-2 py-1 rounded-md text-xs font-medium border transition cursor-pointer flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${
-              showNav
-                ? 'bg-blue-50 text-blue-700 border-blue-200'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+            aria-pressed={showNav}
+            className="u-btn-ghost !h-7 !px-2"
             title="Toggle Page Navigation"
           >
             <span>Navigation</span>
           </button>
 
-          <button
-            type="button"
-            onClick={handleFullscreen}
-            className="p-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition cursor-pointer"
-            title="Fullscreen"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
+          <button type="button" onClick={handleFullscreen} className="u-btn-ghost !h-7 !px-2" title="Fullscreen">
+            <Maximize2 className="h-3.5 w-3.5" />
           </button>
 
           <button
             type="button"
             onClick={() => setShowLogs(!showLogs)}
-            className={`px-2 py-1 rounded-md text-xs font-medium border transition cursor-pointer flex items-center gap-1 ${
-              showLogs
-                ? 'bg-slate-800 text-white border-slate-800'
-                : 'bg-white text-slate-500 border-slate-200 hover:text-slate-700 hover:bg-slate-50'
-            }`}
+            aria-pressed={showLogs}
+            className="u-btn-ghost !h-7 !px-2"
           >
-            <Terminal className="w-3 h-3" />
+            <Terminal className="h-3 w-3" />
             <span>Diagnostics</span>
           </button>
         </div>
       </div>
 
-      {/* Main Workspace Area */}
-      <div className="flex-1 relative flex flex-col bg-[#f8fafc]">
+      {/* Workspace */}
+      <div className="relative flex flex-1 flex-col bg-u-canvas">
         {isLoading && (
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center">
-            <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-            <p className="mt-4 text-sm font-medium text-slate-700">Generating Service Principal Embed Token...</p>
-            <p className="text-xs text-slate-500 mt-1 font-mono">Workspace: {selection.workspaceId}</p>
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-u-overlay backdrop-blur-sm" role="status">
+            <div className="u-spin h-12 w-12 rounded-full border-4 border-u-track border-t-u-primary" />
+            <p className="mt-4 text-sm font-medium text-white">Generating Service Principal Embed Token...</p>
+            <p className="mt-1 font-mono text-xs text-white/70">Workspace: {selection.workspaceId}</p>
           </div>
         )}
 
         {error && !isLoading && (
-          <div className="m-4 p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-200 text-sm">
+          <div className="m-4 rounded-[var(--u-card-radius)] border border-u-bad/30 bg-u-bad-bg p-4 text-sm text-u-bad-text" role="alert">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <div className="font-semibold text-red-300">{error.message}</div>
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+              <div className="min-w-0 space-y-1">
+                <div className="font-semibold">{error.message}</div>
                 {error instanceof ApiError && error.hint && (
-                  <div className="text-xs text-slate-300 bg-red-900/30 p-2 rounded">{error.hint}</div>
+                  <div className="rounded bg-u-card-solid/60 p-2 text-xs text-u-text">{error.hint}</div>
                 )}
                 {error instanceof ApiError && error.details !== undefined ? (
-                  <pre className="text-[11px] font-mono bg-black/40 p-2 rounded overflow-auto max-h-32 text-red-200">
+                  <pre className="max-h-32 overflow-auto rounded bg-u-code-bg p-2 font-mono text-[11px] text-u-code-text">
                     {JSON.stringify(error.details, null, 2)}
                   </pre>
                 ) : (
                   !(error instanceof ApiError) && <div className="text-xs">{errorMessage(error)}</div>
                 )}
-                <button
-                  type="button"
-                  onClick={() => void embedQuery.refetch()}
-                  className="mt-2 px-3 py-1 text-xs font-semibold rounded-md bg-red-900/60 hover:bg-red-900 text-red-100 border border-red-700 cursor-pointer"
-                >
+                <button type="button" onClick={() => void embedQuery.refetch()} className="u-btn-ghost mt-2 !h-7">
                   Try again
                 </button>
               </div>
@@ -310,35 +286,33 @@ export const PowerBIEmbedComponent: React.FC = () => {
         )}
 
         {!config && !isLoading && !error && (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
-              <FileSpreadsheet className="w-8 h-8" />
+          <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
+            <div className="mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-u-mark-bg text-u-mark-fg">
+              <FileSpreadsheet className="h-8 w-8" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-700">Select a Report to Embed</h3>
-            <p className="text-sm text-slate-500 max-w-md mt-1 mb-6">
+            <h3 className="font-display text-lg font-semibold text-u-title">Select a Report to Embed</h3>
+            <p className="mb-6 mt-1 max-w-md text-sm text-u-label">
               Embed Power BI interactive dashboards or paginated reports directly using the Univerus Service Principal.
             </p>
           </div>
         )}
 
-        {/* Power BI Container */}
+        {/* Power BI container */}
         <div
           ref={containerRef}
-          className={`flex-1 w-full h-full min-h-[500px] bg-[#f8fafc] transition-opacity ${
-            config ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
+          className={cx('h-full min-h-[500px] w-full flex-1 transition-opacity', config ? 'opacity-100' : 'pointer-events-none opacity-0')}
           style={{ minHeight: '600px' }}
         />
 
-        {/* Live Diagnostics & Event Drawer */}
+        {/* Live diagnostics drawer */}
         {showLogs && (
-          <div className="h-44 bg-slate-900 border-t border-slate-800 flex flex-col shrink-0">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800 text-xs">
+          <div className="flex h-44 shrink-0 flex-col border-t border-u-code-border bg-u-code-bg text-u-code-text">
+            <div className="flex items-center justify-between border-b border-u-code-border px-4 py-2 text-xs">
               <div className="flex items-center gap-2">
-                <Terminal className="w-3.5 h-3.5 text-blue-400" />
-                <span className="font-semibold text-slate-200">Power BI SDK Event Stream & Diagnostics</span>
+                <Terminal className="h-3.5 w-3.5 text-u-code-accent" />
+                <span className="font-semibold">Power BI SDK Event Stream & Diagnostics</span>
                 {config && (
-                  <span className="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-mono">
+                  <span className="rounded bg-u-code-surface px-2 py-0.5 font-mono text-[10px] text-u-code-accent">
                     Token Active (Expires: {expiration ? new Date(expiration).toLocaleTimeString() : 'N/A'})
                   </span>
                 )}
@@ -349,20 +323,20 @@ export const PowerBIEmbedComponent: React.FC = () => {
                     href={config.webUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[11px] text-blue-400 hover:underline flex items-center gap-1"
+                    className="flex items-center gap-1 text-[11px] text-u-code-accent hover:underline"
                   >
                     <span>Open in Power BI</span>
-                    <ExternalLink className="w-3 h-3" />
+                    <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
-                <button type="button" onClick={clearLogs} className="text-[11px] text-slate-400 hover:text-white">
+                <button type="button" onClick={clearLogs} className="text-[11px] text-u-code-muted hover:text-u-code-text">
                   Clear Logs
                 </button>
               </div>
             </div>
-            <div className="flex-1 p-3 overflow-y-auto font-mono text-[11px] text-slate-300 space-y-1">
+            <div className="flex-1 space-y-1 overflow-y-auto p-3 font-mono text-[11px]">
               {logs.length === 0 ? (
-                <div className="text-slate-500 italic">No events logged yet. Embed a report to begin listening...</div>
+                <div className="italic text-u-code-muted">No events logged yet. Embed a report to begin listening...</div>
               ) : (
                 logs.map((log, index) => (
                   <div key={`${index}-${log}`} className="leading-relaxed">

@@ -1,15 +1,23 @@
 import type React from 'react';
-import { Sliders, X } from 'lucide-react';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { useFilterStore } from '../../store/filters';
+import { Tab, Tabs } from '../ui/primitives';
 import { AVAILABLE_GROUPS } from './constants';
 
-const chip = (selected: boolean) =>
-  `px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
-    selected
-      ? 'bg-teal-600 text-white shadow-xs'
-      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 hover:text-slate-900'
-  }`;
+const RemovableChip: React.FC<{ label: string; value: string; onRemove: () => void; removeLabel: string }> = ({
+  label,
+  value,
+  onRemove,
+  removeLabel,
+}) => (
+  <span className="u-chip" data-tone="accent">
+    {label}: <strong className="font-bold">{value}</strong>
+    <button type="button" onClick={onRemove} className="-mr-1 grid h-4 w-4 cursor-pointer place-items-center rounded" title={removeLabel}>
+      <X className="h-3 w-3" />
+    </button>
+  </span>
+);
 
 export const FilterBar: React.FC = () => {
   const { group, className, kpiFocus } = useFilterStore(
@@ -29,78 +37,50 @@ export const FilterBar: React.FC = () => {
   const hasActiveFilters = Boolean(group || className || kpiFocus !== 'all');
 
   return (
-    <div className="bg-slate-50 border-b border-slate-200/90 px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0">
-      <div className="flex items-center gap-2 overflow-x-auto py-0.5">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mr-1 shrink-0">
-          <Sliders className="w-3.5 h-3.5 text-slate-500" />
-          <span>Cross-Filter by Group:</span>
-        </div>
-
-        <button
-          type="button"
-          onClick={actions.clearScope}
-          className={chip(!group)}
-        >
-          All Asset Groups
-        </button>
-
-        {AVAILABLE_GROUPS.map((grp) => (
-          <button type="button" key={grp} onClick={() => actions.toggleGroup(grp)} className={chip(group === grp)}>
-            {grp}
-          </button>
-        ))}
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-3 overflow-x-auto py-0.5">
+        <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-u-label">
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          Cross-filter by group
+        </span>
+        <Tabs label="Cross-filter by group">
+          <Tab active={!group} onClick={actions.clearScope}>
+            All Asset Groups
+          </Tab>
+          {AVAILABLE_GROUPS.map((grp) => (
+            <Tab key={grp} active={group === grp} onClick={() => actions.toggleGroup(grp)}>
+              {grp}
+            </Tab>
+          ))}
+        </Tabs>
       </div>
 
+      {!hasActiveFilters && (
+        <span className="flex items-center gap-2 text-[11px] font-semibold text-u-text-soft">
+          <span className="u-status-dot" aria-hidden="true" />
+          Live VertiPaq DAX · cross-filtering enabled
+        </span>
+      )}
+
       {hasActiveFilters && (
-        <div className="flex items-center gap-2" data-testid="active-filters">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Active Filters:</span>
-
-          {group && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800 border border-teal-300">
-              Group: <strong>{group}</strong>
-              <button
-                type="button"
-                onClick={actions.clearGroup}
-                className="hover:text-teal-950 p-0.5 cursor-pointer"
-                title="Remove group filter"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-
+        <div className="flex flex-wrap items-center gap-2" data-testid="active-filters">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-u-label">Active filters:</span>
+          {group && <RemovableChip label="Group" value={group} onRemove={actions.clearGroup} removeLabel="Remove group filter" />}
           {className && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-300">
-              Class: <strong>{className}</strong>
-              <button
-                type="button"
-                onClick={actions.clearClass}
-                className="hover:text-indigo-950 p-0.5 cursor-pointer"
-                title="Remove class filter"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
+            <RemovableChip label="Class" value={className} onRemove={actions.clearClass} removeLabel="Remove class filter" />
           )}
-
           {kpiFocus !== 'all' && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
-              Focus: <strong>{kpiFocus === 'renewal' ? 'Due for Renewal' : 'Condition Assessed'}</strong>
-              <button
-                type="button"
-                onClick={() => actions.setKpiFocus('all')}
-                className="hover:text-amber-950 p-0.5 cursor-pointer"
-                title="Reset KPI filter"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
+            <RemovableChip
+              label="Focus"
+              value={kpiFocus === 'renewal' ? 'Due for Renewal' : 'Condition Assessed'}
+              onRemove={() => actions.setKpiFocus('all')}
+              removeLabel="Reset KPI filter"
+            />
           )}
-
           <button
             type="button"
             onClick={actions.resetAll}
-            className="text-xs text-rose-600 hover:text-rose-800 font-semibold underline ml-1 cursor-pointer"
+            className="ml-1 cursor-pointer text-[11.5px] font-semibold text-u-bad-text underline underline-offset-2"
           >
             Reset All
           </button>

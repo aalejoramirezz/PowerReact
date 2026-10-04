@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Bot, Check, Copy, RotateCcw, Send, Sparkles, X } from 'lucide-react';
 import { ApiError, postJson } from '../../api/http';
 import type { ChatMessage } from '../../types';
+import { cx } from '../ui/cx';
+import { StatusChip } from '../ui/primitives';
 import { buildHistory, WELCOME_MESSAGE_ID } from './chatHistory';
 import { MarkdownMessage } from './MarkdownMessage';
 
@@ -131,51 +133,42 @@ export const AgenticChatPanel: React.FC<AgenticChatPanelProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-slate-900 border-l border-slate-700/60 text-slate-100 shadow-2xl relative">
+    <div
+      className="relative flex h-full w-full flex-col border-l border-u-panel-border bg-u-panel-bg text-u-text backdrop-blur-xl"
+      style={{ boxShadow: 'var(--u-panel-shadow)' }}
+    >
       {/* Header */}
-      <div className="p-3.5 border-b border-slate-800 bg-slate-950/70 backdrop-blur flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-u-panel-border p-3.5">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-[1px] shadow-md shadow-indigo-500/20">
-            <div className="w-full h-full bg-slate-950 rounded-lg flex items-center justify-center">
-              <Bot className="w-4 h-4 text-indigo-400" />
-            </div>
+          <div className="grid h-8 w-8 place-items-center rounded-lg bg-u-mark-bg text-u-mark-fg">
+            <Bot className="h-4 w-4" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h2 className="font-semibold text-xs text-slate-100">Chat with Data</h2>
-              <span className="flex items-center space-x-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Direct Lake Live</span>
-              </span>
+              <h2 className="font-display text-[13px] font-semibold text-u-title">Chat with Data</h2>
+              <StatusChip tone="ok" className="!h-5 !text-[10px]">
+                <span className="h-1.5 w-1.5 rounded-full bg-u-ok" aria-hidden="true" />
+                Direct Lake Live
+              </StatusChip>
             </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Asset Intelligence Copilot</p>
+            <p className="mt-0.5 text-[10px] text-u-label">Asset Intelligence Copilot</p>
           </div>
         </div>
 
         <div className="flex items-center space-x-1">
-          <button
-            type="button"
-            onClick={handleReset}
-            title="Reset conversation"
-            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
+          <button type="button" onClick={handleReset} title="Reset conversation" className="u-icon-btn">
+            <RotateCcw className="h-3.5 w-3.5" />
           </button>
-          <button
-            type="button"
-            onClick={onClose}
-            title="Close Copilot"
-            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
-          >
-            <X className="w-3.5 h-3.5" />
+          <button type="button" onClick={onClose} title="Close Copilot" className="u-icon-btn">
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Quick Prompts Bar */}
-      <div className="px-3.5 py-2 bg-slate-950/30 border-b border-slate-800/80 overflow-x-auto no-scrollbar flex items-center space-x-2">
-        <span className="text-[10px] font-semibold text-indigo-400 uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
-          <Sparkles className="w-3 h-3" /> Prompts:
+      {/* Quick prompts */}
+      <div className="no-scrollbar flex items-center space-x-2 overflow-x-auto border-b border-u-panel-border px-3.5 py-2">
+        <span className="flex items-center gap-1 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.1em] text-u-interaction">
+          <Sparkles className="h-3 w-3" /> Prompts:
         </span>
         {QUICK_PROMPTS.map((qp) => (
           <button
@@ -183,55 +176,48 @@ export const AgenticChatPanel: React.FC<AgenticChatPanelProps> = ({
             key={qp}
             onClick={() => void handleSend(qp)}
             disabled={loading}
-            className="text-[11px] px-2.5 py-1 bg-slate-800/80 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 rounded-full border border-slate-700/60 hover:border-indigo-500/40 whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer"
+            className="flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full border border-u-ghost-border bg-u-ghost-bg px-2.5 py-1 text-[11px] text-u-text-soft transition-colors hover:border-u-interaction hover:text-u-interaction disabled:opacity-50"
           >
             <span>{qp}</span>
-            <ArrowRight className="w-2.5 h-2.5 opacity-60" />
+            <ArrowRight className="h-2.5 w-2.5 opacity-60" />
           </button>
         ))}
       </div>
 
-      {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-3.5">
+      {/* Messages */}
+      <div className="flex-1 space-y-3.5 overflow-y-auto p-3.5">
         {messages.map((m) => {
           const isUser = m.role === 'user';
           return (
-            <div key={m.id} className={`flex items-start gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
+            <div key={m.id} className={cx('u-anim-fade flex items-start gap-2', isUser ? 'justify-end' : 'justify-start')}>
               {!isUser && (
-                <div className="w-6 h-6 rounded-md bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <Bot className="w-3.5 h-3.5 text-indigo-400" />
+                <div className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-u-mark-bg text-u-mark-fg">
+                  <Bot className="h-3.5 w-3.5" />
                 </div>
               )}
 
               <div
-                className={`max-w-[85%] rounded-xl p-2.5 text-xs leading-relaxed shadow-sm ${
+                className={cx(
+                  'max-w-[85%] rounded-xl p-2.5 text-xs leading-relaxed',
                   isUser
-                    ? 'bg-blue-600 text-white rounded-br-xs'
+                    ? 'rounded-br-[4px] bg-u-bubble-user-bg text-u-bubble-user-text'
                     : m.error
-                      ? 'bg-rose-950/60 text-rose-100 border border-rose-800/60 rounded-bl-xs'
-                      : 'bg-slate-800/95 text-slate-200 border border-slate-700/60 rounded-bl-xs'
-                }`}
-              >
-                {isUser ? (
-                  <div className="whitespace-pre-wrap">{m.content}</div>
-                ) : (
-                  <MarkdownMessage content={m.content} />
+                      ? 'rounded-bl-[4px] border border-u-bad/30 bg-u-bad-bg text-u-bad-text'
+                      : 'rounded-bl-[4px] border border-u-bubble-bot-border bg-u-bubble-bot-bg text-u-text'
                 )}
+              >
+                {isUser ? <div className="whitespace-pre-wrap">{m.content}</div> : <MarkdownMessage content={m.content} />}
 
-                <div
-                  className={`mt-1.5 flex items-center justify-between text-[10px] ${
-                    isUser ? 'text-blue-200/70' : 'text-slate-400'
-                  }`}
-                >
+                <div className={cx('mt-1.5 flex items-center justify-between text-[10px]', isUser ? 'opacity-75' : 'text-u-label')}>
                   <span>{m.timestamp}</span>
                   {!isUser && (
                     <button
                       type="button"
                       onClick={() => void copyToClipboard(m.content, m.id)}
-                      className="p-1 hover:text-slate-200 transition-colors ml-2 cursor-pointer"
+                      className="ml-2 cursor-pointer p-1 transition-colors hover:text-u-interaction"
                       title="Copy response"
                     >
-                      {copiedId === m.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      {copiedId === m.id ? <Check className="h-3 w-3 text-u-ok-text" /> : <Copy className="h-3 w-3" />}
                     </button>
                   )}
                 </div>
@@ -241,17 +227,13 @@ export const AgenticChatPanel: React.FC<AgenticChatPanelProps> = ({
         })}
 
         {loading && (
-          <div className="flex items-start gap-2 justify-start">
-            <div className="w-6 h-6 rounded-md bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-              <Bot className="w-3.5 h-3.5 text-indigo-400 animate-spin" />
+          <div className="flex items-start justify-start gap-2" role="status" aria-live="polite">
+            <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-u-mark-bg text-u-mark-fg">
+              <Bot className="h-3.5 w-3.5" />
             </div>
-            <div className="bg-slate-800/95 border border-slate-700/60 rounded-xl rounded-bl-xs p-2.5 text-xs text-slate-300 flex items-center space-x-2">
-              <div className="flex space-x-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.2s]"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.4s]"></span>
-              </div>
-              <span className="text-[11px] text-slate-400">Querying Fabric Direct Lake via AI...</span>
+            <div className="flex items-center space-x-2 rounded-xl rounded-bl-[4px] border border-u-bubble-bot-border bg-u-bubble-bot-bg p-2.5 text-xs">
+              <span className="u-spin inline-block h-3 w-3 rounded-full border-2 border-u-track border-t-u-primary" />
+              <span className="text-[11px] text-u-label">Querying Fabric Direct Lake via AI...</span>
             </div>
           </div>
         )}
@@ -259,9 +241,9 @@ export const AgenticChatPanel: React.FC<AgenticChatPanelProps> = ({
         <div ref={chatBottomRef} />
       </div>
 
-      {/* Input area */}
-      <div className="p-3 border-t border-slate-800 bg-slate-950/90">
-        <div className="relative rounded-xl bg-slate-900 border border-slate-700 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all">
+      {/* Input */}
+      <div className="border-t border-u-panel-border p-3">
+        <div className="relative rounded-xl border border-u-input-border bg-u-input-bg transition-[border-color,box-shadow] focus-within:border-u-focus focus-within:shadow-[var(--u-focus-ring)]">
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -269,7 +251,7 @@ export const AgenticChatPanel: React.FC<AgenticChatPanelProps> = ({
             placeholder="Ask a question about the asset data... (Press Enter to send)"
             aria-label="Ask the Data Agent"
             rows={2}
-            className="w-full bg-transparent p-2.5 pr-10 text-xs text-slate-100 placeholder-slate-500 focus:outline-none resize-none"
+            className="w-full resize-none bg-transparent p-2.5 pr-10 text-xs text-u-title placeholder:text-u-label focus:outline-none"
           />
 
           <button
@@ -277,18 +259,15 @@ export const AgenticChatPanel: React.FC<AgenticChatPanelProps> = ({
             onClick={() => void handleSend()}
             disabled={!prompt.trim() || loading}
             aria-label="Send question"
-            className={`absolute right-2 bottom-2 p-1.5 rounded-lg transition-all cursor-pointer ${
-              prompt.trim() && !loading
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                : 'text-slate-600 cursor-not-allowed'
-            }`}
+            className={cx(
+              'absolute bottom-2 right-2 rounded-lg p-1.5 transition-colors',
+              prompt.trim() && !loading ? 'cursor-pointer bg-u-btn-bg text-u-btn-text' : 'cursor-not-allowed text-u-label'
+            )}
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="h-3.5 w-3.5" />
           </button>
         </div>
-        <p className="text-[10px] text-slate-500 text-center mt-1.5">
-          Powered by Microsoft Fabric Data Agent • Service Principal
-        </p>
+        <p className="mt-1.5 text-center text-[10px] text-u-label">Powered by Microsoft Fabric Data Agent • Service Principal</p>
       </div>
     </div>
   );

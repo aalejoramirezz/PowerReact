@@ -16,6 +16,7 @@ TOPN(
   DESC
 )`;
 
+/** Code surface: an inverted slate block in Neo-Glass, a deeper well in Nocturne. */
 export const DaxInspector: React.FC = () => {
   const logs = useDaxLogStore((s) => s.logs);
   const [customDax, setCustomDax] = useState(DEFAULT_DAX);
@@ -32,31 +33,33 @@ export const DaxInspector: React.FC = () => {
   };
 
   return (
-    <div className="bg-slate-900 text-slate-200 rounded-xl border border-slate-800 p-5 shadow-xl animate-in slide-in-from-bottom duration-200 space-y-4">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+    <section
+      className="u-anim-rise space-y-4 border border-u-code-border bg-u-code-bg p-5 text-u-code-text"
+      style={{ borderRadius: 'var(--u-card-radius)' }}
+      aria-label="DAX Performance Inspector"
+    >
+      <div className="flex items-center justify-between border-b border-u-code-border pb-3">
         <div className="flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-teal-400" />
-          <h3 className="text-sm font-bold text-white">DAX Performance Inspector & Custom Query Runner</h3>
+          <Terminal className="h-5 w-5 text-u-code-accent" />
+          <h3 className="font-display text-[15px] font-semibold">DAX Performance Inspector & Custom Query Runner</h3>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400">Endpoint:</span>
-          <code className="text-[11px] bg-slate-800 px-2 py-0.5 rounded text-teal-300 font-mono">
-            POST /api/powerbi/query
-          </code>
+          <span className="text-[11px] text-u-code-muted">Endpoint:</span>
+          <code className="rounded bg-u-code-surface px-2 py-0.5 font-mono text-[11px] text-u-code-accent">POST /api/powerbi/query</code>
         </div>
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label htmlFor="custom-dax" className="text-xs font-semibold text-slate-300">
+          <label htmlFor="custom-dax" className="text-[12px] font-semibold">
             Execute any DAX query directly against VertiPaq in real time:
           </label>
           <button
             type="button"
             onClick={handleCopy}
-            className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 cursor-pointer"
+            className="flex cursor-pointer items-center gap-1 text-[12px] text-u-code-muted hover:text-u-code-text"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="h-3.5 w-3.5 text-u-code-accent" /> : <Copy className="h-3.5 w-3.5" />}
             <span>{copied ? 'Copied' : 'Copy DAX'}</span>
           </button>
         </div>
@@ -66,69 +69,60 @@ export const DaxInspector: React.FC = () => {
           value={customDax}
           onChange={(e) => setCustomDax(e.target.value)}
           rows={5}
-          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs text-teal-300 focus:outline-none focus:border-teal-500"
+          className="w-full rounded-lg border border-u-code-border bg-u-code-surface p-3 font-mono text-[12px] text-u-code-accent focus:border-u-code-accent focus:outline-none"
         />
 
         <div className="flex items-center justify-between pt-1">
-          <div className="text-xs text-slate-400">
-            Tip: Use <code className="text-teal-400">EVALUATE SUMMARIZECOLUMNS(...)</code> or{' '}
-            <code className="text-teal-400">EVALUATE ROW(...)</code>
+          <div className="text-[12px] text-u-code-muted">
+            Tip: Use <code className="text-u-code-accent">EVALUATE SUMMARIZECOLUMNS(...)</code> or{' '}
+            <code className="text-u-code-accent">EVALUATE ROW(...)</code>
           </div>
-          <button
-            type="button"
-            onClick={() => runner.mutate(customDax)}
-            disabled={runner.isPending}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
-          >
-            <Zap className={`w-3.5 h-3.5 ${runner.isPending ? 'animate-spin' : ''}`} />
+          <button type="button" onClick={() => runner.mutate(customDax)} disabled={runner.isPending} className="u-btn">
+            <Zap className={`h-3.5 w-3.5 ${runner.isPending ? 'u-spin' : ''}`} />
             <span>{runner.isPending ? 'Executing...' : 'Execute DAX'}</span>
           </button>
         </div>
 
         {runner.isError && (
-          <div className="p-3 bg-red-950/60 border border-red-800 text-red-300 text-xs rounded-lg">
+          <div className="rounded-lg bg-u-bad-bg p-3 text-[12px] text-u-bad-text">
             <strong>Error:</strong> {errorMessage(runner.error)}
           </div>
         )}
 
         {runner.isSuccess && (
-          <div className="p-3 bg-slate-950 border border-slate-800 rounded-lg overflow-x-auto max-h-48 text-[11px] font-mono text-slate-300">
-            <div className="text-xs text-emerald-400 font-bold mb-1">
-              ✓ {runner.data.length} rows returned as raw JSON:
-            </div>
+          <div className="max-h-48 overflow-auto rounded-lg border border-u-code-border bg-u-code-surface p-3 font-mono text-[11px]">
+            <div className="mb-1 text-[12px] font-bold text-u-code-accent">✓ {runner.data.length} rows returned as raw JSON:</div>
             <pre>{JSON.stringify(runner.data, null, 2)}</pre>
           </div>
         )}
       </div>
 
-      <div className="border-t border-slate-800 pt-3">
-        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+      <div className="border-t border-u-code-border pt-3">
+        <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-u-code-muted">
           Recent DAX Query History & Latency
         </h4>
-        <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
-          {logs.length === 0 && <div className="text-xs text-slate-500 italic">No queries executed yet.</div>}
+        <div className="max-h-44 space-y-2 overflow-y-auto pr-1">
+          {logs.length === 0 && <div className="text-[12px] italic text-u-code-muted">No queries executed yet.</div>}
           {logs.map((log) => (
             <div
               key={log.id}
-              className="p-2.5 bg-slate-950/70 border border-slate-800/80 rounded-lg flex items-start justify-between gap-3 text-xs"
+              className="flex items-start justify-between gap-3 rounded-lg border border-u-code-border bg-u-code-surface p-2.5 text-[12px]"
             >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 font-medium text-slate-200">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 font-medium">
                   <span>{log.title}</span>
-                  <span className="text-[10px] text-slate-500">[{log.timestamp}]</span>
+                  <span className="text-[10px] text-u-code-muted">[{log.timestamp}]</span>
                 </div>
-                <pre className="text-[10px] text-teal-400/90 font-mono mt-1 truncate">
-                  {log.dax.replace(/\s+/g, ' ')}
-                </pre>
+                <pre className="mt-1 truncate font-mono text-[10px] text-u-code-accent">{log.dax.replace(/\s+/g, ' ')}</pre>
               </div>
-              <div className="flex items-center gap-3 shrink-0 font-mono text-[11px]">
-                <span className="text-slate-400">{log.rowCount} rows</span>
-                <span className="px-2 py-0.5 rounded bg-slate-800 text-teal-300 font-bold">{log.durationMs} ms</span>
+              <div className="flex shrink-0 items-center gap-3 font-mono text-[11px]">
+                <span className="text-u-code-muted">{log.rowCount} rows</span>
+                <span className="rounded bg-u-code-bg px-2 py-0.5 font-bold text-u-code-accent">{log.durationMs} ms</span>
               </div>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
