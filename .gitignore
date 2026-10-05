@@ -10,12 +10,19 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-server
+playwright-report
+test-results
+blob-report
 *.local
 .env
 .env.*
 !.env.example
 *.env
 scratch/
+
+# Local agent settings (skills under .claude/skills are generated and committed)
+.claude/settings.local.json
 
 # Editor directories and files
 .vscode/*

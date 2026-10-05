@@ -1,27 +1,104 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import './theme/tokens.css';
+/* Layered so Tailwind utilities (layer utilities) can still adjust a surface class */
+@import './theme/base.css' layer(base);
+@import './theme/surfaces.css' layer(components);
 
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: #0b0f19;
-  color: #f1f5f9;
+/* Nocturne is the dark template: `dark:` utilities follow <html data-theme="nocturne"> */
+@custom-variant dark (&:where([data-theme='nocturne'], [data-theme='nocturne'] *));
+
+/* No stock palette: every colour utility must resolve to a design token (bg-u-*, text-u-*, …) */
+@theme {
+  --color-*: initial;
+  --color-white: white;
+  --color-black: black;
 }
 
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #0f172a;
-}
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+@theme inline {
+  --font-sans: var(--u-font-body);
+  --font-display: var(--u-font-display);
+
+  --color-u-canvas: var(--u-canvas);
+  --color-u-title: var(--u-title);
+  --color-u-text: var(--u-text);
+  --color-u-text-soft: var(--u-text-soft);
+  --color-u-subtitle: var(--u-subtitle);
+  --color-u-label: var(--u-label);
+  --color-u-axis: var(--u-axis);
+  --color-u-eyebrow: var(--u-eyebrow);
+
+  --color-u-primary: var(--u-primary);
+  --color-u-secondary: var(--u-secondary);
+  --color-u-neutral: var(--u-neutral);
+  --color-u-grid: var(--u-grid);
+  --color-u-track: var(--u-track);
+  --color-u-interaction: var(--u-interaction);
+
+  --color-u-ok: var(--u-ok);
+  --color-u-ok-text: var(--u-ok-text);
+  --color-u-ok-bg: var(--u-ok-bg);
+  --color-u-warn: var(--u-warn);
+  --color-u-warn-text: var(--u-warn-text);
+  --color-u-warn-bg: var(--u-warn-bg);
+  --color-u-bad: var(--u-bad);
+  --color-u-bad-text: var(--u-bad-text);
+  --color-u-bad-bg: var(--u-bad-bg);
+  --color-u-delta-up: var(--u-delta-up);
+  --color-u-delta-down: var(--u-delta-down);
+
+  --color-u-mark-bg: var(--u-mark-bg);
+  --color-u-mark-fg: var(--u-mark-fg);
+  --color-u-card-solid: var(--u-card-solid);
+  --color-u-card-border: var(--u-card-border);
+  --color-u-tooltip-bg: var(--u-tooltip-bg);
+  --color-u-tooltip-text: var(--u-tooltip-text);
+  --color-u-tooltip-muted: var(--u-tooltip-muted);
+
+  --color-u-th-bg: var(--u-th-bg);
+  --color-u-th-text: var(--u-th-text);
+  --color-u-td-text: var(--u-td-text);
+  --color-u-row-alt: var(--u-row-alt);
+  --color-u-row-line: var(--u-row-line);
+  --color-u-row-hover: var(--u-row-hover);
+  --color-u-row-selected: var(--u-row-selected);
+
+  --color-u-input-bg: var(--u-input-bg);
+  --color-u-input-border: var(--u-input-border);
+  --color-u-focus: var(--u-focus);
+  --color-u-btn-bg: var(--u-btn-bg);
+  --color-u-btn-text: var(--u-btn-text);
+  --color-u-ghost-bg: var(--u-ghost-bg);
+  --color-u-ghost-border: var(--u-ghost-border);
+  --color-u-ghost-hover: var(--u-ghost-hover);
+
+  --color-u-shell-header-bg: var(--u-shell-header-bg);
+  --color-u-shell-header-border: var(--u-shell-header-border);
+  --color-u-shell-header-text: var(--u-shell-header-text);
+  --color-u-shell-header-muted: var(--u-shell-header-muted);
+  --color-u-shell-control-bg: var(--u-shell-control-bg);
+  --color-u-shell-control-border: var(--u-shell-control-border);
+  --color-u-shell-control-active-bg: var(--u-shell-control-active-bg);
+  --color-u-sidebar-bg: var(--u-sidebar-bg);
+  --color-u-sidebar-border: var(--u-sidebar-border);
+  --color-u-sidebar-text: var(--u-sidebar-text);
+  --color-u-sidebar-muted: var(--u-sidebar-muted);
+  --color-u-sidebar-hover: var(--u-sidebar-hover);
+  --color-u-sidebar-active-bg: var(--u-sidebar-active-bg);
+  --color-u-sidebar-active-text: var(--u-sidebar-active-text);
+
+  --color-u-panel-bg: var(--u-panel-bg);
+  --color-u-panel-solid: var(--u-panel-solid);
+  --color-u-panel-border: var(--u-panel-border);
+  --color-u-overlay: var(--u-overlay);
+  --color-u-bubble-user-bg: var(--u-bubble-user-bg);
+  --color-u-bubble-user-text: var(--u-bubble-user-text);
+  --color-u-bubble-bot-bg: var(--u-bubble-bot-bg);
+  --color-u-bubble-bot-border: var(--u-bubble-bot-border);
+
+  --color-u-code-bg: var(--u-code-bg);
+  --color-u-code-surface: var(--u-code-surface);
+  --color-u-code-border: var(--u-code-border);
+  --color-u-code-text: var(--u-code-text);
+  --color-u-code-muted: var(--u-code-muted);
+  --color-u-code-accent: var(--u-code-accent);
 }

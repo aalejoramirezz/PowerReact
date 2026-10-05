@@ -1,0 +1,362 @@
+/*
+ * Univerus design tokens — the ONLY place colours, surfaces and motion values live.
+ *
+ * Two templates from Univerus-Lens, switched with <html data-theme="…">:
+ *   neoglass  Plantilla B · Neo-Glass Light  (templates/html/07_neo-glass-v3-light.html)
+ *   nocturne  Plantilla A · Nocturne Dark    (templates/html/univerus-dashboard-A-nocturne.html)
+ *
+ * Values come from Lens `core/compiler/univerus_theme.py` (TOKENS) and the two dashboard mockups.
+ * Lens draws on a 1920 px canvas; sizes here are real CSS px for the responsive app
+ * (Nocturne radii/paddings scaled ~0.7). Components read roles, never hex values:
+ * see .agents/skills/powerreact-design-system.
+ */
+
+:root,
+:root[data-theme='neoglass'] {
+  color-scheme: light;
+
+  /* typography (same scale in both themes: switching never reflows text) */
+  --u-font-display: 'Space Grotesk Variable', 'Segoe UI', system-ui, sans-serif;
+  --u-font-body: 'Montserrat Variable', 'Segoe UI', system-ui, sans-serif;
+  --u-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* app canvas + report scene (ambient, static) */
+  --u-canvas: #f5faff;
+  --u-scene:
+    radial-gradient(820px 540px at 7% 3%, rgba(98, 192, 197, 0.18), transparent 64%),
+    radial-gradient(740px 480px at 96% 12%, rgba(52, 167, 173, 0.12), transparent 62%),
+    radial-gradient(920px 580px at 68% 112%, rgba(208, 227, 236, 0.45), transparent 66%),
+    linear-gradient(145deg, #ffffff 0%, #f5faff 48%, #eef5f7 100%);
+  --u-orb: radial-gradient(circle at 42% 42%, rgba(138, 243, 249, 0.36), rgba(98, 192, 197, 0.14) 44%, transparent 72%);
+  --u-orb-opacity: 0.62;
+  --u-blob-a: transparent;
+  --u-blob-b: transparent;
+  --u-plane-highlight: radial-gradient(650px 260px at 20% -3%, rgba(255, 255, 255, 0.9), transparent 68%);
+  --u-rays: none;
+
+  /* the single glass plane ("monolith") that frames a report */
+  --u-plane-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.5)),
+    linear-gradient(132deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.1) 52%, rgba(224, 242, 243, 0.22));
+  --u-plane-border: rgba(255, 255, 255, 0.94);
+  --u-plane-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96), inset 0 -1px 0 rgba(109, 121, 122, 0.06),
+    0 18px 54px rgba(13, 19, 23, 0.07);
+  --u-plane-blur: blur(28px) saturate(132%);
+  --u-plane-radius: 24px;
+  --u-glow: none;
+  --u-rule: linear-gradient(90deg, rgba(52, 167, 173, 0.4), rgba(52, 167, 173, 0.12) 22%, rgba(109, 121, 122, 0.09) 60%, transparent);
+  --u-header-divider: rgba(13, 19, 23, 0.1);
+  --u-eyebrow: #237a7f;
+  --u-logo-frame: #37a9ae;
+  --u-logo-word: #00355a;
+
+  /* standard chart surface (Lens neoglass css_card) */
+  --u-card-bg: rgba(255, 255, 255, 0.72);
+  --u-card-solid: #ffffff;
+  --u-card-border: rgba(220, 229, 232, 0.94);
+  --u-card-radius: 14px;
+  --u-card-shadow: 0 8px 26px rgba(13, 19, 23, 0.04);
+  --u-card-blur: blur(15px);
+  --u-card-pad: 18px;
+  --u-kpi-pad: 16px 17px 14px;
+  --u-card-hover-border: #34a7ad;
+  --u-card-hover-shadow: 0 6px 16px rgba(52, 167, 173, 0.08), 0 8px 26px rgba(13, 19, 23, 0.04);
+  --u-card-hover-lift: -2px;
+  --u-gap: 16px;
+
+  /* text */
+  --u-title: #0d1317;
+  --u-text: #161c20;
+  --u-text-soft: #3d4949;
+  --u-subtitle: #819095;
+  --u-label: #748388;
+  --u-axis: #748388;
+
+  /* data roles (one functional hierarchy per theme) */
+  --u-primary: #34a7ad;
+  --u-secondary: #8a9b9c;
+  --u-neutral: #b8cacb;
+  --u-grid: #e9eef4;
+  --u-grid-dash: none;
+  --u-track: #eff4fa;
+  --u-interaction: #237a7f;
+  --u-bar-1: #34a7ad;
+  --u-bar-2: #62c0c5;
+  --u-bar-3: #62c0c5;
+  --u-bar-glow: none;
+  --u-area: #34a7ad;
+  --u-area-opacity: 0.18;
+  --u-ac: #0d1317;
+  --u-series-1: #34a7ad;
+  --u-series-2: #62c0c5;
+  --u-series-3: #b8cacb;
+  --u-series-4: #d4e6e7;
+  --u-series-5: #237a7f;
+  --u-series-6: #506169;
+
+  /* semantic status (ok/bad from DESIGN.md; warn and delta-down from the light mockup) */
+  --u-ok: #34a7ad;
+  /* DESIGN.md chip text #237A7F is 4.4:1 on #E0F2F3; DESIGN primary #00696E reaches AA */
+  --u-ok-text: #00696e;
+  --u-ok-bg: #e0f2f3;
+  --u-warn: #8b6a3a;
+  --u-warn-text: #7a5c30;
+  --u-warn-bg: #f7f1e8;
+  --u-bad: #ba1a1a;
+  --u-bad-text: #ba1a1a;
+  --u-bad-bg: #ffdad6;
+  --u-delta-up: #237a7f;
+  --u-delta-down: #9a5e51;
+
+  /* KPI icon mark */
+  --u-mark-bg: #e0f2f3;
+  --u-mark-fg: #237a7f;
+
+  /* hover curtain (Lens _curtain): opaque card, accent hem */
+  --u-curtain-bg: rgba(255, 255, 255, 0.97);
+  --u-curtain-accent: #237a7f;
+  --u-curtain-glow: rgba(52, 167, 173, 0.55);
+
+  /* tooltips concentrate contrast (principle 29): inverse surface */
+  --u-tooltip-bg: #0d1317;
+  --u-tooltip-text: #ffffff;
+  --u-tooltip-muted: rgba(255, 255, 255, 0.7);
+  --u-tooltip-shadow: 0 10px 30px rgba(13, 19, 23, 0.18);
+
+  /* tables (DESIGN.md "Data Tables") */
+  --u-th-bg: #f6f9fa;
+  --u-th-text: #5c6f75;
+  --u-td-text: #3d4949;
+  --u-row-alt: #fafcfd;
+  --u-row-line: #f0f4f5;
+  --u-row-hover: #f6f9fa;
+  --u-row-selected: #e0f2f3;
+
+  /* controls */
+  --u-input-bg: #ffffff;
+  --u-input-border: #bcc9c9;
+  --u-input-placeholder: #8c9da3;
+  --u-focus-ring: 0 0 0 3px rgba(52, 167, 173, 0.18);
+  --u-focus: #34a7ad;
+  /* primary action: DESIGN.md asks #34A7AD + white (2.9:1); the AA alternative #237A7F is used (5.3:1) */
+  --u-btn-bg: #237a7f;
+  --u-btn-bg-hover: #00696e;
+  --u-btn-text: #ffffff;
+  --u-btn-border: #237a7f;
+  --u-ghost-bg: rgba(255, 255, 255, 0.7);
+  --u-ghost-border: #dce5e8;
+  --u-ghost-hover: #e0f2f3;
+  /* filter buttons = Lens page navigator (TOKENS['neoglass']['nav']): framed buttons, no shadow;
+     selected = teal fill with white text (Lens' AA alternative #237A7F, 5.1:1) */
+  --u-tab-bg: #ffffff;
+  --u-tab-border: #dce5e8;
+  --u-tab-text: #5c6f75;
+  --u-tab-hover-bg: #e0f2f3;
+  --u-tab-hover-text: #00696e;
+  --u-tab-active-bg: #237a7f;
+  --u-tab-active-text: #ffffff;
+  --u-tab-active-border: #237a7f;
+  --u-tab-radius: 10px;
+
+  /* app shell: DESIGN.md "Secondary #1A2B32 … navigation shells" */
+  --u-shell-header-bg: #1a2b32;
+  --u-shell-header-border: rgba(255, 255, 255, 0.06);
+  --u-shell-header-text: #ffffff;
+  --u-shell-header-muted: rgba(236, 241, 247, 0.68);
+  --u-shell-control-bg: rgba(255, 255, 255, 0.07);
+  --u-shell-control-border: rgba(255, 255, 255, 0.12);
+  --u-shell-control-active-bg: #237a7f;
+  --u-sidebar-bg: #f6f9fa;
+  --u-sidebar-border: #dce5e8;
+  --u-sidebar-text: #3d4949;
+  --u-sidebar-muted: #8c9da3;
+  --u-sidebar-hover: #eef4f6;
+  --u-sidebar-active-bg: #e0f2f3;
+  --u-sidebar-active-text: #00696e;
+
+  /* floating panels, drawers and modals (DESIGN.md layers 2–3) */
+  --u-panel-bg: rgba(255, 255, 255, 0.86);
+  --u-panel-solid: #ffffff;
+  --u-panel-border: #dce5e8;
+  --u-panel-shadow: 0 8px 24px rgba(13, 19, 23, 0.08);
+  --u-overlay: rgba(13, 19, 23, 0.6);
+  --u-modal-shadow: 0 20px 48px rgba(13, 19, 23, 0.16);
+  --u-bubble-user-bg: #237a7f;
+  --u-bubble-user-text: #ffffff;
+  --u-bubble-bot-bg: #f6f9fa;
+  --u-bubble-bot-border: #dce5e8;
+
+  /* code surfaces (DAX inspector): an inverted slate block in the light theme */
+  --u-code-bg: #1a2b32;
+  --u-code-surface: #13222a;
+  --u-code-border: rgba(255, 255, 255, 0.08);
+  --u-code-text: #d4e6e7;
+  --u-code-muted: #8a9b9c;
+  --u-code-accent: #6cd6dd;
+
+  --u-scrollbar: #c9d5d8;
+  --u-scrollbar-hover: #a8b8bd;
+}
+
+:root[data-theme='nocturne'] {
+  color-scheme: dark;
+
+  --u-canvas: #0a0f12;
+  --u-scene: linear-gradient(135deg, #0d1317 0%, #062b3f 40%, #00355a 60%, #1a2b32 100%);
+  --u-orb: radial-gradient(circle at 50% 50%, rgba(52, 167, 173, 0.75), transparent 70%);
+  --u-orb-opacity: 0.55;
+  --u-blob-a: #34a7ad;
+  --u-blob-b: #237a7f;
+  --u-plane-highlight: none;
+  --u-rays: repeating-linear-gradient(90deg, transparent 0 88px, rgba(255, 255, 255, 0.035) 88px 112px, transparent 112px 176px);
+
+  /* the dark window with a teal glow rising from its base */
+  --u-plane-bg: #070b0e;
+  --u-plane-border: rgba(255, 255, 255, 0.07);
+  --u-plane-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  --u-plane-blur: none;
+  --u-plane-radius: 36px;
+  --u-glow:
+    radial-gradient(55% 60% at 50% 100%, rgba(138, 215, 219, 0.75) 0%, rgba(98, 192, 197, 0.6) 24%, rgba(52, 167, 173, 0.4) 45%, transparent 75%),
+    linear-gradient(to top, rgba(120, 205, 210, 0.85) 0%, rgba(52, 167, 173, 0.7) 16%, rgba(35, 122, 127, 0.6) 32%, rgba(0, 53, 90, 0.6) 50%, rgba(0, 53, 90, 0) 80%);
+  --u-rule: transparent;
+  --u-header-divider: rgba(255, 255, 255, 0.22);
+  --u-eyebrow: rgba(236, 241, 247, 0.62);
+  --u-logo-frame: #37a9ae;
+  --u-logo-word: #ffffff;
+
+  /* dark-glass card (Lens nocturne css_card): keeps text >= 4.8:1 even over the glow */
+  --u-card-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.07)), rgba(22, 28, 32, 0.88);
+  --u-card-solid: #161c20;
+  --u-card-border: rgba(255, 255, 255, 0.1);
+  --u-card-radius: 20px;
+  --u-card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --u-card-blur: blur(24px) saturate(140%);
+  --u-card-pad: 20px 22px;
+  --u-kpi-pad: 16px 20px;
+  --u-card-hover-border: rgba(138, 243, 249, 0.38);
+  --u-card-hover-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(138, 243, 249, 0.08);
+  --u-card-hover-lift: 0px;
+  --u-gap: 20px;
+
+  --u-title: #ffffff;
+  --u-text: #e2e8f0;
+  --u-text-soft: #cbd3da;
+  --u-subtitle: #959aa0;
+  --u-label: #b6bbc1;
+  --u-axis: #959aa0;
+
+  --u-primary: #8af3f9;
+  --u-secondary: #95989a;
+  --u-neutral: #b7c9d2;
+  --u-grid: #2a2f33;
+  --u-grid-dash: 4 6;
+  --u-track: #262c30;
+  --u-interaction: #8af3f9;
+  --u-bar-1: #237a7f;
+  --u-bar-2: #62c0c5;
+  --u-bar-3: #8af3f9;
+  --u-bar-glow: 0 0 16px rgba(138, 243, 249, 0.35);
+  --u-area: #34a7ad;
+  --u-area-opacity: 0.55;
+  --u-ac: #ffffff;
+  --u-series-1: #8af3f9;
+  --u-series-2: #34a7ad;
+  --u-series-3: #237a7f;
+  --u-series-4: #b7c9d2;
+  --u-series-5: #62c0c5;
+  --u-series-6: #6cd6dd;
+
+  /* EXCEPTION (as in Lens): DESIGN.md has no on-dark status colours; #BA1A1A is 2.2:1 here */
+  --u-ok: #8af3f9;
+  --u-ok-text: #8af3f9;
+  --u-ok-bg: rgba(138, 243, 249, 0.12);
+  --u-warn: #f5a524;
+  --u-warn-text: #f5a524;
+  --u-warn-bg: rgba(245, 165, 36, 0.14);
+  --u-bad: #ff7a6b;
+  --u-bad-text: #ff7a6b;
+  --u-bad-bg: rgba(255, 122, 107, 0.14);
+  --u-delta-up: #8af3f9;
+  --u-delta-down: #ff7a6b;
+
+  --u-mark-bg: rgba(138, 243, 249, 0.1);
+  --u-mark-fg: #8af3f9;
+
+  --u-curtain-bg: rgba(22, 28, 32, 0.97);
+  --u-curtain-accent: #8af3f9;
+  --u-curtain-glow: rgba(138, 243, 249, 0.55);
+
+  --u-tooltip-bg: #ffffff;
+  --u-tooltip-text: #0d1317;
+  --u-tooltip-muted: rgba(13, 19, 23, 0.62);
+  --u-tooltip-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+
+  --u-th-bg: #1b2226;
+  --u-th-text: #959aa0;
+  --u-td-text: #e2e8f0;
+  --u-row-alt: rgba(255, 255, 255, 0.025);
+  --u-row-line: #262c30;
+  --u-row-hover: rgba(255, 255, 255, 0.04);
+  --u-row-selected: rgba(138, 243, 249, 0.08);
+
+  --u-input-bg: #1b2226;
+  --u-input-border: #3e4447;
+  --u-input-placeholder: #7d8389;
+  --u-focus-ring: 0 0 0 3px rgba(138, 243, 249, 0.2);
+  --u-focus: #8af3f9;
+  /* Lens nocturne nav: teal fill + white text, cyan outline (white on the cyan primary is 1.3:1) */
+  --u-btn-bg: #237a7f;
+  --u-btn-bg-hover: #2b8f95;
+  --u-btn-text: #ffffff;
+  --u-btn-border: rgba(138, 243, 249, 0.55);
+  --u-ghost-bg: rgba(255, 255, 255, 0.06);
+  --u-ghost-border: rgba(255, 255, 255, 0.1);
+  --u-ghost-hover: rgba(255, 255, 255, 0.1);
+  /* Lens TOKENS['nocturne']['nav']: dark card buttons; selected = teal fill, white text, cyan outline */
+  --u-tab-bg: #161c20;
+  --u-tab-border: #2d3336;
+  --u-tab-text: #b6bbc1;
+  --u-tab-hover-bg: #1b2226;
+  --u-tab-hover-text: #ffffff;
+  --u-tab-active-bg: #237a7f;
+  --u-tab-active-text: #ffffff;
+  --u-tab-active-border: #8af3f9;
+  --u-tab-radius: 12px;
+
+  --u-shell-header-bg: #070b0e;
+  --u-shell-header-border: rgba(255, 255, 255, 0.07);
+  --u-shell-header-text: #ffffff;
+  --u-shell-header-muted: rgba(236, 241, 247, 0.62);
+  --u-shell-control-bg: rgba(255, 255, 255, 0.06);
+  --u-shell-control-border: rgba(255, 255, 255, 0.1);
+  --u-shell-control-active-bg: #237a7f;
+  --u-sidebar-bg: #0b1115;
+  --u-sidebar-border: rgba(255, 255, 255, 0.07);
+  --u-sidebar-text: #cbd3da;
+  --u-sidebar-muted: #6f777d;
+  --u-sidebar-hover: rgba(255, 255, 255, 0.05);
+  --u-sidebar-active-bg: rgba(138, 243, 249, 0.1);
+  --u-sidebar-active-text: #8af3f9;
+
+  --u-panel-bg: rgba(16, 22, 26, 0.94);
+  --u-panel-solid: #10161a;
+  --u-panel-border: rgba(255, 255, 255, 0.1);
+  --u-panel-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  --u-overlay: rgba(3, 6, 8, 0.7);
+  --u-modal-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  --u-bubble-user-bg: #237a7f;
+  --u-bubble-user-text: #ffffff;
+  --u-bubble-bot-bg: rgba(255, 255, 255, 0.06);
+  --u-bubble-bot-border: rgba(255, 255, 255, 0.1);
+
+  --u-code-bg: #0b1115;
+  --u-code-surface: #070b0e;
+  --u-code-border: rgba(255, 255, 255, 0.08);
+  --u-code-text: #d4e6e7;
+  --u-code-muted: #959aa0;
+  --u-code-accent: #8af3f9;
+
+  --u-scrollbar: #2d3336;
+  --u-scrollbar-hover: #3e4447;
+}

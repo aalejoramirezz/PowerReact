@@ -15,25 +15,19 @@ export interface ReportEmbedConfig {
   accessToken: string;
   tokenType: 'Embed' | 'Aad';
   isPaginated: boolean;
+  /** ISO timestamp of the access token expiry. */
   expiration: string;
   datasetId?: string;
   webUrl?: string;
   pageName?: string;
 }
 
-export interface FabricWorkspace {
-  id: string;
-  displayName: string;
-  type: string;
-  description?: string;
-}
-
-export interface FabricItem {
-  id: string;
-  displayName: string;
-  type: string;
-  workspaceId: string;
-  description?: string;
+export interface HealthStatus {
+  status: string;
+  configured: boolean;
+  tenantId: string;
+  clientId: string | null;
+  unityDomain: string;
 }
 
 export interface ChatMessage {
@@ -41,8 +35,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: string;
-  sqlQuery?: string;
-  data?: any;
-  raw?: any;
+  /** Raw Data Agent payload, kept for debugging. */
+  data?: unknown;
   error?: boolean;
 }

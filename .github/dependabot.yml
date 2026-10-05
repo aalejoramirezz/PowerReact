@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom", "react-router", "react-markdown", "remark-gfm"]
+      data:
+        patterns: ["@tanstack/*", "zustand", "powerbi-client"]
+      server:
+        patterns: ["express", "@types/express", "cors", "@types/cors", "dotenv", "axios"]
+      tooling:
+        patterns: ["vite", "@vitejs/*", "vitest", "typescript", "tsx", "oxlint", "tailwindcss", "@tailwindcss/*", "@playwright/test", "supertest", "@types/supertest", "concurrently", "@types/node"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

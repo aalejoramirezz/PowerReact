@@ -1,10 +1,24 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="neoglass">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>embed-playground</title>
+    <title>PowerReact</title>
+    <script>
+      // Apply the saved Univerus theme before the first paint (no light/dark flash).
+      // Keep in sync with resolveInitialTheme() in src/store/theme.ts.
+      (function () {
+        var theme = null;
+        try {
+          theme = window.localStorage.getItem('powerreact-theme');
+        } catch (e) {}
+        if (theme !== 'neoglass' && theme !== 'nocturne') {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'nocturne' : 'neoglass';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
