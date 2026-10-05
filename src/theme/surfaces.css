@@ -164,7 +164,8 @@
     transform: translateY(var(--u-card-hover-lift));
   }
 }
-.u-card--interactive:focus-visible {
+.u-card--interactive:focus-visible,
+.u-card--interactive:has(> :focus-visible) {
   outline: none;
   border-color: var(--u-focus);
   box-shadow: var(--u-focus-ring), var(--u-card-shadow);
@@ -234,10 +235,12 @@
   }
 }
 .u-curtain-host:focus-visible > .u-curtain,
+.u-curtain-host:has(> :focus-visible) > .u-curtain,
 .u-curtain[data-open='true'] {
   transform: none;
 }
 .u-curtain-host:focus-visible > .u-curtain > *,
+.u-curtain-host:has(> :focus-visible) > .u-curtain > *,
 .u-curtain[data-open='true'] > * {
   opacity: 1;
   transform: none;
@@ -353,6 +356,10 @@
   color: var(--u-interaction);
   background: var(--u-ghost-hover);
 }
+.u-icon-btn[aria-pressed='true'] {
+  color: var(--u-interaction);
+  border-color: var(--u-interaction);
+}
 
 .u-input {
   height: 32px;
@@ -375,55 +382,66 @@
   box-shadow: var(--u-focus-ring);
 }
 
-/* Segmented tabs (light mockup .tabs / dark mockup pill tabs) */
+/* Filter buttons = Lens page navigator: framed buttons like the cards, 8px apart, no shadows.
+   Borders carry the structure; the selected one is a teal fill with white text (palette, AA). */
 .u-tabs {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 12px;
-  background: var(--u-tabs-bg);
-  border: 1px solid var(--u-tabs-border);
-  box-shadow: var(--u-tabs-shadow);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-:root[data-theme='nocturne'] .u-tabs {
-  border-radius: 999px;
+  gap: 8px;
 }
 .u-tab {
   display: inline-flex;
+  flex: none;
   align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
   white-space: nowrap;
-  border: 0;
-  background: transparent;
-  padding: 8px 13px;
-  border-radius: 9px;
+  border: 1px solid var(--u-tab-border);
+  border-radius: var(--u-tab-radius);
+  background: var(--u-tab-bg);
   color: var(--u-tab-text);
-  font: 600 11.5px/1 var(--u-font-body);
-  letter-spacing: 0.01em;
+  font: 600 12px/1 var(--u-font-body);
   cursor: pointer;
 }
-:root[data-theme='nocturne'] .u-tab {
-  border-radius: 999px;
-}
-.u-tab:hover {
-  color: var(--u-title);
+@media (hover: hover) and (pointer: fine) {
+  .u-tab:hover:not([aria-pressed='true']):not([aria-selected='true']) {
+    background: var(--u-tab-hover-bg);
+    color: var(--u-tab-hover-text);
+  }
 }
 .u-tab[aria-pressed='true'],
 .u-tab[aria-selected='true'] {
-  color: var(--u-tab-active-text);
   background: var(--u-tab-active-bg);
-  box-shadow: var(--u-tab-active-shadow);
+  border-color: var(--u-tab-active-border);
+  color: var(--u-tab-active-text);
 }
-.u-tab[aria-pressed='true']::before,
-.u-tab[aria-selected='true']::before {
-  content: '';
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  margin-right: 7px;
-  background: var(--u-tab-dot);
+
+/* Horizontal scroller (filter rows on narrow screens): snap, no scrollbar, the right edge fades
+   to say "there is more". The end padding keeps the last item clear of the fade. */
+.u-scroll-x {
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding: 3px 28px 3px 3px;
+  -webkit-mask-image: linear-gradient(90deg, black calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, black calc(100% - 28px), transparent);
+}
+.u-scroll-x::-webkit-scrollbar {
+  display: none;
+}
+.u-scroll-x > * {
+  scroll-snap-align: start;
+}
+
+/* A chart that needs more width than its card: it scrolls inside the card (thin visible scrollbar,
+   so the extra width is discoverable) and never pushes the page sideways. */
+.u-chart-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  padding-bottom: 6px;
+  border-radius: 6px;
 }
 
 /* Chips: status (data-tone) and removable filter chips */
@@ -492,6 +510,10 @@
   padding: 0 12px;
   border-bottom: 1px solid var(--u-row-line);
 }
+/* End-aligned cell content (flex); the stacked list layout re-aligns it to the start */
+.u-cell-end {
+  justify-content: flex-end;
+}
 .u-table tbody tr:nth-child(even) {
   background: var(--u-row-alt);
 }
@@ -543,4 +565,71 @@
   border-radius: 6px;
   background: linear-gradient(90deg, var(--u-track), color-mix(in srgb, var(--u-track) 55%, transparent), var(--u-track));
   background-size: 200% 100%;
+}
+
+/* ───────────── Responsive ───────────── */
+
+/* Phones: the plane hugs the screen edges */
+@media (max-width: 640px) {
+  .u-plane {
+    inset: 6px;
+    border-radius: 18px;
+  }
+}
+
+/* Table → two-line list when its card is narrow (the card is a size container):
+   line 1 = identifier + main value, line 2 = secondary measures. No horizontal scroll. */
+@container (max-width: 520px) {
+  .u-table--stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .u-table--stack tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 6px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--u-row-line);
+  }
+  .u-table--stack tbody tr:last-child {
+    border-bottom: 0;
+  }
+  /* .u-table doubled: beats the 48px touch row height (the whole row is the target here) */
+  .u-table.u-table--stack tbody td {
+    display: block;
+    height: auto;
+    padding: 0;
+    border: 0;
+  }
+  .u-table--stack tbody td[colspan] {
+    grid-column: 1 / -1;
+  }
+  .u-table--stack .u-cell-end {
+    justify-content: flex-start;
+  }
+}
+
+/* Touch: comfortable hit areas (WCAG 2.5.8 target size, ~44px) */
+@media (pointer: coarse) {
+  .u-tab {
+    height: 40px;
+    padding: 0 16px;
+  }
+  .u-btn,
+  .u-btn-ghost {
+    height: 40px;
+  }
+  .u-icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .u-table tbody td {
+    height: 48px;
+  }
 }

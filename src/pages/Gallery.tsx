@@ -51,7 +51,7 @@ export const Gallery: React.FC = () => {
       }
     >
       <div className="flex flex-col gap-(--u-gap)" data-testid="gallery">
-        <section aria-label="KPI cards" className="grid grid-cols-1 gap-(--u-gap) @md:grid-cols-2 @4xl:grid-cols-4">
+        <section aria-label="KPI cards" className="grid grid-cols-2 gap-(--u-gap) @4xl:grid-cols-4">
           <KpiCard
             index={0}
             label="Service Availability"

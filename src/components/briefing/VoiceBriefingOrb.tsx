@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, ArrowRight, Layers, Mic, Play, Radio, Sparkles, X } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Layers, Mic, Play, Radio, Square, X } from 'lucide-react';
 import { useLatestRef } from '../../hooks/useLatestRef';
 import { cx } from '../ui/cx';
 import type { DashboardSnapshot } from '../../lib/dax/types';
@@ -28,6 +28,11 @@ interface VoiceBriefingOrbProps {
   /** Applies the filters and resolves once the DAX for them has returned. */
   onFocus: (target: FocusTarget) => Promise<DashboardSnapshot>;
   onResetAll: () => void;
+  /** The briefing menu is opened by a button in the report header (controlled dialog). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** Lets the report reserve room under its content while the mini-player is on screen. */
+  onPlayingChange?: (playing: boolean) => void;
 }
 
 type Phase = { status: 'idle' } | { status: 'loading' | 'speaking'; title: string };
@@ -36,8 +41,18 @@ const CHAPTER_PAUSE_MS = 600;
 const CAPTION_LINGER_MS = 2500;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const VoiceBriefingOrb: React.FC<VoiceBriefingOrbProps> = ({ onFocus, onResetAll }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+/**
+ * Assisted report: the briefing menu (dialog), the narration loop, cinema captions and a mini-player.
+ * Nothing floats over the data while idle; the mini-player exists only while a briefing plays
+ * (a pill bottom-right on desktop, a full-width bar above the safe area on phones).
+ */
+export const VoiceBriefingOrb: React.FC<VoiceBriefingOrbProps> = ({
+  onFocus,
+  onResetAll,
+  open,
+  onOpenChange,
+  onPlayingChange,
+}) => {
   const [phase, setPhase] = useState<Phase>({ status: 'idle' });
   const [caption, setCaption] = useState('');
   const [isPaused, setIsPaused] = useState(false);
@@ -49,11 +64,12 @@ export const VoiceBriefingOrb: React.FC<VoiceBriefingOrbProps> = ({ onFocus, onR
   const runIdRef = useRef(0);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const recognitionRef = useRef<Recognition | null>(null);
-  const orbButtonRef = useRef<HTMLButtonElement>(null);
   const dialogStartRef = useRef<HTMLButtonElement>(null);
-  // Always-fresh callbacks for the async loop and speech events
+  // Always-fresh callbacks for the async loop, speech events and effects
   const onFocusRef = useLatestRef(onFocus);
   const onResetAllRef = useLatestRef(onResetAll);
+  const onOpenChangeRef = useLatestRef(onOpenChange);
+  const onPlayingChangeRef = useLatestRef(onPlayingChange);
 
   const isPlaying = phase.status !== 'idle';
 
@@ -70,7 +86,7 @@ export const VoiceBriefingOrb: React.FC<VoiceBriefingOrbProps> = ({ onFocus, onR
     const isCurrent = () => runIdRef.current === runId;
 
     cancelSpeech();
-    setIsMenuOpen(false);
+    onOpenChangeRef.current(false);
     setIsPaused(false);
 
     const history: Record<string, DashboardSnapshot> = {};
@@ -175,20 +191,24 @@ export const VoiceBriefingOrb: React.FC<VoiceBriefingOrbProps> = ({ onFocus, onR
     };
   }, []);
 
-  // Dialog: focus the primary action, close on Esc, give focus back to the orb afterwards
+  // Dialog: focus the primary action, close on Esc, give focus back to the opener afterwards
   useEffect(() => {
-    if (!isMenuOpen) return;
-    const orb = orbButtonRef.current;
+    if (!open) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     dialogStartRef.current?.focus();
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMenuOpen(false);
+      if (e.key === 'Escape') onOpenChangeRef.current(false);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      orb?.focus();
+      opener?.focus();
     };
-  }, [isMenuOpen]);
+  }, [open, onOpenChangeRef]);
+
+  useEffect(() => {
+    onPlayingChangeRef.current?.(isPlaying);
+  }, [isPlaying, onPlayingChangeRef]);
 
   // Let the last caption linger briefly after the briefing ends
   useEffect(() => {
@@ -228,7 +248,7 @@ export const VoiceBriefingOrb: React.FC<VoiceBriefingOrbProps> = ({ onFocus, onR
       {/* 1. Cinema captions, in sync with the speech */}
       {caption && ccEnabled && (
         <div
-          className="u-anim-fade fixed bottom-20 left-1/2 z-50 max-w-2xl -translate-x-1/2 rounded-xl border border-u-panel-border bg-u-panel-bg px-5 py-3 text-center text-sm font-medium text-u-title backdrop-blur-xl"
+          className="u-anim-fade fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-32px)] max-w-2xl -translate-x-1/2 rounded-xl border border-u-panel-border bg-u-panel-bg px-5 py-3 text-center text-sm font-medium text-u-title backdrop-blur-xl sm:bottom-24"
           style={{ boxShadow: 'var(--u-modal-shadow)' }}
           role="status"
           aria-live="polite"
@@ -241,92 +261,70 @@ export const VoiceBriefingOrb: React.FC<VoiceBriefingOrbProps> = ({ onFocus, onR
         </div>
       )}
 
-      {/* 2. Floating briefing orb (bottom right) */}
-      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3">
-        {isPlaying && (
+      {/* 2. Mini-player, only while a briefing plays */}
+      {isPlaying && (
+        <div
+          role="region"
+          aria-label="Briefing player"
+          data-testid="briefing-player"
+          className="u-anim-pop fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-u-panel-border bg-u-panel-solid px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[360px] sm:rounded-full sm:border sm:py-1.5 sm:pl-1.5 sm:pr-2"
+          style={{ boxShadow: 'var(--u-panel-shadow)', transformOrigin: 'bottom right' }}
+        >
+          <button
+            type="button"
+            onClick={togglePause}
+            className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-u-interaction bg-u-panel-bg transition-[scale] duration-150 ease-out active:scale-[0.96]"
+            title={isPaused ? 'Resume Briefing' : 'Pause Briefing'}
+            aria-label={isPaused ? 'Resume briefing' : 'Pause briefing'}
+          >
+            {/* 5-bar equalizer: moves only while speaking (state, not decoration) */}
+            <span className="flex h-4 items-center gap-[3px]" aria-hidden="true">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <span
+                  key={i}
+                  className={cx(
+                    'w-[3px] rounded-full transition-[height,background-color] duration-150',
+                    isSpeaking ? 'animate-pulse bg-u-primary' : 'bg-u-label'
+                  )}
+                  style={{ height: isSpeaking ? `${6 + ((i * 4) % 10)}px` : '3px', animationDelay: `${i * 0.15}s` }}
+                />
+              ))}
+            </span>
+          </button>
+
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-u-interaction">
+              {isPaused ? 'Briefing paused' : 'Briefing'}
+            </p>
+            <p className="truncate text-[12px] font-semibold text-u-title">
+              {phase.title}
+              {phase.status === 'loading' && <span className="font-normal text-u-label"> · querying model</span>}
+            </p>
+          </div>
+
           <button
             type="button"
             onClick={() => setCcEnabled(!ccEnabled)}
-            className={cx(
-              'flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border text-[10px] font-bold backdrop-blur-md transition-colors',
-              ccEnabled
-                ? 'border-u-interaction bg-u-panel-bg text-u-interaction'
-                : 'border-u-panel-border bg-u-panel-bg text-u-label'
-            )}
-            title={ccEnabled ? 'Captions Enabled' : 'Captions Disabled'}
+            className="u-icon-btn shrink-0 text-[10px] font-bold"
+            title={ccEnabled ? 'Captions on' : 'Captions off'}
+            aria-label="Captions"
             aria-pressed={ccEnabled}
           >
             CC
           </button>
-        )}
-
-        <div
-          className="hidden items-center gap-1.5 rounded-full border border-u-panel-border bg-u-panel-bg px-3 py-1.5 text-xs text-u-text-soft backdrop-blur-md sm:flex"
-          style={{ boxShadow: 'var(--u-panel-shadow)' }}
-        >
-          {phase.status === 'idle' ? (
-            <span className="flex items-center gap-1">
-              <Sparkles className="h-3.5 w-3.5 text-u-interaction" />
-              AI Voice Briefing
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5 font-semibold text-u-interaction">
-              <span className="u-status-dot" aria-hidden="true" />
-              {phase.title}
-              {phase.status === 'loading' && <span className="font-normal text-u-label">· querying model</span>}
-            </span>
-          )}
-        </div>
-
-        <button
-          ref={orbButtonRef}
-          type="button"
-          onClick={() => (isPlaying ? togglePause() : setIsMenuOpen(true))}
-          className={cx(
-            'relative flex h-14 w-14 cursor-pointer items-center justify-center rounded-full border bg-u-panel-bg backdrop-blur-md transition-[transform,border-color] duration-300',
-            isPlaying ? 'scale-105 border-2 border-u-interaction' : 'border-u-panel-border hover:scale-105 hover:border-u-interaction'
-          )}
-          style={{
-            boxShadow: isPlaying
-              ? '0 0 0 6px color-mix(in srgb, var(--u-primary) 16%, transparent), var(--u-panel-shadow)'
-              : 'var(--u-panel-shadow)',
-          }}
-          title={isPlaying ? (isPaused ? 'Resume Briefing' : 'Pause Briefing') : 'Start Guided Briefing'}
-        >
-          {/* 5-bar equalizer: moves only while speaking (state, not decoration) */}
-          <div className="flex h-5 items-center gap-1" aria-hidden="true">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <span
-                key={i}
-                className={cx('w-1 rounded-full transition-[height,background-color] duration-150', isSpeaking ? 'animate-pulse bg-u-primary' : 'bg-u-label')}
-                style={{
-                  height: isSpeaking ? `${8 + ((i * 5) % 12)}px` : '4px',
-                  animationDelay: `${i * 0.15}s`,
-                }}
-              />
-            ))}
-          </div>
-        </button>
-
-        {isPlaying && (
-          <button
-            type="button"
-            onClick={stop}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-u-bad/40 bg-u-bad-bg text-u-bad-text transition-colors"
-            title="Stop Briefing"
-          >
-            <X className="h-4 w-4" />
+          <button type="button" onClick={stop} className="u-icon-btn shrink-0" title="Stop Briefing" aria-label="Stop briefing">
+            <Square className="h-3.5 w-3.5 fill-current" />
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 3. Briefing selection dialog */}
-      {isMenuOpen && (
+      {open && (
         <div
           className="u-anim-fade fixed inset-0 z-50 flex items-center justify-center bg-u-overlay p-4 backdrop-blur-md"
           data-testid="briefing-overlay"
           onClick={(e) => {
-            if (e.target === e.currentTarget) setIsMenuOpen(false);
+            if (e.target === e.currentTarget) onOpenChange(false);
           }}
         >
           <div
@@ -349,7 +347,7 @@ export const VoiceBriefingOrb: React.FC<VoiceBriefingOrbProps> = ({ onFocus, onR
                   Listen to an AI-narrated walkthrough with automatic cross-filtering synchronized to the speech.
                 </p>
               </div>
-              <button type="button" onClick={() => setIsMenuOpen(false)} className="u-icon-btn" aria-label="Close briefing menu">
+              <button type="button" onClick={() => onOpenChange(false)} className="u-icon-btn" aria-label="Close briefing menu">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -417,7 +415,7 @@ export const VoiceBriefingOrb: React.FC<VoiceBriefingOrbProps> = ({ onFocus, onR
 
   // The report plane uses backdrop-filter, which makes it the containing block (and a stacking
   // context) for fixed descendants: the overlay would be clipped to the plane and sit under its
-  // header. Rendering at body level keeps captions, orb and dialog viewport-wide and on top.
+  // header. Rendering at body level keeps captions, player and dialog viewport-wide and on top.
   return typeof document === 'undefined' ? layers : createPortal(layers, document.body);
 };
 

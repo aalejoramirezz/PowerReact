@@ -17,13 +17,15 @@ interface InfoCurtainProps extends CurtainContent {
    */
   open?: boolean;
   onClose?: () => void;
+  /** Defaults to the host card's padding (inherit). */
+  padding?: string;
 }
 
 /**
  * Port of Lens `univerus_html._curtain`: an opaque panel that drops from the top edge of the card
  * with an accent hem. Must be a direct child of the card (it inherits the card padding).
  */
-export const InfoCurtain: React.FC<InfoCurtainProps> = ({ id, info, calc, open, onClose }) => {
+export const InfoCurtain: React.FC<InfoCurtainProps> = ({ id, info, calc, open, onClose, padding }) => {
   if (!info && !calc) return null;
   const controlled = open !== undefined;
 
@@ -31,6 +33,7 @@ export const InfoCurtain: React.FC<InfoCurtainProps> = ({ id, info, calc, open, 
     <div
       id={id}
       className="u-curtain"
+      style={padding ? { padding } : undefined}
       data-open={controlled ? String(open) : undefined}
       aria-hidden={controlled ? !open : true}
       onClick={controlled && open ? onClose : undefined}

@@ -183,10 +183,10 @@ export const PowerBIEmbedComponent: React.FC = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-u-canvas text-u-text">
-      {/* Toolbar */}
-      <div className="flex shrink-0 items-center justify-between border-b border-u-panel-border bg-u-panel-bg px-4 py-2 backdrop-blur-md">
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
+      {/* Toolbar: wraps on phones; secondary labels collapse to icons below sm */}
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-u-panel-border bg-u-panel-bg px-3 py-2 backdrop-blur-md sm:px-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2">
             <label htmlFor="report-select" className="text-xs font-semibold text-u-title">
               Report:
             </label>
@@ -194,7 +194,7 @@ export const PowerBIEmbedComponent: React.FC = () => {
               id="report-select"
               value={selection.code}
               onChange={(e) => handleSelectPreset(e.target.value)}
-              className="u-input cursor-pointer !h-7 !px-2.5"
+              className="u-input min-w-0 max-w-[62vw] cursor-pointer !h-7 !px-2.5 sm:max-w-none"
             >
               {(preconfigured.data ?? []).map((p) => (
                 <option key={p.id} value={p.code}>
@@ -204,11 +204,20 @@ export const PowerBIEmbedComponent: React.FC = () => {
             </select>
           </div>
 
-          <StatusChip tone="ok">Active: {config?.tokenType || 'Service Principal'}</StatusChip>
+          <StatusChip tone="ok" className="max-md:hidden">
+            Active: {config?.tokenType || 'Service Principal'}
+          </StatusChip>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <button type="button" onClick={handleReload} disabled={isLoading} className="u-btn-ghost !h-7 !px-2" title="Reload Report">
+          <button
+            type="button"
+            onClick={handleReload}
+            disabled={isLoading}
+            className="u-btn-ghost !h-7 !px-2"
+            title="Reload Report"
+            aria-label="Reload Report"
+          >
             <RotateCw className={cx('h-3.5 w-3.5', isLoading && 'u-spin')} />
           </button>
 
@@ -219,9 +228,10 @@ export const PowerBIEmbedComponent: React.FC = () => {
             aria-pressed={showFilters}
             className="u-btn-ghost !h-7 !px-2"
             title="Toggle Filter Pane"
+            aria-label="Filters"
           >
             <Sliders className="h-3 w-3" />
-            <span>Filters</span>
+            <span className="max-sm:hidden">Filters</span>
           </button>
 
           <button
@@ -235,7 +245,7 @@ export const PowerBIEmbedComponent: React.FC = () => {
             <span>Navigation</span>
           </button>
 
-          <button type="button" onClick={handleFullscreen} className="u-btn-ghost !h-7 !px-2" title="Fullscreen">
+          <button type="button" onClick={handleFullscreen} className="u-btn-ghost !h-7 !px-2" title="Fullscreen" aria-label="Fullscreen">
             <Maximize2 className="h-3.5 w-3.5" />
           </button>
 
@@ -244,9 +254,10 @@ export const PowerBIEmbedComponent: React.FC = () => {
             onClick={() => setShowLogs(!showLogs)}
             aria-pressed={showLogs}
             className="u-btn-ghost !h-7 !px-2"
+            aria-label="Diagnostics"
           >
             <Terminal className="h-3 w-3" />
-            <span>Diagnostics</span>
+            <span className="max-sm:hidden">Diagnostics</span>
           </button>
         </div>
       </div>

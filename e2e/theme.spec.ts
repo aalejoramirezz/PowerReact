@@ -40,7 +40,8 @@ test.describe('Univerus themes', () => {
     const renewal = page.getByRole('button', { name: /^Due For Renewal/ });
     await expect(page.getByTestId('kpi-due-for-renewal')).toHaveText('687');
 
-    const curtain = renewal.locator('.u-curtain');
+    // The curtain is the card's sibling of the content button (never inside it: no nested buttons)
+    const curtain = page.getByTestId('kpi-card-due-for-renewal').locator('.u-curtain');
     await expect(curtain).toContainText('What it means');
     await expect(curtain).toContainText('[Assets Due For Renewal]');
     expect(await curtain.evaluate((el) => getComputedStyle(el).transform)).not.toMatch(IDENTITY);
@@ -58,6 +59,38 @@ test.describe('Univerus themes', () => {
     await expect(renewal).toBeFocused();
     await expect.poll(() => curtain.evaluate((el) => getComputedStyle(el).transform)).toMatch(IDENTITY);
   });
+
+  for (const [theme, activeBorder] of [
+    ['neoglass', 'rgb(35, 122, 127)'],
+    ['nocturne', 'rgb(138, 243, 249)'],
+  ] as const) {
+    test(`the selected group filter is a filled teal button with no shadows in ${theme}`, async ({ page }) => {
+      await page.addInitScript((t) => window.localStorage.setItem('powerreact-theme', t), theme);
+      await mockApi(page);
+      await page.goto('/visuals');
+      const filters = page.getByRole('group', { name: 'Filter by asset group' });
+      const all = filters.getByRole('button', { name: 'All groups' });
+      const core = filters.getByRole('button', { name: 'Core', exact: true });
+      const look = (button: typeof core) =>
+        button.evaluate((el) => {
+          const cs = getComputedStyle(el);
+          return { bg: cs.backgroundColor, text: cs.color, border: cs.borderTopColor, shadow: cs.boxShadow };
+        });
+
+      await expect(all).toHaveAttribute('aria-pressed', 'true');
+      await core.click();
+      await page.mouse.move(0, 0);
+      await expect(core).toHaveAttribute('aria-pressed', 'true');
+      // Polled: background and border colours transition for 150 ms
+      await expect
+        .poll(() => look(core))
+        .toEqual({ bg: 'rgb(35, 122, 127)', text: 'rgb(255, 255, 255)', border: activeBorder, shadow: 'none' });
+      await expect.poll(async () => (await look(all)).bg).not.toBe('rgb(35, 122, 127)');
+      expect((await look(all)).shadow).toBe('none');
+      // No decorative track behind the buttons
+      expect(await filters.evaluate((el) => getComputedStyle(el).boxShadow)).toBe('none');
+    });
+  }
 
   test('chart cards open the same curtain from their ⓘ button without blocking the chart', async ({ page }) => {
     await mockApi(page);

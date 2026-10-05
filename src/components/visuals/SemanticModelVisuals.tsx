@@ -1,24 +1,24 @@
 import React, { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useShallow } from 'zustand/react/shallow';
-import { AlertTriangle, Calendar, CheckCircle2, Code2, Database, RotateCw } from 'lucide-react';
+import { AlertTriangle, Calendar, CheckCircle2, Database, Headphones, RotateCw } from 'lucide-react';
 import { errorMessage } from '../../api/http';
 import { loadDashboard, useDashboardData } from '../../hooks/useDashboardData';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { DAX_QUERY_KEY } from '../../hooks/useSemanticQuery';
 import type { KpiData } from '../../lib/dax/types';
-import { useDaxLogStore } from '../../store/daxLog';
 import { selectFilters, useFilterStore, type FocusTarget } from '../../store/filters';
 import { VoiceBriefingOrb } from '../briefing/VoiceBriefingOrb';
-import { HeaderMeta, ReportTemplate } from '../template/ReportTemplate';
+import { ReportTemplate } from '../template/ReportTemplate';
 import { KpiCard } from '../ui/KpiCard';
 import { MiniMeter, StatusChip } from '../ui/primitives';
+import { Sheet } from '../ui/Sheet';
 import { ClassTable } from './ClassTable';
-import { MODEL_INFO } from './constants';
 import { DaxInspector } from './DaxInspector';
 import { FilterBar } from './FilterBar';
 import { GroupDistribution } from './GroupDistribution';
 import { KPI_DEFINITIONS } from './kpiDefinitions';
+import { ReportDetails } from './ReportDetails';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -26,6 +26,8 @@ interface SemanticModelVisualsProps {
   /** False while the view is kept mounted but hidden behind another route. */
   active?: boolean;
 }
+
+const formatTime = (ms: number) => new Date(ms).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
 export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ active = true }) => {
   const queryClient = useQueryClient();
@@ -40,8 +42,9 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
       resetAll: s.resetAll,
     }))
   );
-  const lastLatency = useDaxLogStore((s) => s.lastLatencyMs);
-  const [showDaxInspector, setShowDaxInspector] = useState(false);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [briefingOpen, setBriefingOpen] = useState(false);
+  const [briefingPlaying, setBriefingPlaying] = useState(false);
 
   // Typing is debounced; clearing the box applies immediately
   const debouncedSearch = useDebouncedValue(filters.search, SEARCH_DEBOUNCE_MS);
@@ -63,40 +66,48 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
 
   const kpiValue = (format: (k: KpiData) => string) => (kpis.data ? format(kpis.data) : kpis.isError ? '—' : '…');
   const pctAssessed = kpis.data?.pctAssessed ?? 0;
+  const pctDue = kpis.data && kpis.data.totalAssets > 0 ? kpis.data.dueForRenewal / kpis.data.totalAssets : 0;
   const scopeSuffix = filters.className ? 'in selected class' : filters.group ? 'in group' : 'in register';
 
   return (
     <ReportTemplate
-      eyebrow="Asset Management · Live VertiPaq DAX"
-      title="Direct Semantic Model Visuals (React)"
+      eyebrow="Asset Management"
+      title="Asset Portfolio Overview"
       meta={
-        <>
-          <HeaderMeta label="Semantic model">
-            {MODEL_INFO.name} <span className="u-num font-normal text-u-label">· {MODEL_INFO.datasetIdShort}</span>
-          </HeaderMeta>
-          <HeaderMeta label="Round-trip latency">
-            <span className="u-num">{lastLatency !== null ? `${lastLatency} ms` : '—'}</span>
-          </HeaderMeta>
-        </>
+        kpis.dataUpdatedAt > 0 && (
+          <span className="hidden text-[11px] text-u-label @2xl/plane:inline">
+            Updated{' '}
+            <time className="u-num font-medium text-u-text-soft" dateTime={new Date(kpis.dataUpdatedAt).toISOString()}>
+              {formatTime(kpis.dataUpdatedAt)}
+            </time>
+          </span>
+        )
       }
       actions={
         <>
+          {/* Icon-only on narrow planes: aria-label keeps the visible word as the accessible name */}
           <button
             type="button"
-            onClick={() => setShowDaxInspector(!showDaxInspector)}
+            onClick={() => setBriefingOpen(true)}
             className="u-btn-ghost"
-            aria-pressed={showDaxInspector}
+            title="Start Guided Briefing"
+            aria-label="Briefing"
+            aria-haspopup="dialog"
+            aria-expanded={briefingOpen}
           >
-            <Code2 className="h-3.5 w-3.5" />
-            <span>{showDaxInspector ? 'Hide DAX' : 'DAX Inspector'}</span>
+            <Headphones className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="hidden @lg/plane:inline">Briefing</span>
           </button>
-          <button type="button" onClick={handleRefresh} disabled={isFetching} className="u-btn">
-            <RotateCw className={`h-3.5 w-3.5 ${isFetching ? 'u-spin' : ''}`} />
-            <span>Refresh</span>
+          <ReportDetails onOpenInspector={() => setInspectorOpen(true)} />
+          <button type="button" onClick={handleRefresh} disabled={isFetching} className="u-btn" aria-label="Refresh">
+            <RotateCw className={`h-3.5 w-3.5 ${isFetching ? 'u-spin' : ''}`} aria-hidden="true" />
+            <span className="hidden @lg/plane:inline">Refresh</span>
           </button>
         </>
       }
       toolbar={<FilterBar />}
+      // Room under the table so the briefing mini-player never covers the last rows
+      contentClassName={active && briefingPlaying ? 'pb-28' : undefined}
     >
       <div className="flex flex-col gap-(--u-gap)">
         {failed.length > 0 && (
@@ -117,15 +128,15 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
           </div>
         )}
 
-        {/* 1. KPIs: how much (click to focus the class table) */}
-        <div className="grid grid-cols-1 gap-(--u-gap) @md:grid-cols-2 @4xl:grid-cols-4">
+        {/* 1. KPIs: how much (click to focus the class table); 2×2 on phones and tablets */}
+        <div className="grid grid-cols-2 gap-(--u-gap) @4xl:grid-cols-4" data-testid="kpi-grid">
+          {/* A plain action: "all" is the resting state, so it never shows a selection ring */}
           <KpiCard
             index={0}
             label="Total Assets"
             icon={Database}
             value={kpiValue((k) => k.totalAssets.toLocaleString())}
             aside={<span className="text-[11px] font-medium text-u-label">{scopeSuffix}</span>}
-            active={filters.kpiFocus === 'all'}
             stale={kpis.isPlaceholderData}
             onClick={() => actions.setKpiFocus('all')}
             title="Click to reset KPI focus to All Assets"
@@ -138,12 +149,15 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
             label="Condition Assessed"
             icon={CheckCircle2}
             value={kpiValue((k) => k.totalAssessed.toLocaleString())}
-            aside={
-              <StatusChip tone="ok" className="u-num">
-                {(pctAssessed * 100).toFixed(1)}%
-              </StatusChip>
+            footer={
+              <span className="mt-3 flex items-center gap-2.5">
+                <MiniMeter value={pctAssessed} className="min-w-6 flex-1" />
+                <span className="u-num shrink-0 text-[11px] font-medium text-u-label">
+                  {kpis.data ? `${(pctAssessed * 100).toFixed(1)}%` : '…'}
+                  <span className="hidden @md:inline"> of assets</span>
+                </span>
+              </span>
             }
-            footer={<MiniMeter value={pctAssessed} className="mt-3" />}
             active={filters.kpiFocus === 'assessed'}
             stale={kpis.isPlaceholderData}
             onClick={() => actions.toggleKpiFocus('assessed')}
@@ -157,11 +171,20 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
             label="Due For Renewal"
             icon={AlertTriangle}
             value={kpiValue((k) => k.dueForRenewal.toLocaleString())}
-            aside={<StatusChip tone="warn">Urgent Action</StatusChip>}
+            aside={
+              kpis.data &&
+              (kpis.data.dueForRenewal > 0 ? (
+                <StatusChip tone="warn" className="u-num">
+                  {(pctDue * 100).toFixed(1)}%<span className="hidden @md:inline"> of assets</span>
+                </StatusChip>
+              ) : (
+                <StatusChip tone="ok">None due</StatusChip>
+              ))
+            }
             active={filters.kpiFocus === 'renewal'}
             stale={kpis.isPlaceholderData}
             onClick={() => actions.toggleKpiFocus('renewal')}
-            title="Click to cross-filter classes requiring urgent renewal"
+            title="Click to cross-filter classes due for renewal"
             info={KPI_DEFINITIONS.renewal.info}
             calc={KPI_DEFINITIONS.renewal.calc}
           />
@@ -205,12 +228,23 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
             error={classes.error}
           />
         </div>
-
-        {showDaxInspector && <DaxInspector />}
       </div>
 
-      {/* Floating Voice Briefing Orb; unmounted (and silenced) when the view is hidden */}
-      {active && <VoiceBriefingOrb onFocus={focusAndLoad} onResetAll={actions.resetAll} />}
+      {/* Developer tooling lives off-canvas, opened from "Report details" */}
+      <Sheet open={inspectorOpen} onClose={() => setInspectorOpen(false)} title="DAX Inspector">
+        <DaxInspector />
+      </Sheet>
+
+      {/* Briefing dialog + mini-player; unmounted (and silenced) when the view is hidden */}
+      {active && (
+        <VoiceBriefingOrb
+          onFocus={focusAndLoad}
+          onResetAll={actions.resetAll}
+          open={briefingOpen}
+          onOpenChange={setBriefingOpen}
+          onPlayingChange={setBriefingPlaying}
+        />
+      )}
     </ReportTemplate>
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { scaleBand, scaleLinear } from 'd3-scale';
 import { useElementSize } from '../../hooks/useElementSize';
 import { formatNumber, formatPercent, formatSigned } from './layout/format';
@@ -29,6 +29,22 @@ interface IbcsVarianceProps<T extends IbcsDatum> {
 const TEXT = '500 11px var(--u-font-body)';
 const NUM = '600 11px var(--u-font-display)';
 const TITLE = '600 11.5px var(--u-font-display)';
+
+/**
+ * Below these widths the panels cannot keep honest scales (the Δ% panel would invert), so the chart
+ * keeps its geometry and scrolls sideways inside its card instead of squeezing or widening the page.
+ */
+const MIN_WIDTH = { horizontal: 480, vertical: 320 } as const;
+
+/** Contained sideways scroll for a chart wider than its card; a focusable region so keys can scroll it. */
+function ChartScroller({ active, label, children }: { active: boolean; label: string; children: ReactNode }) {
+  if (!active) return <>{children}</>;
+  return (
+    <div className="u-chart-scroll" tabIndex={0} role="region" aria-label={`${label} (scrolls sideways)`}>
+      {children}
+    </div>
+  );
+}
 
 const goodFill = (good: boolean) => (good ? 'var(--u-ok)' : 'var(--u-bad)');
 const goodText = (good: boolean) => (good ? 'var(--u-ok-text)' : 'var(--u-bad-text)');
@@ -146,7 +162,7 @@ export function IbcsVariance<T extends IbcsDatum>({
 
   /* ───────────── horizontal: categories down the page ───────────── */
   if (orientation === 'horizontal') {
-    const W = Math.max(360, width);
+    const W = Math.max(MIN_WIDTH.horizontal, width);
     const rowH = 34;
     const headH = 26;
     const H = headH + rows.length * rowH + 6;
@@ -169,86 +185,88 @@ export function IbcsVariance<T extends IbcsDatum>({
     return (
       <div ref={ref} className="w-full">
         {legend}
-        <svg width={W} height={H} role="img" aria-label={label} className="block overflow-visible">
-          <text x={x1} y={14} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`${actualLabel} vs ${cmpLabel}${unit}`}</text>
-          <text x={x2} y={14} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`Δ${cmpLabel}${unit}`}</text>
-          <text x={x3} y={14} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`Δ${cmpLabel}%`}</text>
+        <ChartScroller active={W > width} label={label}>
+          <svg width={W} height={H} role="img" aria-label={label} className="block overflow-visible">
+            <text x={x1} y={14} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`${actualLabel} vs ${cmpLabel}${unit}`}</text>
+            <text x={x2} y={14} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`Δ${cmpLabel}${unit}`}</text>
+            <text x={x3} y={14} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`Δ${cmpLabel}%`}</text>
 
-          {rows.map((row, i) => {
-            const c = cy(i);
-            const id = row.datum.id;
-            const marker = pctMarker(row.dpct, pctCap);
-            const px3 = x3 + s3(marker.value);
-            const name = row.datum.label.length > maxChars ? `${row.datum.label.slice(0, maxChars - 1)}…` : row.datum.label;
-            return (
-              <g key={id} {...rowHandlers(row)} style={{ cursor, animation: `u-fade .5s var(--u-ease) ${0.15 + i * 0.05}s both` }}>
-                <rect x={0} y={c - rowH / 2} width={W} height={rowH} rx={6} style={{ fill: 'var(--u-track)', opacity: hoverId === id ? 1 : 0, transition: 'opacity .15s' }} />
-                <g style={{ opacity: opacity(id), transition: 'opacity .2s' }}>
-                  <title>{`${row.datum.label}: ${actualLabel} ${row.ac ?? '—'} · ${cmpLabel} ${row.cmp ?? '—'}`}</title>
-                  <text x={labW - 12} y={c + 4} textAnchor="end" style={{ font: TEXT, fill: 'var(--u-text)' }}>
-                    {name}
-                  </text>
+            {rows.map((row, i) => {
+              const c = cy(i);
+              const id = row.datum.id;
+              const marker = pctMarker(row.dpct, pctCap);
+              const px3 = x3 + s3(marker.value);
+              const name = row.datum.label.length > maxChars ? `${row.datum.label.slice(0, maxChars - 1)}…` : row.datum.label;
+              return (
+                <g key={id} {...rowHandlers(row)} style={{ cursor, animation: `u-fade .5s var(--u-ease) ${0.15 + i * 0.05}s both` }}>
+                  <rect x={0} y={c - rowH / 2} width={W} height={rowH} rx={6} style={{ fill: 'var(--u-track)', opacity: hoverId === id ? 1 : 0, transition: 'opacity .15s' }} />
+                  <g style={{ opacity: opacity(id), transition: 'opacity .2s' }}>
+                    <title>{`${row.datum.label}: ${actualLabel} ${row.ac ?? '—'} · ${cmpLabel} ${row.cmp ?? '—'}`}</title>
+                    <text x={labW - 12} y={c + 4} textAnchor="end" style={{ font: TEXT, fill: 'var(--u-text)' }}>
+                      {name}
+                    </text>
 
-                  {/* Panel 1: comparison behind (scenario notation), AC in front */}
-                  <rect x={x1} y={c - rowH * 0.21 + 4} width={s1(Math.max(0, row.cmp ?? 0))} height={rowH * 0.42} rx={2} style={cmpStyle} />
-                  <rect x={x1} y={c - rowH * 0.21 - 2} width={s1(Math.max(0, row.ac ?? 0))} height={rowH * 0.42} rx={2} style={{ fill: 'var(--u-ac)' }} />
-                  <text x={x1 + s1(Math.max(0, row.ac ?? 0)) + 6} y={c + 2} className="u-num" style={{ font: NUM, fill: 'var(--u-title)' }}>
-                    {row.ac !== null ? fmt(row.ac) : '—'}
-                  </text>
+                    {/* Panel 1: comparison behind (scenario notation), AC in front */}
+                    <rect x={x1} y={c - rowH * 0.21 + 4} width={s1(Math.max(0, row.cmp ?? 0))} height={rowH * 0.42} rx={2} style={cmpStyle} />
+                    <rect x={x1} y={c - rowH * 0.21 - 2} width={s1(Math.max(0, row.ac ?? 0))} height={rowH * 0.42} rx={2} style={{ fill: 'var(--u-ac)' }} />
+                    <text x={x1 + s1(Math.max(0, row.ac ?? 0)) + 6} y={c + 2} className="u-num" style={{ font: NUM, fill: 'var(--u-title)' }}>
+                      {row.ac !== null ? fmt(row.ac) : '—'}
+                    </text>
 
-                  {/* Panel 2: ΔAbs */}
-                  <rect
-                    x={x2 + Math.min(s2(0), s2(row.dabs))}
-                    y={c - rowH * 0.2}
-                    width={Math.abs(s2(row.dabs) - s2(0))}
-                    height={rowH * 0.4}
-                    rx={2}
-                    style={{ fill: goodFill(row.good) }}
-                  />
-                  <text
-                    x={x2 + s2(row.dabs) + (row.dabs < 0 ? -5 : 5)}
-                    y={c + 4}
-                    textAnchor={row.dabs < 0 ? 'end' : 'start'}
-                    className="u-num"
-                    style={{ font: NUM, fill: goodText(row.good) }}
-                  >
-                    {formatSigned(row.dabs, fmt)}
-                  </text>
+                    {/* Panel 2: ΔAbs */}
+                    <rect
+                      x={x2 + Math.min(s2(0), s2(row.dabs))}
+                      y={c - rowH * 0.2}
+                      width={Math.abs(s2(row.dabs) - s2(0))}
+                      height={rowH * 0.4}
+                      rx={2}
+                      style={{ fill: goodFill(row.good) }}
+                    />
+                    <text
+                      x={x2 + s2(row.dabs) + (row.dabs < 0 ? -5 : 5)}
+                      y={c + 4}
+                      textAnchor={row.dabs < 0 ? 'end' : 'start'}
+                      className="u-num"
+                      style={{ font: NUM, fill: goodText(row.good) }}
+                    >
+                      {formatSigned(row.dabs, fmt)}
+                    </text>
 
-                  {/* Panel 3: Δ% pin (outliers capped as a triangle with the real label) */}
-                  {marker.shape !== 'none' && (
-                    <>
-                      <line x1={x3 + s3(0)} x2={px3} y1={c} y2={c} style={{ stroke: goodFill(row.good), strokeWidth: 2 }} />
-                      {marker.shape === 'circle' ? (
-                        <circle cx={px3} cy={c} r={4.5} style={{ fill: goodFill(row.good) }} />
-                      ) : (
-                        <path d={trianglePath(px3, c, marker.value > 0 ? 'right' : 'left')} style={{ fill: goodFill(row.good) }} />
-                      )}
-                    </>
-                  )}
-                  <text
-                    x={px3 + ((marker.value < 0 ? -1 : 1) * (marker.capped ? 12 : 9))}
-                    y={c + 4}
-                    textAnchor={marker.value < 0 ? 'end' : 'start'}
-                    className="u-num"
-                    style={{ font: NUM, fill: row.dpct === null ? 'var(--u-label)' : goodText(row.good) }}
-                  >
-                    {row.dpct === null ? 'n/a' : formatSigned(row.dpct, (v) => formatPercent(v, 0))}
-                  </text>
+                    {/* Panel 3: Δ% pin (outliers capped as a triangle with the real label) */}
+                    {marker.shape !== 'none' && (
+                      <>
+                        <line x1={x3 + s3(0)} x2={px3} y1={c} y2={c} style={{ stroke: goodFill(row.good), strokeWidth: 2 }} />
+                        {marker.shape === 'circle' ? (
+                          <circle cx={px3} cy={c} r={4.5} style={{ fill: goodFill(row.good) }} />
+                        ) : (
+                          <path d={trianglePath(px3, c, marker.value > 0 ? 'right' : 'left')} style={{ fill: goodFill(row.good) }} />
+                        )}
+                      </>
+                    )}
+                    <text
+                      x={px3 + ((marker.value < 0 ? -1 : 1) * (marker.capped ? 12 : 9))}
+                      y={c + 4}
+                      textAnchor={marker.value < 0 ? 'end' : 'start'}
+                      className="u-num"
+                      style={{ font: NUM, fill: row.dpct === null ? 'var(--u-label)' : goodText(row.good) }}
+                    >
+                      {row.dpct === null ? 'n/a' : formatSigned(row.dpct, (v) => formatPercent(v, 0))}
+                    </text>
+                  </g>
                 </g>
-              </g>
-            );
-          })}
+              );
+            })}
 
-          <line x1={x2 + s2(0)} x2={x2 + s2(0)} y1={headH - 4} y2={H - 4} style={{ stroke: 'var(--u-axis)', strokeWidth: 1.5 }} />
-          <line x1={x3 + s3(0)} x2={x3 + s3(0)} y1={headH - 4} y2={H - 4} style={{ stroke: 'var(--u-axis)', strokeWidth: 1.5 }} />
-        </svg>
+            <line x1={x2 + s2(0)} x2={x2 + s2(0)} y1={headH - 4} y2={H - 4} style={{ stroke: 'var(--u-axis)', strokeWidth: 1.5 }} />
+            <line x1={x3 + s3(0)} x2={x3 + s3(0)} y1={headH - 4} y2={H - 4} style={{ stroke: 'var(--u-axis)', strokeWidth: 1.5 }} />
+          </svg>
+        </ChartScroller>
       </div>
     );
   }
 
   /* ───────────── vertical: time left to right ───────────── */
-  const W = Math.max(320, width);
+  const W = Math.max(MIN_WIDTH.vertical, width);
   const titleH = 18;
   const catH = 22;
   const usable = height - 3 * titleH - catH - 16;
@@ -269,80 +287,82 @@ export function IbcsVariance<T extends IbcsDatum>({
   return (
     <div ref={ref} className="w-full">
       {legend}
-      <svg width={W} height={height} role="img" aria-label={label} className="block overflow-visible">
-        <text x={8} y={y3 - 6} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`Δ${cmpLabel}%`}</text>
-        <text x={8} y={y2 - 6} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`Δ${cmpLabel}${unit}`}</text>
-        <text x={8} y={y1 - 6} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`${actualLabel} vs ${cmpLabel}${unit}`}</text>
+      <ChartScroller active={W > width} label={label}>
+        <svg width={W} height={height} role="img" aria-label={label} className="block overflow-visible">
+          <text x={8} y={y3 - 6} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`Δ${cmpLabel}%`}</text>
+          <text x={8} y={y2 - 6} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`Δ${cmpLabel}${unit}`}</text>
+          <text x={8} y={y1 - 6} style={{ font: TITLE, fill: 'var(--u-title)' }}>{`${actualLabel} vs ${cmpLabel}${unit}`}</text>
 
-        {rows.map((row, i) => {
-          const id = row.datum.id;
-          const cx = (x(id) ?? 0) + bw / 2;
-          const marker = pctMarker(row.dpct, pctCap);
-          const py3 = y3 + s3(marker.value);
-          return (
-            <g key={id} {...rowHandlers(row)} style={{ cursor, animation: `u-fade .5s var(--u-ease) ${0.15 + i * 0.04}s both` }}>
-              <rect x={x(id) ?? 0} y={0} width={bw} height={height} rx={6} style={{ fill: 'var(--u-track)', opacity: hoverId === id ? 1 : 0, transition: 'opacity .15s' }} />
-              <g style={{ opacity: opacity(id), transition: 'opacity .2s' }}>
-                <title>{`${row.datum.label}: ${actualLabel} ${row.ac ?? '—'} · ${cmpLabel} ${row.cmp ?? '—'}`}</title>
+          {rows.map((row, i) => {
+            const id = row.datum.id;
+            const cx = (x(id) ?? 0) + bw / 2;
+            const marker = pctMarker(row.dpct, pctCap);
+            const py3 = y3 + s3(marker.value);
+            return (
+              <g key={id} {...rowHandlers(row)} style={{ cursor, animation: `u-fade .5s var(--u-ease) ${0.15 + i * 0.04}s both` }}>
+                <rect x={x(id) ?? 0} y={0} width={bw} height={height} rx={6} style={{ fill: 'var(--u-track)', opacity: hoverId === id ? 1 : 0, transition: 'opacity .15s' }} />
+                <g style={{ opacity: opacity(id), transition: 'opacity .2s' }}>
+                  <title>{`${row.datum.label}: ${actualLabel} ${row.ac ?? '—'} · ${cmpLabel} ${row.cmp ?? '—'}`}</title>
 
-                {/* Δ% pins */}
-                {marker.shape !== 'none' && (
-                  <>
-                    <line x1={cx} x2={cx} y1={y3 + s3(0)} y2={py3} style={{ stroke: goodFill(row.good), strokeWidth: 2 }} />
-                    {marker.shape === 'circle' ? (
-                      <circle cx={cx} cy={py3} r={4.5} style={{ fill: goodFill(row.good) }} />
-                    ) : (
-                      <path d={trianglePath(cx, py3, marker.value > 0 ? 'up' : 'down')} style={{ fill: goodFill(row.good) }} />
-                    )}
-                  </>
-                )}
-                <text
-                  x={cx}
-                  y={py3 + (marker.value < 0 ? 16 : -9)}
-                  textAnchor="middle"
-                  className="u-num"
-                  style={{ font: NUM, fill: row.dpct === null ? 'var(--u-label)' : goodText(row.good) }}
-                >
-                  {row.dpct === null ? 'n/a' : formatSigned(row.dpct, (v) => formatPercent(v, 0))}
-                </text>
+                  {/* Δ% pins */}
+                  {marker.shape !== 'none' && (
+                    <>
+                      <line x1={cx} x2={cx} y1={y3 + s3(0)} y2={py3} style={{ stroke: goodFill(row.good), strokeWidth: 2 }} />
+                      {marker.shape === 'circle' ? (
+                        <circle cx={cx} cy={py3} r={4.5} style={{ fill: goodFill(row.good) }} />
+                      ) : (
+                        <path d={trianglePath(cx, py3, marker.value > 0 ? 'up' : 'down')} style={{ fill: goodFill(row.good) }} />
+                      )}
+                    </>
+                  )}
+                  <text
+                    x={cx}
+                    y={py3 + (marker.value < 0 ? 16 : -9)}
+                    textAnchor="middle"
+                    className="u-num"
+                    style={{ font: NUM, fill: row.dpct === null ? 'var(--u-label)' : goodText(row.good) }}
+                  >
+                    {row.dpct === null ? 'n/a' : formatSigned(row.dpct, (v) => formatPercent(v, 0))}
+                  </text>
 
-                {/* ΔAbs */}
-                <rect
-                  x={cx - absW / 2}
-                  y={y2 + Math.min(s2(0), s2(row.dabs))}
-                  width={absW}
-                  height={Math.abs(s2(row.dabs) - s2(0))}
-                  rx={2}
-                  style={{ fill: goodFill(row.good) }}
-                />
-                <text
-                  x={cx}
-                  y={y2 + s2(row.dabs) + (row.dabs < 0 ? 13 : -5)}
-                  textAnchor="middle"
-                  className="u-num"
-                  style={{ font: NUM, fill: goodText(row.good) }}
-                >
-                  {formatSigned(row.dabs, fmt)}
-                </text>
+                  {/* ΔAbs */}
+                  <rect
+                    x={cx - absW / 2}
+                    y={y2 + Math.min(s2(0), s2(row.dabs))}
+                    width={absW}
+                    height={Math.abs(s2(row.dabs) - s2(0))}
+                    rx={2}
+                    style={{ fill: goodFill(row.good) }}
+                  />
+                  <text
+                    x={cx}
+                    y={y2 + s2(row.dabs) + (row.dabs < 0 ? 13 : -5)}
+                    textAnchor="middle"
+                    className="u-num"
+                    style={{ font: NUM, fill: goodText(row.good) }}
+                  >
+                    {formatSigned(row.dabs, fmt)}
+                  </text>
 
-                {/* AC vs comparison columns */}
-                <rect x={cx + colW * 0.35 - colW / 2} y={y1 + s1(Math.max(0, row.cmp ?? 0))} width={colW} height={h1 - s1(Math.max(0, row.cmp ?? 0))} rx={2} style={cmpStyle} />
-                <rect x={cx - colW * 0.35 - colW / 2} y={y1 + s1(Math.max(0, row.ac ?? 0))} width={colW} height={h1 - s1(Math.max(0, row.ac ?? 0))} rx={2} style={{ fill: 'var(--u-ac)' }} />
-                <text x={cx - colW * 0.35} y={y1 + s1(Math.max(0, row.ac ?? 0)) - 5} textAnchor="middle" className="u-num" style={{ font: NUM, fill: 'var(--u-title)' }}>
-                  {row.ac !== null ? fmt(row.ac) : '—'}
-                </text>
-                <text x={cx} y={y1 + h1 + 16} textAnchor="middle" style={{ font: TEXT, fill: 'var(--u-text)' }}>
-                  {row.datum.label}
-                </text>
+                  {/* AC vs comparison columns */}
+                  <rect x={cx + colW * 0.35 - colW / 2} y={y1 + s1(Math.max(0, row.cmp ?? 0))} width={colW} height={h1 - s1(Math.max(0, row.cmp ?? 0))} rx={2} style={cmpStyle} />
+                  <rect x={cx - colW * 0.35 - colW / 2} y={y1 + s1(Math.max(0, row.ac ?? 0))} width={colW} height={h1 - s1(Math.max(0, row.ac ?? 0))} rx={2} style={{ fill: 'var(--u-ac)' }} />
+                  <text x={cx - colW * 0.35} y={y1 + s1(Math.max(0, row.ac ?? 0)) - 5} textAnchor="middle" className="u-num" style={{ font: NUM, fill: 'var(--u-title)' }}>
+                    {row.ac !== null ? fmt(row.ac) : '—'}
+                  </text>
+                  <text x={cx} y={y1 + h1 + 16} textAnchor="middle" style={{ font: TEXT, fill: 'var(--u-text)' }}>
+                    {row.datum.label}
+                  </text>
+                </g>
               </g>
-            </g>
-          );
-        })}
+            );
+          })}
 
-        <line x1={8} x2={W - 8} y1={y3 + s3(0)} y2={y3 + s3(0)} style={{ stroke: 'var(--u-axis)', strokeWidth: 1.5 }} />
-        <line x1={8} x2={W - 8} y1={y2 + s2(0)} y2={y2 + s2(0)} style={{ stroke: 'var(--u-axis)', strokeWidth: 1.5 }} />
-        <line x1={8} x2={W - 8} y1={y1 + h1} y2={y1 + h1} style={{ stroke: 'var(--u-axis)', strokeWidth: 1.5 }} />
-      </svg>
+          <line x1={8} x2={W - 8} y1={y3 + s3(0)} y2={y3 + s3(0)} style={{ stroke: 'var(--u-axis)', strokeWidth: 1.5 }} />
+          <line x1={8} x2={W - 8} y1={y2 + s2(0)} y2={y2 + s2(0)} style={{ stroke: 'var(--u-axis)', strokeWidth: 1.5 }} />
+          <line x1={8} x2={W - 8} y1={y1 + h1} y2={y1 + h1} style={{ stroke: 'var(--u-axis)', strokeWidth: 1.5 }} />
+        </svg>
+      </ChartScroller>
     </div>
   );
 }

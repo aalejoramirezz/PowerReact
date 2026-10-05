@@ -146,14 +146,17 @@
   --u-ghost-bg: rgba(255, 255, 255, 0.7);
   --u-ghost-border: #dce5e8;
   --u-ghost-hover: #e0f2f3;
-  --u-tabs-bg: rgba(255, 255, 255, 0.56);
-  --u-tabs-border: rgba(109, 121, 122, 0.1);
-  --u-tabs-shadow: 0 6px 18px rgba(13, 19, 23, 0.045);
-  --u-tab-text: #637278;
-  --u-tab-active-bg: rgba(255, 255, 255, 0.94);
-  --u-tab-active-text: #0d1317;
-  --u-tab-active-shadow: 0 1px 2px rgba(13, 19, 23, 0.04), 0 6px 18px rgba(13, 19, 23, 0.06);
-  --u-tab-dot: #34a7ad;
+  /* filter buttons = Lens page navigator (TOKENS['neoglass']['nav']): framed buttons, no shadow;
+     selected = teal fill with white text (Lens' AA alternative #237A7F, 5.1:1) */
+  --u-tab-bg: #ffffff;
+  --u-tab-border: #dce5e8;
+  --u-tab-text: #5c6f75;
+  --u-tab-hover-bg: #e0f2f3;
+  --u-tab-hover-text: #00696e;
+  --u-tab-active-bg: #237a7f;
+  --u-tab-active-text: #ffffff;
+  --u-tab-active-border: #237a7f;
+  --u-tab-radius: 10px;
 
   /* app shell: DESIGN.md "Secondary #1A2B32 … navigation shells" */
   --u-shell-header-bg: #1a2b32;
@@ -310,14 +313,16 @@
   --u-ghost-bg: rgba(255, 255, 255, 0.06);
   --u-ghost-border: rgba(255, 255, 255, 0.1);
   --u-ghost-hover: rgba(255, 255, 255, 0.1);
-  --u-tabs-bg: rgba(255, 255, 255, 0.06);
-  --u-tabs-border: rgba(255, 255, 255, 0.08);
-  --u-tabs-shadow: none;
-  --u-tab-text: rgba(236, 241, 247, 0.66);
-  --u-tab-active-bg: #ffffff;
-  --u-tab-active-text: #0d1317;
-  --u-tab-active-shadow: none;
-  --u-tab-dot: #237a7f;
+  /* Lens TOKENS['nocturne']['nav']: dark card buttons; selected = teal fill, white text, cyan outline */
+  --u-tab-bg: #161c20;
+  --u-tab-border: #2d3336;
+  --u-tab-text: #b6bbc1;
+  --u-tab-hover-bg: #1b2226;
+  --u-tab-hover-text: #ffffff;
+  --u-tab-active-bg: #237a7f;
+  --u-tab-active-text: #ffffff;
+  --u-tab-active-border: #8af3f9;
+  --u-tab-radius: 12px;
 
   --u-shell-header-bg: #070b0e;
   --u-shell-header-border: rgba(255, 255, 255, 0.07);

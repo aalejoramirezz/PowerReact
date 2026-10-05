@@ -50,9 +50,10 @@ export const ChartCard: React.FC<ChartCardProps> = ({
   const hasCurtain = Boolean(info || calc);
 
   return (
+    // A size container: content (tables, controls) adapts to the card's own width, wherever it sits
     <Card
       index={index}
-      className={cx('flex flex-col', className)}
+      className={cx('@container flex flex-col', className)}
       data-testid={testId}
       onKeyDown={(e) => {
         if (open && e.key === 'Escape') setOpen(false);
@@ -61,12 +62,12 @@ export const ChartCard: React.FC<ChartCardProps> = ({
         if (open && !e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div className="min-w-0">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div className="min-w-0 flex-1">
           <h3 className="u-card-title truncate">{title}</h3>
           {subtitle && <p className="u-card-subtitle mt-1">{subtitle}</p>}
         </div>
-        <div className="relative z-10 flex shrink-0 items-center gap-2">
+        <div className="relative z-10 flex items-center gap-2 @max-md:w-full">
           {aside}
           {hasCurtain && (
             <button

@@ -9,6 +9,8 @@ test.describe('semantic visuals cross-filtering', () => {
     const totalAssets = page.getByTestId('kpi-total-assets');
     const activeFilters = page.getByTestId('active-filters');
     const row = (name: string) => page.getByRole('row', { name: new RegExp(name) });
+    const groupFilter = (name: string) =>
+      page.getByRole('group', { name: 'Filter by asset group' }).getByRole('button', { name, exact: true });
 
     await expect(totalAssets).toHaveText('10,000');
     await expect(page.getByTestId('group-share-Utility_Line')).toHaveText('(54.5%)');
@@ -18,7 +20,9 @@ test.describe('semantic visuals cross-filtering', () => {
     await expect(totalAssets).toHaveText('5,451');
     await expect(row('Water_Pipes')).toBeVisible();
     await expect(row('Hydrants')).toHaveCount(0);
-    await expect(activeFilters).toContainText('Group: Utility_Line');
+    // The group shows as its selected filter button, not as a second chip
+    await expect(groupFilter('Utility_Line')).toHaveAttribute('aria-pressed', 'true');
+    await expect(activeFilters).not.toContainText('Utility_Line');
     // Shares stay relative to the whole register, not to the filtered KPI total
     await expect(page.getByTestId('group-share-Utility_Line')).toHaveText('(54.5%)');
 
@@ -30,13 +34,14 @@ test.describe('semantic visuals cross-filtering', () => {
     // With a class selected the distribution only lists that class's group,
     // so switch through the filter bar; the class from the old group is dropped
     await expect(page.getByTestId('group-bar-Core')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Core', exact: true }).click();
+    await groupFilter('Core').click();
     await expect(totalAssets).toHaveText('1,200');
     await expect(activeFilters).not.toContainText('Class:');
 
-    await page.getByRole('button', { name: 'Reset All' }).click();
+    await page.getByRole('button', { name: 'Reset all' }).click();
     await expect(totalAssets).toHaveText('10,000');
     await expect(activeFilters).toHaveCount(0);
+    await expect(groupFilter('All groups')).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('KPI focus and search are resolved by the engine, not the loaded rows', async ({ page }) => {
@@ -74,7 +79,9 @@ test.describe('semantic visuals cross-filtering', () => {
 
     await page.getByRole('link', { name: 'React Semantic Visuals' }).click();
     await expect(page).toHaveURL(/\/visuals$/);
-    await expect(page.getByTestId('active-filters')).toContainText('Group: Utility_Line');
+    await expect(
+      page.getByRole('group', { name: 'Filter by asset group' }).getByRole('button', { name: 'Utility_Line', exact: true })
+    ).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByTestId('kpi-total-assets')).toHaveText('5,451');
   });
 

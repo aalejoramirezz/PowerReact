@@ -19,70 +19,86 @@ const RemovableChip: React.FC<{ label: string; value: string; onRemove: () => vo
   </span>
 );
 
+/** Bring the chosen filter fully into view when the row scrolls (phones). */
+const reveal = (e: React.MouseEvent<HTMLElement>) => e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+
+/**
+ * Group filter as Lens page-navigator buttons (framed, no shadow, selected = teal fill), in a row
+ * that scrolls horizontally on narrow screens. The summary on the right lists only the filters that
+ * are not visible here (class, KPI focus, search); Reset all appears whenever anything is filtered.
+ */
 export const FilterBar: React.FC = () => {
-  const { group, className, kpiFocus } = useFilterStore(
-    useShallow((s) => ({ group: s.group, className: s.className, kpiFocus: s.kpiFocus }))
+  const { group, className, kpiFocus, search } = useFilterStore(
+    useShallow((s) => ({ group: s.group, className: s.className, kpiFocus: s.kpiFocus, search: s.search }))
   );
   const actions = useFilterStore(
     useShallow((s) => ({
       toggleGroup: s.toggleGroup,
-      clearGroup: s.clearGroup,
       clearClass: s.clearClass,
       setKpiFocus: s.setKpiFocus,
+      setSearch: s.setSearch,
       clearScope: s.clearScope,
       resetAll: s.resetAll,
     }))
   );
 
-  const hasActiveFilters = Boolean(group || className || kpiFocus !== 'all');
+  const term = search.trim();
+  const hasActiveFilters = Boolean(group || className || kpiFocus !== 'all' || term);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-3 overflow-x-auto py-0.5">
-        <span className="flex shrink-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-u-label">
-          <SlidersHorizontal className="h-3.5 w-3.5" />
-          Cross-filter by group
+    // flex-auto (not flex-1): the buttons' own width is the basis, so the chips drop to a second line
+    // instead of squeezing the selected group out of view; alone on a line, the buttons scroll
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div className="flex min-w-0 flex-auto items-center gap-3">
+        <span className="hidden shrink-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-u-label @md:flex">
+          <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+          Group
         </span>
-        <Tabs label="Cross-filter by group">
-          <Tab active={!group} onClick={actions.clearScope}>
-            All Asset Groups
+        <Tabs label="Filter by asset group" className="u-scroll-x min-w-0">
+          <Tab
+            active={!group}
+            onClick={(e) => {
+              reveal(e);
+              actions.clearScope();
+            }}
+          >
+            All groups
           </Tab>
           {AVAILABLE_GROUPS.map((grp) => (
-            <Tab key={grp} active={group === grp} onClick={() => actions.toggleGroup(grp)}>
+            <Tab
+              key={grp}
+              active={group === grp}
+              onClick={(e) => {
+                reveal(e);
+                actions.toggleGroup(grp);
+              }}
+            >
               {grp}
             </Tab>
           ))}
         </Tabs>
       </div>
 
-      {!hasActiveFilters && (
-        <span className="flex items-center gap-2 text-[11px] font-semibold text-u-text-soft">
-          <span className="u-status-dot" aria-hidden="true" />
-          Live VertiPaq DAX · cross-filtering enabled
-        </span>
-      )}
-
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2" data-testid="active-filters">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-u-label">Active filters:</span>
-          {group && <RemovableChip label="Group" value={group} onRemove={actions.clearGroup} removeLabel="Remove group filter" />}
           {className && (
             <RemovableChip label="Class" value={className} onRemove={actions.clearClass} removeLabel="Remove class filter" />
           )}
           {kpiFocus !== 'all' && (
             <RemovableChip
               label="Focus"
-              value={kpiFocus === 'renewal' ? 'Due for Renewal' : 'Condition Assessed'}
+              value={kpiFocus === 'renewal' ? 'Due for renewal' : 'Condition assessed'}
               onRemove={() => actions.setKpiFocus('all')}
-              removeLabel="Reset KPI filter"
+              removeLabel="Reset KPI focus"
             />
           )}
+          {term && <RemovableChip label="Search" value={term} onRemove={() => actions.setSearch('')} removeLabel="Clear search" />}
           <button
             type="button"
             onClick={actions.resetAll}
-            className="ml-1 cursor-pointer text-[11.5px] font-semibold text-u-bad-text underline underline-offset-2"
+            className="cursor-pointer px-1 text-[11.5px] font-semibold text-u-bad-text underline underline-offset-2"
           >
-            Reset All
+            Reset all
           </button>
         </div>
       )}

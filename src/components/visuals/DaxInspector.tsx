@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Check, Copy, Terminal, Zap } from 'lucide-react';
+import { Check, Copy, Zap } from 'lucide-react';
 import { errorMessage } from '../../api/http';
 import { executeDax } from '../../hooks/useSemanticQuery';
 import { useDaxLogStore } from '../../store/daxLog';
@@ -16,7 +16,10 @@ TOPN(
   DESC
 )`;
 
-/** Code surface: an inverted slate block in Neo-Glass, a deeper well in Nocturne. */
+/**
+ * Developer tool, opened in a Sheet from "Report details" (the Sheet owns the title).
+ * Code surface: an inverted slate block in Neo-Glass, a deeper well in Nocturne.
+ */
 export const DaxInspector: React.FC = () => {
   const logs = useDaxLogStore((s) => s.logs);
   const [customDax, setCustomDax] = useState(DEFAULT_DAX);
@@ -34,30 +37,24 @@ export const DaxInspector: React.FC = () => {
 
   return (
     <section
-      className="u-anim-rise space-y-4 border border-u-code-border bg-u-code-bg p-5 text-u-code-text"
-      style={{ borderRadius: 'var(--u-card-radius)' }}
+      className="space-y-4 rounded-xl border border-u-code-border bg-u-code-bg p-4 text-u-code-text"
       aria-label="DAX Performance Inspector"
+      data-testid="dax-inspector"
     >
-      <div className="flex items-center justify-between border-b border-u-code-border pb-3">
-        <div className="flex items-center gap-2">
-          <Terminal className="h-5 w-5 text-u-code-accent" />
-          <h3 className="font-display text-[15px] font-semibold">DAX Performance Inspector & Custom Query Runner</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-u-code-muted">Endpoint:</span>
-          <code className="rounded bg-u-code-surface px-2 py-0.5 font-mono text-[11px] text-u-code-accent">POST /api/powerbi/query</code>
-        </div>
+      <div className="flex flex-wrap items-center gap-2 border-b border-u-code-border pb-3">
+        <span className="text-[11px] text-u-code-muted">Endpoint:</span>
+        <code className="rounded bg-u-code-surface px-2 py-0.5 font-mono text-[11px] text-u-code-accent">POST /api/powerbi/query</code>
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <label htmlFor="custom-dax" className="text-[12px] font-semibold">
-            Execute any DAX query directly against VertiPaq in real time:
+            Run a DAX query against VertiPaq
           </label>
           <button
             type="button"
             onClick={handleCopy}
-            className="flex cursor-pointer items-center gap-1 text-[12px] text-u-code-muted hover:text-u-code-text"
+            className="flex shrink-0 cursor-pointer items-center gap-1 text-[12px] text-u-code-muted hover:text-u-code-text"
           >
             {copied ? <Check className="h-3.5 w-3.5 text-u-code-accent" /> : <Copy className="h-3.5 w-3.5" />}
             <span>{copied ? 'Copied' : 'Copy DAX'}</span>
@@ -68,11 +65,11 @@ export const DaxInspector: React.FC = () => {
           id="custom-dax"
           value={customDax}
           onChange={(e) => setCustomDax(e.target.value)}
-          rows={5}
+          rows={8}
           className="w-full rounded-lg border border-u-code-border bg-u-code-surface p-3 font-mono text-[12px] text-u-code-accent focus:border-u-code-accent focus:outline-none"
         />
 
-        <div className="flex items-center justify-between pt-1">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
           <div className="text-[12px] text-u-code-muted">
             Tip: Use <code className="text-u-code-accent">EVALUATE SUMMARIZECOLUMNS(...)</code> or{' '}
             <code className="text-u-code-accent">EVALUATE ROW(...)</code>
@@ -101,7 +98,7 @@ export const DaxInspector: React.FC = () => {
         <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-u-code-muted">
           Recent DAX Query History & Latency
         </h4>
-        <div className="max-h-44 space-y-2 overflow-y-auto pr-1">
+        <div className="space-y-2">
           {logs.length === 0 && <div className="text-[12px] italic text-u-code-muted">No queries executed yet.</div>}
           {logs.map((log) => (
             <div

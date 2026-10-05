@@ -11,7 +11,7 @@ Source: Univerus-Lens `design_specs/DASHBOARD_PRINCIPLES.md` (numbering kept). T
 | # | Principle | Enforced by |
 | :--- | :--- | :--- |
 | 1 | **Hierarchy first, charts second.** Read order: context → KPIs → main trend → breakdowns → detail. | `ReportTemplate` (header → toolbar → content); page composition review |
-| 2 | **Consistent 12-column grid.** Primary 7–8 columns, secondary 4–5, KPI 3. | `grid-cols-12` / `lg:col-span-*`; `/gallery` layouts |
+| 2 | **Consistent 12-column grid.** Primary 7–8 columns, secondary 4–5, KPI 3. | `@5xl:grid-cols-12` / `@5xl:col-span-*`; `/gallery` layouts |
 | 3 | **A spacing system, never random values.** 8 / 12 / 16 / 20 / 24 / 32 px. | `--u-gap`, `--u-card-pad`, `--u-kpi-pad` tokens |
 | 4 | **Proximity communicates relationship.** Title + subtitle close; legend next to the chart. | `ChartCard` header layout |
 | 5 | **One card, one purpose.** | §2 selection policy; one component per `ChartCard` |
@@ -22,7 +22,7 @@ Source: Univerus-Lens `design_specs/DASHBOARD_PRINCIPLES.md` (numbering kept). T
 | 10 | **Align to invisible lines.** Adjacent cards share baseline and height for the same role. | Shared grid rows, `minHeight` on KPI cards |
 | 11 | **One radius per level.** Cards 14 (Neo-Glass) / 20 (Nocturne); controls 8–9; chips 6; pills full. | `--u-card-radius`, surface classes |
 | 12 | **Whitespace over decoration.** | Judgement |
-| 13 | **Responsive is not blind stacking.** Mobile order follows importance. | Container queries on the report area (`@md:` / `@4xl:` / `@5xl:`), so the chat drawer reflows the grid; judgement |
+| 13 | **Responsive is not blind stacking.** Mobile order follows importance. | Container queries on the report area (`@md:` / `@4xl:` / `@5xl:`) and the named `plane` container for header and toolbar, so the chat drawer reflows the grid; below lg the sidebar is a drawer; on phones KPIs stay 2×2, tables become two-line lists, filters scroll in one row and wide charts scroll inside their card. `e2e/responsive.spec.ts` checks 390 px in both themes; judgement for order |
 
 ## Choosing the visual
 

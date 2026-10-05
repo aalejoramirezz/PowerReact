@@ -12,7 +12,7 @@ PowerReact renders Power BI semantic-model data with **native React visuals** (n
 | **Neo-Glass** (Plantilla B, light) | `neoglass` | `templates/html/07_neo-glass-v3-light.html` + `mockups/08_neo-glass-light-dashboard-mockup.html` | Quiet technical backdrop `#F5FAFF`, one frosted-glass plane, compact header (logo · eyebrow · title) and a single teal rule. Cards are translucent white glass. |
 | **Nocturne** (Plantilla A, dark) | `nocturne` | `templates/html/univerus-dashboard-A-nocturne.html` + `mockups/univerus-dashboard-A-nocturne-mockup.html` | Obsidian window `#070B0E` on a navy/teal backdrop with a teal glow rising from its base. Cards are dark glass. |
 
-The dark-mode button (`ThemeToggle`, in the shell header) switches **the whole app**: shell, report canvas, charts, chat, voice orb and the embed toolbar.
+The dark-mode button (`ThemeToggle`, in the shell header) switches **the whole app**: shell, report canvas, charts, chat, briefing dialog and mini-player, and the embed toolbar.
 
 ## Sources of truth
 
@@ -75,7 +75,7 @@ Full token table: [references/tokens.md](references/tokens.md). All 41 principle
 | How did it evolve? | `TrendChart` | 1 primary series + ≤ 1 comparison (dashed). Area to zero. Direct labels. Crosshair tooltip. |
 | How far above / below PY, plan, forecast, budget — and where? | `IbcsVariance` | IBCS notation. `orientation="horizontal"` for structures, `"vertical"` for time. See [references/ibcs.md](references/ibcs.md). |
 | Which exact rows, owners, statuses? | `ChartCard` + `.u-table` | Identifiers first, status last (`StatusChip`), inline `MiniMeter` for ratios. |
-| Filter the page | `Tabs` / `Tab` (segmented), search `u-input` | Toggles use `aria-pressed`; removable filter chips show active filters. |
+| Filter the page | `Tabs` / `Tab` (framed buttons, §5.1), search `u-input` | Toggles use `aria-pressed`; the selected button *is* the visible state (no second chip for it); removable chips show the other active filters. |
 
 React lifts the Power BI limitation that HTML visuals are display-only: **every component may cross-filter** through the filter store (see powerreact-visual-builder).
 
@@ -108,7 +108,7 @@ Text: `--u-title` > `--u-text` > `--u-text-soft` > `--u-label` / `--u-axis` > `-
 - **Scale**: report title 22 px/600 · card title 15 px/600 (`.u-card-title`) · subtitle 12 px (`.u-card-subtitle`) · body 12.5 px · KPI label 11 px/600 uppercase `tracking-[0.04em]` · KPI number 30 px/600 `tracking-[-0.045em]` · hero number `clamp(52px, 6vw, 84px)` · table header 10 px uppercase `0.08em` · eyebrow 10 px `0.18em` · legends/axis 11 px.
 - **Numbers** use `.u-num` (tabular figures). Values right-aligned in tables.
 - **Grid**: 12 columns with `gap-(--u-gap)`. KPIs span 3; the main insight 7–8; supporting 4–5. Sections stack with the same gap. Equivalent cards share height and baseline.
-- **Responsive by container, not viewport**: the report's data area is a size container (`@container` in `ReportTemplate`), because its width changes with the sidebar and the chat drawer. Use container variants — KPIs `grid-cols-1 @md:grid-cols-2 @4xl:grid-cols-4`, breakdown rows `grid-cols-1 @5xl:grid-cols-12` with `@5xl:col-span-*` — never `sm:`/`lg:` for report layouts.
+- **Responsive by container, not viewport**: the report's data area is a size container (`@container` in `ReportTemplate`), because its width changes with the sidebar and the chat drawer. Use container variants — KPIs `grid-cols-2 @4xl:grid-cols-4`, breakdown rows `grid-cols-1 @5xl:grid-cols-12` with `@5xl:col-span-*` — never `sm:`/`lg:` for report layouts. Header and toolbar respond to the plane, a named container: `@md/plane:`, `@lg/plane:`. Viewport breakpoints are for the app shell only (§5.2).
 - **Padding**: cards use `--u-card-pad` (`.u-card--pad`, default in `Card`); KPI cards `--u-kpi-pad`.
 - **Radii**: cards `--u-card-radius` (14 / 20), controls 8–9 px, chips 6 px, pills full. Never mix arbitrary radii.
 
@@ -119,15 +119,15 @@ Text: `--u-title` > `--u-text` > `--u-text-soft` > `--u-label` / `--u-axis` > `-
 All live in `src/components/ui` and `src/components/charts`. See `/gallery` for each one rendered in the active theme.
 
 ```tsx
-<ReportTemplate eyebrow="Asset Management · Live VertiPaq DAX" title="…" meta={<HeaderMeta label="Semantic model">…</HeaderMeta>}
-                actions={<button className="u-btn">Refresh</button>} toolbar={<FilterBar />}>
-  <div className="grid grid-cols-1 gap-(--u-gap) @md:grid-cols-2 @4xl:grid-cols-4">
-    <KpiCard index={0} label="Due For Renewal" icon={AlertTriangle} value="687"
-             aside={<StatusChip tone="warn">Urgent Action</StatusChip>}
+<ReportTemplate eyebrow="Asset Management" title="Asset Portfolio Overview" meta={<span>Updated <time>10:53</time></span>}
+                actions={<>{briefingButton}<ReportDetails onOpenInspector={…} />{refreshButton}</>} toolbar={<FilterBar />}>
+  <div className="grid grid-cols-2 gap-(--u-gap) @4xl:grid-cols-4">
+    <KpiCard index={2} label="Due For Renewal" icon={AlertTriangle} value="687"
+             aside={<StatusChip tone="warn">6.9% of assets</StatusChip>}   {/* contextual, "None due" (ok) at 0 */}
              active={focus === 'renewal'} onClick={() => toggleKpiFocus('renewal')}
              info="Assets whose renewal date is on or before today…" calc="[Assets Due For Renewal]" />
   </div>
-  <ChartCard index={4} className="@5xl:col-span-5" title="Asset Distribution by Group" subtitle="Click a group to cross-filter"
+  <ChartCard index={4} className="@5xl:col-span-5" title="Asset Distribution by Group" subtitle="Asset count and share of the register"
              info="…" calc="[Asset Count (All States)] by …" aside={<span className="u-num text-[11px] text-u-label">5 groups</span>}>
     <SpotlightBars data={rows} label="Asset distribution by group" selectedId={group} onSelect={(d) => toggleGroup(d.id)}
                    selectedBadge="Cross-Filtered" testIdPrefix="group" />
@@ -137,9 +137,9 @@ All live in `src/components/ui` and `src/components/charts`. See `/gallery` for 
 
 | Component | Key props |
 | :--- | :--- |
-| `ReportTemplate` | `eyebrow`, `title`, `meta`, `actions`, `toolbar`, children (scrolling data area) |
+| `ReportTemplate` | `eyebrow`, `title`, `meta`, `actions`, `toolbar`, `contentClassName` (bottom room, e.g. for the mini-player), children (scrolling data area, `data-testid="report-content"`) |
 | `Card` / `ChartCard` | `index` (entrance stagger), `title`, `subtitle`, `aside` (legend / counter / controls), `info`, `calc` (ⓘ curtain) |
-| `KpiCard` | `label`, `icon`, `value` (formatted or `…` / `—`), `aside`, `footer`, `active`, `stale`, `onClick`, `info`, `calc` — `data-testid="kpi-<label-slug>"` |
+| `KpiCard` | `label`, `icon`, `value` (formatted or `…` / `—`), `aside`, `footer`, `active` (leave undefined for a plain action: no `aria-pressed`, no ring), `stale`, `onClick`, `info`, `calc` — `data-testid="kpi-<label-slug>"` on the number, `kpi-card-<label-slug>` on the card |
 | `KpiHero` | `label`, `value`, `unit`, `delta {text, favourable}`, `metrics[≤4]`, `meter {label, value 0..1}` |
 | `SpotlightBars` | `data: {id,label,value}[]`, `label`, `formatValue`, `secondary` (default share), `topN`, `rank`, `selectedId`, `onSelect`, `renderMeta`, `selectedBadge`, `testIdPrefix` |
 | `RankingBars` | `data`, `label`, `topN`, `order: 'desc'|'asc'`, `selectedId`, `onSelect` |
@@ -149,9 +149,40 @@ All live in `src/components/ui` and `src/components/charts`. See `/gallery` for 
 | `TrendChart` | `categories`, `series: {id,label,role:'primary'|'comparison',values}[]`, `area`, `directLabels`, `height` |
 | `IbcsVariance` | `data: {id,label,actual,comparison}[]`, `orientation`, `scenario: PY|PL|FC|BU`, `goodWhen: higher|lower`, `sort`, `topN`, `pctCap`, `selectedId`, `onSelect` |
 | Primitives | `StatusChip tone`, `Tabs`/`Tab active`, `Legend items`, `MiniMeter value`, `LoadingState rows`, `EmptyState`, `ErrorNote error` |
-| CSS classes | `.u-btn` (primary), `.u-btn-ghost` (+ `aria-pressed`), `.u-icon-btn`, `.u-input`, `.u-chip[data-tone]`, `.u-table`, `.u-tooltip`, `.u-status-dot`, `.u-eyebrow`, `.u-num` |
+| `Popover` | `label`, `trigger`, `triggerClassName`, `children(close)` — anchored panel (Esc / outside click close, focus returns to the trigger); below `sm` it spans the report header |
+| `Sheet` | `open`, `onClose`, `title` — side sheet in a portal (560 px, full screen on phones) for secondary tools |
+| `ReportDetails` | `onOpenInspector` — the header's ⓘ "Details": model, dataset id (copy), engine, auth, last latency, query count, "Open DAX Inspector" |
+| `VoiceBriefingOrb` | `open`, `onOpenChange` (dialog opened from the header's Briefing button), `onPlayingChange`, `onFocus`, `onResetAll` |
+| CSS classes | `.u-btn` (primary), `.u-btn-ghost` (+ `aria-pressed`), `.u-icon-btn` (+ `aria-pressed`), `.u-input`, `.u-chip[data-tone]`, `.u-tab` / `.u-tabs`, `.u-scroll-x`, `.u-table` (+ `.u-table--stack`, `.u-cell-end`), `.u-chart-scroll`, `.u-tooltip`, `.u-status-dot`, `.u-eyebrow`, `.u-num` |
 
 Bar lengths come from pure layout functions (`rankedRows`, `bulletRows`, `divergingRows`, `donutLayout`, `trendDomain`, `ibcsRows`/`ibcsScales`/`pctMarker`). Put new chart math in `charts/layout/` with a unit test, never inline in JSX.
+
+### 5.1 Report chrome: filters, header, on-demand detail
+
+- **Filters are framed buttons** (Lens page navigator, `--u-tab-*`): 32 px, 1 px border, radius 10 / 12, 8 px apart, **no shadows and no track**. Selected = `--u-tab-active-bg` (#237A7F, the AA teal) with white text; Nocturne adds the cyan border (#8AF3F9). Colour alone carries the selection (no dot). Hover tint only on hover-capable pointers. The row is one `.u-scroll-x` line (snap, right-edge fade) and a click calls `scrollIntoView({ inline: 'nearest' })`. Labels are short ("Group", "All groups").
+- **Active filters**: chips only for what has no visible control of its own (class, KPI focus, search) plus **Reset all** whenever any filter, the group included, is set. The filter buttons keep their content width (`flex-auto`, not `flex-1`) so the chips wrap to a second line instead of squeezing the selected button out of view.
+- **The header carries no telemetry.** Model name, dataset id, engine, auth, latency and query counts are developer context: they live behind **ⓘ Details** (`ReportDetails` popover). The header shows a quiet "Updated hh:mm" (from the KPI query's `dataUpdatedAt`) and the actions **Briefing**, **Details** and **Refresh**; on a narrow plane they are icon-only with an `aria-label` equal to the visible word.
+- **Developer tools open off-canvas**: the DAX Inspector is a `Sheet`, opened from Details, never inline at the end of the page.
+- **Card subtitles describe the data** ("Asset count and share of the register"); how to interact goes in the ⓘ curtain text.
+- **One signal per fact**: no chip repeating a meter's percentage, no column repeating another column, no fixed alarm text ("Urgent Action") — a chip states the value in context or switches tone ("None due").
+- **Briefing**: started from the header's Briefing button (dialog). Nothing floats over the data while idle; the mini-player (step title, pause, CC, stop) exists only while it plays — a pill bottom-right from `sm`, a full-width bar above `env(safe-area-inset-bottom)` on phones — and the report reserves bottom room (`contentClassName`) so it never covers the last rows.
+
+### 5.2 Responsive and touch
+
+| Width | Shell | Report |
+| :--- | :--- | :--- |
+| < md (phones) | Menu button opens the sidebar **drawer**; breadcrumb, settings, help and language hidden; "Chat with Data" icon-only (name kept as `sr-only`) | Plane `inset: 6px`, radius 18, 16 px gutters; logo 60 px; title ≤ 2 lines; KPIs 2×2 compact (24 px number, no icon mark, label ≤ 2 lines); table as a two-line list |
+| md – lg (tablets) | Drawer; breadcrumb back | KPIs 2×2 full size; table back to columns when its card is wider than 520 px |
+| ≥ lg | Persistent, collapsible sidebar; view switcher in the header | As designed for desktop |
+
+- **App height** is `h-dvh` (the mobile browser bar must not push the report below the fold).
+- **Drawer** (`UnityAssetsSidebar`, < lg): fixed, slides with `translate`, overlay `bg-u-overlay`; Esc, the overlay or choosing a module closes it; focus moves to its close button and back to the menu button; it is `inert` while closed. Collapse exists only ≥ lg.
+- **Chat** is a full-screen sheet below lg (solid canvas behind the translucent panel).
+- **KPI curtain on touch**: there is no hover, so on `(hover: none)` the icon slot becomes an ⓘ button (`What <label> means`) that toggles the same curtain. The card is a frame with two siblings — the full-card content button and the ⓘ — never nested buttons.
+- **Tables** carry `.u-table--stack` and explicit roles (`table`, `row`, `columnheader`, `cell`): below a 520 px container each row becomes a grid (line 1 name + value, line 2 secondary cells), the header is visually hidden and `getByRole('row', …)` keeps working. End-aligned flex cells use `.u-cell-end` (CSS, so the list can re-align them; a `justify-end` utility would win over it).
+- **Charts with a minimum geometry** (IBCS variance needs ~480 px for honest panel scales) keep it and scroll inside their card (`.u-chart-scroll`, a focusable region) instead of squeezing their scales or widening the page.
+- **Touch targets** under `(pointer: coarse)`: tabs and buttons 40 px, icon buttons 40 × 40, table cells 48 px.
+- **Verify** at 390 × 844 with touch in both themes: `e2e/responsive.spec.ts` (no sideways overflow on `/visuals` and `/gallery`, drawer, filters, KPI ⓘ, table list, full-screen chat, mini-player).
 
 ---
 
@@ -159,7 +190,7 @@ Bar lengths come from pure layout functions (`rankedRows`, `bulletRows`, `diverg
 
 Port of Lens `univerus_html._curtain` (principle 35): an opaque panel (`--u-curtain-bg`) drops from the top edge in .55 s, its text fades in after .16 s, and a 2 px accent hem with a glow marks its bottom. Content: kicker **What it means**, `info` (one definition sentence, ≤ 3 lines) and `calc` (**ƒ** + one line: the measure or formula).
 
-- **KPI cards / hero**: opens on hover **and** keyboard focus (`.u-curtain-host`); `pointer-events: none`, so the card's click still works. The card exposes the text through `aria-describedby`.
+- **KPI cards / hero**: opens on hover **and** keyboard focus (`.u-curtain-host`); `pointer-events: none`, so the card's click still works. The card exposes the text through `aria-describedby`. On touch screens (`hover: none`) an ⓘ in the icon slot toggles it (§5.2).
 - **Chart cards**: opens from the **ⓘ** button in the header (`aria-expanded`), closes with the button, **Esc**, a click on the curtain or focus leaving the card. Never on hover: it would cover bars and rows exactly when the user aims at them.
 - Text comes from the semantic model's measure descriptions (`EVALUATE INFO.VIEW.MEASURES()`); keep them in a definitions module (e.g. `src/components/visuals/kpiDefinitions.ts`) and mark wording that is not from the model (`pendingModelDescription`).
 - Under `prefers-reduced-motion` it appears without sliding.
@@ -220,3 +251,10 @@ UI polish and motion details beyond this contract come from the vendored `better
 | Spinner replacing a whole card | Layout shift | `LoadingState rows={n}` inside the card |
 | Raw hex in SVG `fill` | Ignores the theme | `style={{ fill: 'var(--u-…)' }}` |
 | `lg:grid-cols-4` on report grids | Opening the chat squeezes four KPIs into 700 px and truncates labels | Container variants (`@4xl:grid-cols-4`) |
+| Model, dataset id or latency on the report canvas | Developer telemetry competes with the data | `ReportDetails` (ⓘ Details) and the DAX Inspector `Sheet` |
+| Selected filter shown by a shadow or a dot | Near-invisible on glass; shadows used as structure | Filled `--u-tab-active-bg` + white text; borders for structure |
+| A chip for the group next to its selected button | The same fact twice | Chips only for filters without their own control |
+| `<button>` inside the KPI `<button>` (for an ⓘ) | Invalid nesting; screen readers and clicks misbehave | Card frame with two sibling buttons (`KpiCard`) |
+| Fixed-width sidebar on phones | A 138 px report column | Drawer below lg (§5.2) |
+| A chart that clamps to a minimum width with no scroller | The whole page scrolls sideways on phones | `.u-chart-scroll` around the SVG |
+| Floating idle widget over the data (orb) | Covers rows and columns | Header button; mini-player only while active |

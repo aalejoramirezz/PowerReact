@@ -30,8 +30,8 @@ function emptyMessage(search: string, kpiFocus: KpiFocus): string {
 }
 
 const FullWidthRow: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <tr>
-    <td colSpan={5} className="!h-auto p-3">
+  <tr role="row">
+    <td role="cell" colSpan={4} className="!h-auto p-3">
       {children}
     </td>
   </tr>
@@ -65,8 +65,8 @@ export const ClassTable: React.FC<ClassTableProps> = ({
     ) : null;
   } else if (classes.length === 0) {
     rows = (
-      <tr>
-        <td colSpan={5} className="!h-auto py-12 text-center text-u-label">
+      <tr role="row">
+        <td role="cell" colSpan={4} className="!h-auto py-12 text-center text-u-label">
           {emptyMessage(search, kpiFocus)}
         </td>
       </tr>
@@ -85,35 +85,38 @@ export const ClassTable: React.FC<ClassTableProps> = ({
             }
           }}
           tabIndex={0}
+          role="row"
           aria-selected={isSelected}
           data-interactive="true"
           className="select-none"
         >
-          <td>
+          <td role="cell">
             <span className="flex items-center gap-2">
               {isSelected && <CheckCircle className="h-3.5 w-3.5 shrink-0 text-u-interaction" />}
               <span className={cx('text-u-title', isSelected ? 'font-bold' : 'font-medium')}>{cls.className}</span>
             </span>
           </td>
-          <td className="u-num text-right font-semibold text-u-title">{cls.count.toLocaleString()}</td>
-          <td>
-            <span className="flex items-center justify-end gap-2.5">
+          <td role="cell" className="u-num text-right font-semibold text-u-title">
+            {cls.count.toLocaleString()}
+          </td>
+          <td role="cell">
+            <span className="u-cell-end flex items-center gap-2.5">
               <span className="u-num">{cls.assessed.toLocaleString()}</span>
               <MiniMeter value={cls.pctAssessed} className="w-14" />
               <span className="u-num w-9 text-right text-[11px] text-u-label">{(cls.pctAssessed * 100).toFixed(0)}%</span>
             </span>
           </td>
-          <td className="text-right">
+          {/* One renewal signal (the old Status column repeated it) */}
+          <td role="cell" className="text-right">
             {cls.dueForRenewal > 0 ? (
               <StatusChip tone="warn" className="u-num">
-                {cls.dueForRenewal.toLocaleString()}
+                {cls.dueForRenewal.toLocaleString()} due
               </StatusChip>
             ) : (
-              <span className="u-num text-u-label">0</span>
+              <span className="text-u-label" aria-label="None due">
+                —
+              </span>
             )}
-          </td>
-          <td className="text-center">
-            {cls.dueForRenewal > 0 ? <StatusChip tone="warn">Renewal</StatusChip> : <StatusChip tone="ok">Healthy</StatusChip>}
           </td>
         </tr>
       );
@@ -123,11 +126,11 @@ export const ClassTable: React.FC<ClassTableProps> = ({
   return (
     <ChartCard
       title={`Asset Classes (${scopeLabel})`}
-      subtitle="Click a row to cross-filter the KPIs down to that class"
+      subtitle="Inventory, condition and renewals by class"
       info={CHART_DEFINITIONS.classes.info}
       calc={CHART_DEFINITIONS.classes.calc}
       aside={
-        <label className="relative block">
+        <label className="relative block flex-1 @md:flex-none">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-u-label" />
           <input
             type="search"
@@ -135,7 +138,7 @@ export const ClassTable: React.FC<ClassTableProps> = ({
             aria-label="Search asset classes"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="u-input w-52 pl-8"
+            className="u-input w-full pl-8 @md:w-52"
           />
         </label>
       }
@@ -154,14 +157,20 @@ export const ClassTable: React.FC<ClassTableProps> = ({
           isStale && 'opacity-60'
         )}
       >
-        <table className="u-table">
+        {/* Explicit roles: below ~520px the rows restyle as a two-line list (u-table--stack) */}
+        <table className="u-table u-table--stack" role="table" aria-label={`Asset classes (${scopeLabel})`}>
           <thead>
-            <tr>
-              <th>Asset Class</th>
-              <th className="!text-right">Inventory</th>
-              <th className="!text-right">Condition Assessed</th>
-              <th className="!text-right">Renewal Due</th>
-              <th className="!text-center">Status</th>
+            <tr role="row" className="whitespace-nowrap">
+              <th role="columnheader">Asset Class</th>
+              <th role="columnheader" className="!text-right">
+                Inventory
+              </th>
+              <th role="columnheader" className="!text-right">
+                Condition Assessed
+              </th>
+              <th role="columnheader" className="!text-right">
+                Renewals
+              </th>
             </tr>
           </thead>
           <tbody>{rows}</tbody>

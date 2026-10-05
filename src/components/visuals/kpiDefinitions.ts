@@ -33,11 +33,11 @@ export const KPI_DEFINITIONS = {
 
 export const CHART_DEFINITIONS = {
   groups: {
-    info: 'Assets per asset class group. The share is each group’s part of all assets the chart receives (narrowed by the class filter).',
+    info: 'Assets per asset class group; the share is its part of all assets shown (narrowed by the class filter). Click a group to cross-filter the KPIs and classes.',
     calc: "[Asset Count (All States)] by 'asset_class_group'[Asset_Class_Group]",
   },
   classes: {
-    info: 'Asset classes by inventory for the current group. Search and KPI focus run in the model before the top 35 are taken.',
+    info: 'Asset classes by inventory for the current group; search and KPI focus run in the model before the top 35. Click a row to cross-filter the KPIs.',
     calc: "TOPN(35, SUMMARIZECOLUMNS('asset_class'[Asset_Class], …), [AssetCount])",
   },
 } satisfies Record<string, CurtainContent>;

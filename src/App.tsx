@@ -19,6 +19,8 @@ export function App() {
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatMounted, setIsChatMounted] = useState(false);
+  // Below lg the sidebar is a drawer, opened from the header's menu button
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   // Views mount on first visit and then stay mounted (hidden) so switching keeps
   // the embedded report, query cache subscriptions and local UI state alive.
@@ -41,16 +43,19 @@ export function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-u-canvas text-u-text flex flex-col font-sans overflow-hidden">
+    // dvh: the mobile browser chrome must not push the report below the fold
+    <div className="h-dvh w-full bg-u-canvas text-u-text flex flex-col font-sans overflow-hidden">
       <UnityAssetsHeader
         isChatOpen={isChatOpen}
         onToggleChat={toggleChat}
         status={health.data ?? null}
         activeView={activeView}
+        navOpen={isNavOpen}
+        onOpenNav={() => setIsNavOpen(true)}
       />
 
       <div className="flex-1 flex overflow-hidden">
-        <UnityAssetsSidebar />
+        <UnityAssetsSidebar mobileOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
 
         <main className="flex-1 flex overflow-hidden relative">
           <Routes>
@@ -78,14 +83,16 @@ export function App() {
             )}
           </div>
 
-          {/* Right Copilot Drawer: kept mounted once opened so the conversation survives closing */}
+          {/* Right Copilot Drawer: kept mounted once opened so the conversation survives closing.
+              Below lg it is a full-screen sheet over a solid canvas (the panel itself is translucent). */}
           {isChatMounted && (
             <div
               className={
                 isChatOpen
-                  ? 'u-anim-slide-in w-[380px] lg:w-[420px] h-full shrink-0 border-l border-u-panel-border z-20'
+                  ? 'u-anim-slide-in h-full shrink-0 border-l border-u-panel-border z-20 lg:w-[420px] max-lg:fixed max-lg:inset-0 max-lg:z-50 max-lg:w-full max-lg:border-l-0 max-lg:bg-u-canvas'
                   : 'hidden'
               }
+              data-testid="chat-drawer"
             >
               <AgenticChatPanel
                 onClose={() => setIsChatOpen(false)}

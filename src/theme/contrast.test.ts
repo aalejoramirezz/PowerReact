@@ -89,6 +89,8 @@ const AA_PAIRS: Array<[string, string, string?]> = [
   ['btn-text', 'btn-bg'],
   ['tooltip-text', 'tooltip-bg'],
   ['tab-active-text', 'tab-active-bg'],
+  ['tab-text', 'tab-bg'],
+  ['tab-hover-text', 'tab-hover-bg'],
   ['shell-header-text', 'shell-header-bg'],
   ['shell-header-muted', 'shell-header-bg'],
   ['sidebar-text', 'sidebar-bg'],

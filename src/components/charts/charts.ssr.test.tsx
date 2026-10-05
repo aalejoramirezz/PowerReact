@@ -82,7 +82,15 @@ describe('cards carry the curtain', () => {
     expect(out).toContain('What it means');
     expect(out).toContain('aria-describedby');
     expect(out).toContain('data-testid="kpi-total-assets"');
-    expect(out).toContain('aria-pressed="false"');
+    // A plain action (no `active`) has no pressed state; touch screens get an ⓘ for the curtain
+    expect(out).not.toContain('aria-pressed');
+    expect(out).toContain('aria-label="What Total Assets means"');
+  });
+
+  it('KpiCard exposes its toggle state only when it is a toggle', () => {
+    const toggle = html(<KpiCard label="Due" value="1" active={false} onClick={() => {}} />);
+    expect(toggle).toContain('aria-pressed="false"');
+    expect(html(<KpiCard label="Due" value="1" active onClick={() => {}} />)).toContain('aria-pressed="true"');
   });
 
   it('ChartCard exposes the curtain through an ⓘ button, closed by default', () => {

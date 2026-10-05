@@ -106,14 +106,15 @@ Values are CSS as written in `src/theme/tokens.css`.
 | `--u-ghost-bg` | `rgba(255, 255, 255, 0.7)` | `rgba(255, 255, 255, 0.06)` |
 | `--u-ghost-border` | `#dce5e8` | `rgba(255, 255, 255, 0.1)` |
 | `--u-ghost-hover` | `#e0f2f3` | `rgba(255, 255, 255, 0.1)` |
-| `--u-tabs-bg` | `rgba(255, 255, 255, 0.56)` | `rgba(255, 255, 255, 0.06)` |
-| `--u-tabs-border` | `rgba(109, 121, 122, 0.1)` | `rgba(255, 255, 255, 0.08)` |
-| `--u-tabs-shadow` | `0 6px 18px rgba(13, 19, 23, 0.045)` | `none` |
-| `--u-tab-text` | `#637278` | `rgba(236, 241, 247, 0.66)` |
-| `--u-tab-active-bg` | `rgba(255, 255, 255, 0.94)` | `#ffffff` |
-| `--u-tab-active-text` | `#0d1317` | `#0d1317` |
-| `--u-tab-active-shadow` | `0 1px 2px rgba(13, 19, 23, 0.04), 0 6px 18px rgba(13, 19, 23, 0.06)` | `none` |
-| `--u-tab-dot` | `#34a7ad` | `#237a7f` |
+| `--u-tab-bg` | `#ffffff` | `#161c20` |
+| `--u-tab-border` | `#dce5e8` | `#2d3336` |
+| `--u-tab-text` | `#5c6f75` | `#b6bbc1` |
+| `--u-tab-hover-bg` | `#e0f2f3` | `#1b2226` |
+| `--u-tab-hover-text` | `#00696e` | `#ffffff` |
+| `--u-tab-active-bg` | `#237a7f` | `#237a7f` |
+| `--u-tab-active-text` | `#ffffff` | `#ffffff` |
+| `--u-tab-active-border` | `#237a7f` | `#8af3f9` |
+| `--u-tab-radius` | `10px` | `12px` |
 | `--u-shell-header-bg` | `#1a2b32` | `#070b0e` |
 | `--u-shell-header-border` | `rgba(255, 255, 255, 0.06)` | `rgba(255, 255, 255, 0.07)` |
 | `--u-shell-header-text` | `#ffffff` | `#ffffff` |

@@ -69,7 +69,7 @@ export const GroupDistribution: React.FC<GroupDistributionProps> = ({
   return (
     <ChartCard
       title="Asset Distribution by Group"
-      subtitle="Click a group to cross-filter the classes and KPIs"
+      subtitle="Asset count and share of the register"
       aside={<span className="u-num text-[11px] text-u-label">{groups?.length ?? 0} groups</span>}
       info={CHART_DEFINITIONS.groups.info}
       calc={CHART_DEFINITIONS.groups.calc}
