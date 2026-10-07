@@ -1,0 +1,9 @@
+{
+  "manifests": [
+    {
+      "id": "asset-portfolio",
+      "title": "Asset Portfolio",
+      "file": "sample-manifest.json"
+    }
+  ]
+}

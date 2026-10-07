@@ -481,8 +481,10 @@
   display: flex;
   align-items: center;
   gap: 2px;
+  margin-left: auto;
 }
-@container (max-width: 28rem) {
+/* Phone-width cards: the tools take their own line, so an aside (a search box) can fill it */
+@container (max-width: 26rem) {
   .u-card-head__tools {
     width: 100%;
     justify-content: space-between;

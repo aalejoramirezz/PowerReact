@@ -22,6 +22,12 @@ export interface AppConfig {
   credentials: ServicePrincipalCredentials;
   unityDomain: string;
   semanticModel: { workspaceId: string; datasetId: string };
+  /**
+   * Datasets /api/powerbi/query may run DAX against (lower-case ids). Manifests name their own data
+   * source, so a client can ask for any dataset the Service Principal reaches: only these answer.
+   * `['*']` allows any (development only).
+   */
+  allowedDatasets: string[];
   preconfiguredReports: PreconfiguredReport[];
   /** Built client (Vite `dist/`) served by Express when present. */
   clientDistDir: string | null;
@@ -73,8 +79,18 @@ export const PRECONFIGURED_REPORTS: PreconfiguredReport[] = [
   },
 ];
 
+/** PBI_ALLOWED_DATASETS: comma-separated dataset ids (or `*`); defaults to the configured dataset. */
+export function parseAllowedDatasets(value: string | undefined, defaultDatasetId: string): string[] {
+  const ids = (value ?? '')
+    .split(',')
+    .map((id) => id.trim().toLowerCase())
+    .filter(Boolean);
+  return ids.length ? ids : [defaultDatasetId.toLowerCase()];
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const distDir = path.resolve('dist');
+  const datasetId = env.PBI_DATASET_ID || '0db033d0-4f4e-4d72-a280-007d6f17e2ec';
 
   return {
     port: Number(env.PORT) || 5000,
@@ -86,8 +102,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     unityDomain: env.UNITY_DOMAIN || 'https://gateway.unitystage.net',
     semanticModel: {
       workspaceId: env.PBI_WORKSPACE_ID || 'ef45c53d-42d4-48c6-be79-380b8d890c80',
-      datasetId: env.PBI_DATASET_ID || '0db033d0-4f4e-4d72-a280-007d6f17e2ec',
+      datasetId,
     },
+    allowedDatasets: parseAllowedDatasets(env.PBI_ALLOWED_DATASETS, datasetId),
     preconfiguredReports: PRECONFIGURED_REPORTS,
     clientDistDir: existsSync(path.join(distDir, 'index.html')) ? distDir : null,
   };

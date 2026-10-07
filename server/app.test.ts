@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosHeaders, type AxiosResponse } from 'axios';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from './app.js';
-import { PRECONFIGURED_REPORTS, type AppConfig } from './config.js';
+import { parseAllowedDatasets, PRECONFIGURED_REPORTS, type AppConfig } from './config.js';
 
 vi.mock('axios', async (importOriginal) => {
   const actual = await importOriginal<typeof import('axios')>();
@@ -19,6 +19,7 @@ const config: AppConfig = {
   credentials: { tenantId: 'tenant', clientId: 'client-id-123456', clientSecret: 'secret' },
   unityDomain: 'https://unity.test',
   semanticModel: { workspaceId: 'ws-default', datasetId: 'ds-default' },
+  allowedDatasets: ['ds-default', 'ds-manifest'],
   preconfiguredReports: PRECONFIGURED_REPORTS,
   clientDistDir: null,
 };
@@ -101,6 +102,30 @@ describe('POST /api/powerbi/query', () => {
     expect(body).toEqual({ queries: [{ query: 'EVALUATE ROW("x", 1)' }], serializerSettings: { includeNulls: true } });
     expect(options?.headers).toMatchObject({ Authorization: 'Bearer aad-token' });
     expect(tokenCalls()).toHaveLength(1);
+  });
+
+  it('runs a manifest query against its own allowed dataset', async () => {
+    mockPost(() => ({ results: [{ tables: [{ rows }] }] }));
+    await request(app)
+      .post('/api/powerbi/query')
+      .send({ query: 'EVALUATE ROW("x", 1)', workspaceId: 'ws-m', datasetId: 'DS-MANIFEST' })
+      .expect(200);
+    expect(callsTo('executeQueries')[0]?.[0]).toBe('https://api.powerbi.com/v1.0/myorg/groups/ws-m/datasets/DS-MANIFEST/executeQueries');
+  });
+
+  it('refuses datasets outside PBI_ALLOWED_DATASETS without calling Power BI', async () => {
+    const res = await request(app)
+      .post('/api/powerbi/query')
+      .send({ query: 'EVALUATE ROW("x", 1)', workspaceId: 'ws-other', datasetId: 'ds-other' })
+      .expect(403);
+    expect(res.body).toMatchObject({ success: false, error: 'Dataset ds-other is not allowed', hint: expect.stringContaining('PBI_ALLOWED_DATASETS') });
+    expect(mockedPost).not.toHaveBeenCalled();
+  });
+
+  it('reads the allow-list from the environment (default: the configured dataset; * = any)', () => {
+    expect(parseAllowedDatasets(undefined, 'DS-1')).toEqual(['ds-1']);
+    expect(parseAllowedDatasets(' A , b,, ', 'ds-1')).toEqual(['a', 'b']);
+    expect(parseAllowedDatasets('*', 'ds-1')).toEqual(['*']);
   });
 
   it('forwards the upstream status and surfaces the DAX error message', async () => {

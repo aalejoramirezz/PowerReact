@@ -21,14 +21,14 @@ describe('daxLiteral / treatAs', () => {
     expect(daxLiteral(-0.5)).toBe('-0.5');
     expect(daxLiteral(1e21)).toBe('1000000000000000000000');
     expect(daxLiteral(false)).toBe('FALSE()');
-    expect(() => daxLiteral(Number.NaN)).toThrow();
+    expect(() => daxLiteral(Number.NaN)).toThrow(/non-finite/);
   });
 
   it('applies one or several values of a column', () => {
     expect(treatAs('Core', "'g'[G]")).toBe(`TREATAS({"Core"}, 'g'[G])`);
     expect(treatAs(['Core', 'Transport'], "'g'[G]")).toBe(`TREATAS({"Core", "Transport"}, 'g'[G])`);
     expect(treatAs([2023, 2024], "'d'[Year]")).toBe(`TREATAS({2023, 2024}, 'd'[Year])`);
-    expect(() => treatAs([], "'g'[G]")).toThrow();
+    expect(() => treatAs([], "'g'[G]")).toThrow(/at least one value/);
   });
 });
 

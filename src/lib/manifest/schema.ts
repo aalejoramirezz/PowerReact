@@ -326,6 +326,10 @@ export type VisualOf<C extends ManifestComponentName> = Extract<ManifestVisual, 
 /** Every component a manifest can name, in schema order. */
 export const MANIFEST_COMPONENTS = Visual.options.map((o) => o.shape.component.value) as ManifestComponentName[];
 
+/** The element tag behind a component name: UniverusRankingBars → univerus-ranking-bars. */
+export const elementTag = (name: ManifestComponentName): string =>
+  name.replace(/[A-Z]/g, (c, i: number) => `${i ? '-' : ''}${c.toLowerCase()}`);
+
 export interface ManifestIssue {
   /** e.g. `visuals[2].grid.colSpan` */
   path: string;

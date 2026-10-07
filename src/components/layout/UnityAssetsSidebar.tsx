@@ -18,6 +18,7 @@ import {
   Headphones,
   HeartHandshake,
   Palette,
+  FileJson,
   X,
   type LucideIcon,
 } from 'lucide-react';
@@ -38,6 +39,7 @@ const MENU_ITEMS: MenuItem[] = [
   { label: 'Asset Management', icon: Package, to: ROUTES.visuals, badge: 'React DAX' },
   { label: 'Report', icon: BarChart2, to: ROUTES.report, badge: 'Embed' },
   { label: 'Design Gallery', icon: Palette, to: ROUTES.gallery, badge: 'UI' },
+  { label: 'Manifest Preview', icon: FileJson, to: ROUTES.manifestPreview, badge: 'JSON' },
   { label: 'Asset Routing', icon: Compass },
   { label: 'Compliance', icon: ClipboardCheck },
   { label: 'Crew Routing', icon: Users },

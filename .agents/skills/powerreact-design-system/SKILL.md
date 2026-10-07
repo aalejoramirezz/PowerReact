@@ -1,11 +1,11 @@
 ---
 name: powerreact-design-system
-description: Design contract for PowerReact's React UI. Covers the two Univerus templates ported from Univerus-Lens (Neo-Glass light / Nocturne dark, switched app-wide with the dark-mode button), the design tokens, surfaces, typography, 12-column grid, the hover curtain, motion rules, the visual selection policy and the chart library (KPI card, hero KPI, spotlight / ranking / bullet / diverging bars, donut, trend, IBCS variance). Use whenever you add or change any UI, visual, colour, card, chart, layout or theme in this repository. For wiring a new visual to the semantic model (DAX, queries, cross-filter), also follow powerreact-visual-builder.
+description: Design contract for PowerReact's UI. Covers the two Univerus templates ported from Univerus-Lens (Neo-Glass light / Nocturne dark, switched app-wide with the dark-mode button), the design tokens, surfaces, typography, 12-column grid, the hover curtain, motion rules, the visual selection policy and the Univerus web components (Stencil, Shadow DOM) with their standard toolbar (export CSV / Excel, table view, focus view) — KPI card, hero KPI, spotlight / ranking / bullet / diverging bars, donut, trend, IBCS variance, data table. Use whenever you add or change any UI, visual, colour, card, chart, layout or theme in this repository. For wiring a new visual to the semantic model (DAX, queries, cross-filter), also follow powerreact-visual-builder; for manifests, powerreact-manifest.
 ---
 
 # PowerReact Design Skill: Univerus Neo-Glass ↔ Nocturne
 
-PowerReact renders Power BI semantic-model data with **native React visuals** (no Power BI visuals, no Deneb, no HTML Content). The look is the Univerus design system from **Univerus-Lens**, ported to responsive React:
+PowerReact renders Power BI semantic-model data with **native visuals** (no Power BI visuals, no Deneb, no HTML Content): the **Univerus web components** (Stencil, Shadow DOM, `packages/univerus-elements`), wrapped for React 18. The look is the Univerus design system from **Univerus-Lens**, ported to the responsive web:
 
 | Template | `data-theme` | Source in Univerus-Lens | Character |
 | :--- | :--- | :--- | :--- |
@@ -22,14 +22,17 @@ If this document and the code disagree, the code wins and this document must be 
 | :--- | :--- |
 | Every colour, surface, radius, shadow, blur, padding, gap | `src/theme/tokens.css` (the ONLY place colours live) |
 | Token → Tailwind utility mapping (`bg-u-*`, `text-u-*`, `border-u-*`), no stock palette | `src/index.css` |
-| Surface classes: scene, plane, card, curtain, tabs, buttons, inputs, chips, table, tooltip | `src/theme/surfaces.css` |
-| Keyframes (`u-rise`, `u-fade`, `u-grow`, `u-wipe`, `u-seg`, …) and the reduced-motion block | `src/theme/base.css` |
+| Surface classes shared by the app **and** the shadow roots: card, curtain, controls, tabs, chips, table, tooltip, skeleton, menu, focus dialog, pager | `packages/univerus-elements/src/styles/surfaces.css` (imported by `src/theme/surfaces.css`) |
+| App-only surfaces: scene, plane, rule, eyebrow, horizontal scroller | `src/theme/surfaces.css` |
+| Keyframes (`u-rise`, `u-fade`, `u-grow`, `u-wipe`, `u-seg`, …) and the reduced-motion block | `packages/univerus-elements/src/styles/motion.css` (imported by `src/theme/base.css` and every element) |
+| Shadow-root baseline (host reset, focus ring, scrollbars) · bar-family marks | `packages/univerus-elements/src/styles/shadow.css` · `charts.css` |
 | Theme state, persistence, OS preference; pre-paint script | `src/store/theme.ts`, `index.html` |
 | Report template (scene, plane, header, rule) | `src/components/template/ReportTemplate.tsx` |
-| UI primitives | `src/components/ui/` (`Card`, `ChartCard`, `InfoCurtain`, `KpiCard`, `KpiHero`, `primitives.tsx`) |
-| Charts + pure layout math | `src/components/charts/` (`layout/*.ts` are unit-tested) |
-| Living catalogue in both themes | `/gallery` → `src/pages/Gallery.tsx`, fixtures in `src/components/charts/__fixtures__/samples.ts` |
-| Mechanical guards | `src/theme/contrast.test.ts`, `src/theme/noRawColors.test.ts`, `src/components/charts/charts.ssr.test.tsx`, `e2e/theme.spec.ts`, `e2e/gallery.spec.ts` |
+| React chrome | `src/components/ui/` (`Card`, `ChartCard`, `InfoCurtain`, `Popover`, `Sheet`, `primitives.tsx`) |
+| Visuals: the Univerus elements, their shared frame and pure layout math | `packages/univerus-elements/src/components/univerus-*`, `src/functional/frame.tsx`, `src/utils/layout/*.ts` (unit-tested) |
+| React wrappers (generated on every elements build) | `src/components/univerus/` (`index.ts` re-exports `generated/` and the public types) |
+| Living catalogue in both themes | `/gallery` → `src/pages/Gallery.tsx`, fixtures in `src/components/univerus/__fixtures__/samples.ts` |
+| Mechanical guards | `src/theme/contrast.test.ts`, `src/theme/noRawColors.test.ts` (app + package), `src/components/univerus/elements.ssr.test.ts` (hydrate), `e2e/theme.spec.ts`, `e2e/gallery.spec.ts` |
 
 Full token table: [references/tokens.md](references/tokens.md). All 41 principles adapted to React: [references/principles.md](references/principles.md). IBCS: [references/ibcs.md](references/ibcs.md).
 
@@ -37,14 +40,15 @@ Full token table: [references/tokens.md](references/tokens.md). All 41 principle
 
 ## 0. Non-negotiable rules
 
-1. **Colours come only from tokens.** Use `bg-u-*`, `text-u-*`, `border-u-*` utilities or `var(--u-*)` in SVG/inline styles. Stock Tailwind colours (`slate-500`, `teal-600`…) do not exist in this build (`--color-*: initial`), and `noRawColors.test.ts` fails on palette classes, hex, `rgb()` or `hsl()` anywhere in `src/` except `tokens.css`. White and black are the only keywords allowed.
+1. **Colours come only from tokens.** Use `bg-u-*`, `text-u-*`, `border-u-*` utilities or `var(--u-*)` in SVG/inline styles. Stock Tailwind colours (`slate-500`, `teal-600`…) do not exist in this build (`--color-*: initial`), and `noRawColors.test.ts` fails on palette classes, hex, `rgb()` or `hsl()` anywhere in `src/` or `packages/univerus-elements/src/` except `tokens.css`. White and black are the only keywords allowed.
+   **Inside a shadow root only `var(--u-*)` works.** Tailwind utilities and the document's classes stop at the shadow boundary; the `--u-*` custom properties, fonts and colour inherit through it. Element styles are plain CSS in the package (`styleUrls`), reading roles only. Content a container passes through a `slot` stays in light DOM and uses Tailwind normally.
 2. **New colour = new role.** Add it to **both** theme blocks in `tokens.css` (the contrast test checks role parity), map it in `index.css` if utilities need it, and add a contrast pair to `contrast.test.ts` if it carries text.
-3. **Every visual sits on exactly one card**: `ChartCard` for charts and tables, `KpiCard` / `KpiHero` for numbers. Never hand-roll a card with borders and shadows; never nest cards.
+3. **Every visual is exactly one Univerus element**, which is its card: `<univerus-*>` (React: `Univerus…` wrappers from `src/components/univerus`). Never wrap an element in another card, never hand-roll a card with borders and shadows. `ChartCard` remains for non-visual React surfaces.
 4. **One question per card** (§2). A chart answers how much, which leads, how it is split, how it evolved, how far from target, or which exact rows; never two of them.
 5. **Both themes, always.** Check every change on `/gallery` and on the real view in Neo-Glass **and** Nocturne before handing over.
 6. **Switching theme never changes geometry or text.** Sizes and typography are shared; themes change colour, radius (14 / 20), gap (16 / 20) and card padding only.
 7. **Motion explains, it never loops** (§7). The only infinite animations are loading spinners (`u-spin`) and the voice equalizer while speaking. Every entrance uses `var(--u-ease)` and works under `prefers-reduced-motion`.
-8. **Loading, empty and error states keep the final geometry** (`LoadingState rows={n}`, `EmptyState`, `ErrorNote`).
+8. **Loading, empty and error states keep the final geometry**: every element takes `loading` (skeleton rows), `error` (note; the last good data stays visible under it), `stale` (dimmed while refetching) and `empty-message`.
 9. **Context on demand**: definitions and formulas go in the hover curtain (§6), never as footnotes on the card face.
 10. **Accessible by construction**: interactive rows and cards are `<button>`s (or rows with `tabIndex`, `aria-selected` and Enter/Space handlers); toggles expose `aria-pressed`; charts expose `role="img"` + `aria-label`; text roles meet the contrast test.
 11. **No pie, no 3D, no dual axis, no gauges.** A composition with more than 6 parts is a ranking.
@@ -57,7 +61,8 @@ Full token table: [references/tokens.md](references/tokens.md). All 41 principle
 - `<html data-theme="neoglass|nocturne">` selects the token block. `index.html` sets it **before first paint** from `localStorage['powerreact-theme']`, else from `prefers-color-scheme`. `src/store/theme.ts` (`useThemeStore`: `theme`, `setTheme`, `toggle`) keeps it, persists it (storage errors tolerated) and swaps **instantly**: transitions are suppressed for the flip so colours, borders and shadows do not smear (better-ui).
 - `dark:` utilities target Nocturne (`@custom-variant dark`). Prefer a token role over `dark:` overrides: a role keeps both themes in one place.
 - Template-specific chrome is CSS, not JSX branches: `.u-plane-glow` / `.u-plane-rays` only display in Nocturne; `--u-rule` is transparent in Nocturne; Nocturne tabs are pills.
-- **Choose by audience** when a page has a default: Neo-Glass for executive, audit and print; Nocturne for operational monitoring and wall displays. The user's toggle always wins.
+- **One element can pin a template**: every element takes `theme="neoglass|nocturne"`, which sets `data-theme` on its host; `tokens.css` also matches bare `[data-theme='…']`, so the roles re-resolve there and inherit into the shadow root. Use it for side-by-side comparisons (the gallery's "Pinned template" card); a manifest visual can set `props.theme`.
+- **Choose by audience** when a page has a default: Neo-Glass for executive, audit and print; Nocturne for operational monitoring and wall displays. The user's toggle always wins (a manifest's `theme` applies once, when it loads).
 
 ---
 
@@ -65,19 +70,19 @@ Full token table: [references/tokens.md](references/tokens.md). All 41 principle
 
 | Question the module answers | Component | Notes |
 | :--- | :--- | :--- |
-| How much? (value + delta / context) | `KpiCard` | One card per KPI, 3 columns each (4 per row). Delta via `KpiDelta` coloured by business meaning. |
-| One headline metric with supporting figures | `KpiHero` | Dominant number, ≤ 4 metrics, optional 60-tick meter. Takes 7–8 columns. |
-| Which category leads? (and can filter the page) | `SpotlightBars` | Label above a slim pill bar, value, share of total over **all** categories, optional `#rank`, selection dims the rest. |
-| Which leads, compact / long lists | `RankingBars` | One line per row; bottom-N stays relative to the overall leader. |
-| On target per category? | `BulletBars` | Fill = actual, tick = target, variance chip by `goodWhen`. |
-| Signed imbalance (net flow, variance), both ends visible | `DivergingBars` | Centre axis; direction by side, sign and end labels, never colour alone. |
-| How is a real total split? (2–6 parts) | `Donut` | Total in the hole, legend list with share + value. > 6 parts folds into "Other" and warns: use a ranking. |
-| How did it evolve? | `TrendChart` | 1 primary series + ≤ 1 comparison (dashed). Area to zero. Direct labels. Crosshair tooltip. |
-| How far above / below PY, plan, forecast, budget — and where? | `IbcsVariance` | IBCS notation. `orientation="horizontal"` for structures, `"vertical"` for time. See [references/ibcs.md](references/ibcs.md). |
-| Which exact rows, owners, statuses? | `ChartCard` + `.u-table` | Identifiers first, status last (`StatusChip`), inline `MiniMeter` for ratios. |
+| How much? (value + delta / context) | `UniverusKpiCard` | One card per KPI, 3 columns each (4 per row). Delta (explicit or derived from `comparison-value` + `good-when`) coloured by business meaning; `badge`, `meter`, `caption`, `icon`. |
+| One headline metric with supporting figures | `UniverusKpiHero` | Dominant number, ≤ 4 metrics, optional 60-tick meter. Takes 7–8 columns. |
+| Which category leads? (and can filter the page) | `UniverusSpotlightBars` | Label above a slim pill bar, value, share of total over **all** categories (`secondary`), optional `#rank`, `meta` lines, selection dims the rest. |
+| Which leads, compact / long lists | `UniverusRankingBars` | One line per row; bottom-N stays relative to the overall leader. |
+| On target per category? | `UniverusBulletBars` | Fill = actual, tick = target, variance chip by `goodWhen`. |
+| Signed imbalance (net flow, variance), both ends visible | `UniverusDivergingBars` | Centre axis; direction by side, sign and end labels, never colour alone. |
+| How is a real total split? (2–6 parts) | `UniverusDonut` | Total in the hole, legend list with share + value. > 6 parts folds into "Other" and warns: use a ranking. |
+| How did it evolve? | `UniverusTrendChart` | 1 primary series + ≤ 1 comparison (dashed). Area to zero. Direct labels. Crosshair tooltip; a click / Enter reports the period. |
+| How far above / below PY, plan, forecast, budget — and where? | `UniverusIbcsVariance` | IBCS notation. `orientation="horizontal"` for structures, `"vertical"` for time. See [references/ibcs.md](references/ibcs.md). |
+| Which exact rows, owners, statuses? | `UniverusDataTable` | Identifiers first, status last (`kind: 'status'` chip), `kind: 'meter'` for ratios; sortable, paginated, a two-line list below 520 px. |
 | Filter the page | `Tabs` / `Tab` (framed buttons, §5.1), search `u-input` | Toggles use `aria-pressed`; the selected button *is* the visible state (no second chip for it); removable chips show the other active filters. |
 
-React lifts the Power BI limitation that HTML visuals are display-only: **every component may cross-filter** through the filter store (see powerreact-visual-builder).
+Web components lift the Power BI limitation that HTML visuals are display-only: **every element may cross-filter** — it emits `dataPointClick { visualId, field, value, label }` and the container decides what that filters (see powerreact-visual-builder).
 
 ---
 
@@ -109,6 +114,7 @@ Text: `--u-title` > `--u-text` > `--u-text-soft` > `--u-label` / `--u-axis` > `-
 - **Numbers** use `.u-num` (tabular figures). Values right-aligned in tables.
 - **Grid**: 12 columns with `gap-(--u-gap)`. KPIs span 3; the main insight 7–8; supporting 4–5. Sections stack with the same gap. Equivalent cards share height and baseline.
 - **Responsive by container, not viewport**: the report's data area is a size container (`@container` in `ReportTemplate`), because its width changes with the sidebar and the chat drawer. Use container variants — KPIs `grid-cols-2 @4xl:grid-cols-4`, breakdown rows `grid-cols-1 @5xl:grid-cols-12` with `@5xl:col-span-*` — never `sm:`/`lg:` for report layouts. Header and toolbar respond to the plane, a named container: `@md/plane:`, `@lg/plane:`. Viewport breakpoints are for the app shell only (§5.2).
+- **Container queries cross the shadow boundary**: an element's `@container (min-width: 28rem)` resolves against the nearest container in the flat tree, so a KPI card answers to the report's data area exactly as the React card did. Chart cards are containers themselves (`.u-card--frame`), so their header, tables and charts adapt to the card's own width.
 - **Padding**: cards use `--u-card-pad` (`.u-card--pad`, default in `Card`); KPI cards `--u-kpi-pad`.
 - **Radii**: cards `--u-card-radius` (14 / 20), controls 8–9 px, chips 6 px, pills full. Never mix arbitrary radii.
 
@@ -116,46 +122,66 @@ Text: `--u-title` > `--u-text` > `--u-text-soft` > `--u-label` / `--u-axis` > `-
 
 ## 5. Components
 
-All live in `src/components/ui` and `src/components/charts`. See `/gallery` for each one rendered in the active theme.
+The visuals are the Univerus elements (`packages/univerus-elements`), used in React through the generated wrappers exported by `src/components/univerus`. React chrome lives in `src/components/ui`. See `/gallery` for each one rendered in the active theme.
 
 ```tsx
+import { UniverusKpiCard, UniverusSpotlightBars } from '../univerus';
+
 <ReportTemplate eyebrow="Asset Management" title="Asset Portfolio Overview" meta={<span>Updated <time>10:53</time></span>}
                 actions={<>{briefingButton}<ReportDetails onOpenInspector={…} />{refreshButton}</>} toolbar={<FilterBar />}>
   <div className="grid grid-cols-2 gap-(--u-gap) @4xl:grid-cols-4">
-    <KpiCard index={2} label="Due For Renewal" icon={AlertTriangle} value="687"
-             aside={<StatusChip tone="warn">6.9% of assets</StatusChip>}   {/* contextual, "None due" (ok) at 0 */}
-             active={focus === 'renewal'} onClick={() => toggleKpiFocus('renewal')}
-             info="Assets whose renewal date is on or before today…" calc="[Assets Due For Renewal]" />
+    <UniverusKpiCard index={2} heading="Due For Renewal" icon="alert-triangle" value={687}
+                     badge={{ text: '6.9%', detail: 'of assets', tone: 'warn' }}   {/* "None due" (ok) at 0 */}
+                     active={focus === 'renewal'} onDataPointClick={() => toggleKpiFocus('renewal')}
+                     loading={isPending} error={errorText} stale={isPlaceholderData}
+                     info="Assets whose renewal date is on or before today…" calc="[Assets Due For Renewal]" />
   </div>
-  <ChartCard index={4} className="@5xl:col-span-5" title="Asset Distribution by Group" subtitle="Asset count and share of the register"
-             info="…" calc="[Asset Count (All States)] by …" aside={<span className="u-num text-[11px] text-u-label">5 groups</span>}>
-    <SpotlightBars data={rows} label="Asset distribution by group" selectedId={group} onSelect={(d) => toggleGroup(d.id)}
-                   selectedBadge="Cross-Filtered" testIdPrefix="group" />
-  </ChartCard>
+  <UniverusSpotlightBars index={4} className="@5xl:col-span-5" heading="Asset Distribution by Group"
+                         subheading="Asset count and share of the register" info="…" calc="[Asset Count (All States)] by …"
+                         data={rows /* {id, label, value, raw?, meta?}[] */} secondary="share-paren" selectedBadge="Cross-Filtered"
+                         selectedValue={group} crossFilterField={GROUP_COLUMN} testIdPrefix="group"
+                         onDataPointClick={(e) => toggleGroup(String(e.detail.value))}>
+    <span slot="aside" className="u-num text-[11px] text-u-label">5 groups</span>
+  </UniverusSpotlightBars>
 </ReportTemplate>
 ```
+
+**The element contract.** Data and state in (`data` / `rows` / `categories`…, `format`, `loading`, `error`, `stale`, `selected-value`, `cross-filter-field`, `theme`), events out — never a fetch, never DAX:
+
+| Event | Detail | When |
+| :--- | :--- | :--- |
+| `dataPointClick` | `{ visualId, field, value, label }` (`value` is the category's raw value) | Click / Enter on a bar, row, segment, legend row, period or KPI |
+| `exportData` | `{ visualId, format, fileName, rowCount }` | After a CSV / Excel file was generated and downloaded (on the client) |
+| `focusModeChange` | `{ visualId, open }` | Focus view opened / closed |
+| `viewChange` | `{ visualId, view: 'chart' | 'table' }` | Table view toggled |
+
+The card title is **`heading`** (`title` is a global HTML attribute: it would put a tooltip on the host). Slots: `aside` (counters, legends, a search box, scenario tabs) and `footer` on every chart; `aside`, `footer` and `icon` on the KPI card.
+
+**The standard toolbar** (every chart and table card, `.u-icon-btn`, 150 ms, press `scale .96`): **Export data** (menu: Export CSV / Export Excel; RFC 4180 + BOM + formula-injection guard, SheetJS loaded on demand; the raw query rows when the container passes `export-rows`), **Table view** (`aria-pressed`; the same data as a sortable `univerus-data-table`; not on the data table itself), **Focus view** (a native modal `<dialog>`: top layer, focus trapped, Esc closes and focus returns to the button; enters in 250 ms from `scale(.95)`; the card keeps its size meanwhile) and **ⓘ** (the curtain). KPIs keep their face clean: the same actions sit in a compact **⋯** menu (`More options for <label>`), shown on hover / focus, always on touch. Turn tools off with `exportable`, `table-toggle`, `focusable` (the `/visuals` KPIs are filter toggles and switch the ⋯ off to keep one tab stop per card).
 
 | Component | Key props |
 | :--- | :--- |
 | `ReportTemplate` | `eyebrow`, `title`, `meta`, `actions`, `toolbar`, `contentClassName` (bottom room, e.g. for the mini-player), children (scrolling data area, `data-testid="report-content"`) |
-| `Card` / `ChartCard` | `index` (entrance stagger), `title`, `subtitle`, `aside` (legend / counter / controls), `info`, `calc` (ⓘ curtain) |
-| `KpiCard` | `label`, `icon`, `value` (formatted or `…` / `—`), `aside`, `footer`, `active` (leave undefined for a plain action: no `aria-pressed`, no ring), `stale`, `onClick`, `info`, `calc` — `data-testid="kpi-<label-slug>"` on the number, `kpi-card-<label-slug>` on the card |
-| `KpiHero` | `label`, `value`, `unit`, `delta {text, favourable}`, `metrics[≤4]`, `meter {label, value 0..1}` |
-| `SpotlightBars` | `data: {id,label,value}[]`, `label`, `formatValue`, `secondary` (default share), `topN`, `rank`, `selectedId`, `onSelect`, `renderMeta`, `selectedBadge`, `testIdPrefix` |
-| `RankingBars` | `data`, `label`, `topN`, `order: 'desc'|'asc'`, `selectedId`, `onSelect` |
-| `BulletBars` | `data: {id,label,actual,target}[]`, `goodWhen: 'above'|'below'` |
-| `DivergingBars` | `data`, `negativeLabel`, `positiveLabel`, `maxRows` |
-| `Donut` | `data`, `centerLabel`, `formatValue`, `size`, `selectedId`, `onSelect` |
-| `TrendChart` | `categories`, `series: {id,label,role:'primary'|'comparison',values}[]`, `area`, `directLabels`, `height` |
-| `IbcsVariance` | `data: {id,label,actual,comparison}[]`, `orientation`, `scenario: PY|PL|FC|BU`, `goodWhen: higher|lower`, `sort`, `topN`, `pctCap`, `selectedId`, `onSelect` |
-| Primitives | `StatusChip tone`, `Tabs`/`Tab active`, `Legend items`, `MiniMeter value`, `LoadingState rows`, `EmptyState`, `ErrorNote error` |
+| Every Univerus element | `visualId`, `heading`, `info`, `calc` (curtain), `format` (`{style: integer|decimal|percent|currency|compact, decimals?, currency?}`), `loading`, `error`, `stale`, `index` (entrance stagger), `theme`, `exportable`, `exportFormats`, `exportFileName`, `exportRows`, `focusable` |
+| Every chart / table element | + `subheading`, `label` (the chart's accessible name; default heading), `emptyMessage`, `selectedValue`, `crossFilterField`, `interactive` (default: when a field is set), `tableToggle`, `testIdPrefix` (`${p}-bar-${id}`, `${p}-share-${id}`, `${p}-row-${key}`) |
+| `UniverusKpiCard` | `heading` (the label), `value` / `displayValue`, `caption`, `delta {text, favourable}` or `comparisonValue` + `goodWhen` + `deltaLabel`, `badge {text, tone, detail}`, `meter {value 0..1, label, detail}`, `icon` (named: `database`, `check-circle`, `alert-triangle`, …), `active` (leave undefined for a plain action: no `aria-pressed`, no ring), `interactive` — `data-testid="kpi-<label-slug>"` on the number, `kpi-card-<label-slug>` on the card |
+| `UniverusKpiHero` | `heading`, `value` / `displayValue`, `unit`, `delta` or `comparisonValue`, `metrics[≤4] {label, value, format}`, `meter {label, value 0..1}` |
+| `UniverusSpotlightBars` | `data: {id,label,value,raw?,meta?}[]`, `secondary: share|share-paren|none`, `topN`, `rank`, `selectedBadge` |
+| `UniverusRankingBars` | `data`, `topN`, `order: 'desc'|'asc'` |
+| `UniverusBulletBars` | `data: {id,label,actual,target}[]`, `goodWhen: 'above'|'below'`, `topN`, `targetLabel` |
+| `UniverusDivergingBars` | `data`, `negativeLabel`, `positiveLabel`, `maxRows` |
+| `UniverusDonut` | `data`, `centerLabel`, `size` |
+| `UniverusTrendChart` | `categories`, `series: {id,label,role:'primary'|'comparison',values}[]`, `area`, `directLabels`, `chartHeight` |
+| `UniverusIbcsVariance` | `data: {id,label,actual,comparison}[]`, `orientation`, `scenario: PY|PL|FC|BU`, `goodWhen: higher|lower`, `actualLabel`, `comparisonLabel`, `sort`, `topN`, `pctCap`, `decimals`, `chartHeight` |
+| `UniverusDataTable` | `columns: {key,label,kind?: text|number|meter|status,format?,ratioKey?,suffix?,tone?,emptyLabel?}[]`, `rows`, `rowKey`, `sortable`, `paginated`, `pageSize` (10/25/50), `maxHeight`, `bare` (table only) |
+| Primitives (React) | `StatusChip tone`, `Tabs`/`Tab active`, `Legend items`, `MiniMeter value`, `RemovableChip`, `LoadingState rows`, `EmptyState`, `ErrorNote error` |
 | `Popover` | `label`, `trigger`, `triggerClassName`, `children(close)` — anchored panel (Esc / outside click close, focus returns to the trigger); below `sm` it spans the report header |
 | `Sheet` | `open`, `onClose`, `title` — side sheet in a portal (560 px, full screen on phones) for secondary tools |
 | `ReportDetails` | `onOpenInspector` — the header's ⓘ "Details": model, dataset id (copy), engine, auth, last latency, query count, "Open DAX Inspector" |
 | `VoiceBriefingOrb` | `open`, `onOpenChange` (dialog opened from the header's Briefing button), `onPlayingChange`, `onFocus`, `onResetAll` |
 | CSS classes | `.u-btn` (primary), `.u-btn-ghost` (+ `aria-pressed`), `.u-icon-btn` (+ `aria-pressed`), `.u-input`, `.u-chip[data-tone]`, `.u-tab` / `.u-tabs`, `.u-scroll-x`, `.u-table` (+ `.u-table--stack`, `.u-cell-end`), `.u-chart-scroll`, `.u-tooltip`, `.u-status-dot`, `.u-eyebrow`, `.u-num` |
 
-Bar lengths come from pure layout functions (`rankedRows`, `bulletRows`, `divergingRows`, `donutLayout`, `trendDomain`, `ibcsRows`/`ibcsScales`/`pctMarker`). Put new chart math in `charts/layout/` with a unit test, never inline in JSX.
+Bar lengths come from pure layout functions (`rankedRows`, `bulletRows`, `divergingRows`, `donutLayout`, `trendDomain`, `ibcsRows`/`ibcsScales`/`pctMarker`) in `packages/univerus-elements/src/utils/layout/`. Put new chart math there with a unit test, never inline in JSX. Charts that draw SVG in real pixels (trend, IBCS) measure the box they draw into with `WidthObserver` (card body or focus dialog).
 
 ### 5.1 Report chrome: filters, header, on-demand detail
 
@@ -190,7 +216,7 @@ Bar lengths come from pure layout functions (`rankedRows`, `bulletRows`, `diverg
 
 Port of Lens `univerus_html._curtain` (principle 35): an opaque panel (`--u-curtain-bg`) drops from the top edge in .55 s, its text fades in after .16 s, and a 2 px accent hem with a glow marks its bottom. Content: kicker **What it means**, `info` (one definition sentence, ≤ 3 lines) and `calc` (**ƒ** + one line: the measure or formula).
 
-- **KPI cards / hero**: opens on hover **and** keyboard focus (`.u-curtain-host`); `pointer-events: none`, so the card's click still works. The card exposes the text through `aria-describedby`. On touch screens (`hover: none`) an ⓘ in the icon slot toggles it (§5.2).
+- **KPI cards / hero**: opens on hover **and** keyboard focus (`.u-curtain-host`); `pointer-events: none`, so the card's click still works. The card exposes the text through `aria-describedby` (inside the element's shadow root). On touch screens (`hover: none`) an ⓘ in the icon slot toggles it (§5.2).
 - **Chart cards**: opens from the **ⓘ** button in the header (`aria-expanded`), closes with the button, **Esc**, a click on the curtain or focus leaving the card. Never on hover: it would cover bars and rows exactly when the user aims at them.
 - Text comes from the semantic model's measure descriptions (`EVALUATE INFO.VIEW.MEASURES()`); keep them in a definitions module (e.g. `src/components/visuals/kpiDefinitions.ts`) and mark wording that is not from the model (`pendingModelDescription`).
 - Under `prefers-reduced-motion` it appears without sliding.
@@ -202,10 +228,10 @@ Port of Lens `univerus_html._curtain` (principle 35): an opaque panel (`--u-curt
 - Cards rise once (`u-rise` .7 s, stagger `--i` × 80 ms). Rows fade with `--k`. Bars grow from zero (`u-grow`, `transform-origin: left`) and transition `width` on data changes. Lines are revealed with a single wipe (`u-wipe`); donut segments with `u-seg`; the hero meter wipes in.
 - Ease is always `var(--u-ease)` = `cubic-bezier(.16,1,.3,1)`.
 - No pings, pulses or floating loops on data or chrome. A live state is a static `.u-status-dot` with a halo.
-- `base.css` collapses every animation and transition under `prefers-reduced-motion: reduce`; nothing may depend on an animation finishing.
+- `motion.css` (imported by `base.css` and by every element, because document rules do not reach into shadow roots) collapses every animation and transition under `prefers-reduced-motion: reduce`; nothing may depend on an animation finishing.
 - **Interaction feedback is fast and interruptible**: controls (`.u-btn`, `.u-btn-ghost`, `.u-icon-btn`, `.u-tab`) transition named properties in 150 ms ease-out and press to `scale: 0.96`; dialogs enter in 250 ms from `scale(0.95)`. Never `transition: all`.
 - **Hover effects only on hover-capable pointers** (`@media (hover: hover) and (pointer: fine)`): card lift and the KPI curtain; keyboard focus still opens the curtain.
-- **Overlays render through a portal** to `document.body`: the plane's `backdrop-filter` would otherwise trap `position: fixed` layers inside it.
+- **Overlays render through a portal** to `document.body`: the plane's `backdrop-filter` would otherwise trap `position: fixed` layers inside it. Inside the elements, overlays use the **top layer** instead (native `<dialog>` with `showModal()`, `popover="auto"` menus): it escapes the card's `overflow` and the plane's `backdrop-filter` without leaving the shadow root.
 
 UI polish and motion details beyond this contract come from the vendored `better-ui` and `emil-design-eng` skills; where they disagree with this document, this document wins (precedence and resolved conflicts: powerreact-visual-builder, "Companion skills").
 
@@ -213,10 +239,10 @@ UI polish and motion details beyond this contract come from the vendored `better
 
 ## 8. Adding or changing a component
 
-1. Pick the component from §2; if none fits, write the new one in `src/components/charts` with its math in `layout/` (+ test) and colours only from roles.
-2. Wrap it in `ChartCard` with `title`, `subtitle`, `info`, `calc`.
-3. Give it loading / empty / error states with the final geometry.
-4. Add it to `/gallery` with fixtures in `__fixtures__/samples.ts`, and an SSR smoke test (`charts.ssr.test.tsx`) for full and empty data.
+1. Pick the element from §2; if none fits, write a new one in `packages/univerus-elements/src/components/univerus-<name>/` (`.tsx` + `.css`, `shadow: true`, `styleUrls: [motion, shadow, surfaces, (charts), own]`) with its math in `utils/layout/` (+ test) and colours only from `var(--u-*)`.
+2. Declare the shared contract (props and the four events: copy them from an existing element) and render through `VisualFrame` (`hasData`, `renderChart`, `renderTable`, `model`), which brings the header, the standard toolbar, the curtain, the states and the focus dialog. Use `<univerus-data-table bare>` for the table view, written in the component file itself (Stencil detects nested tags per module).
+3. `npm run elements:build` regenerates the React wrapper; export its data types from `src/index.ts` if React needs them.
+4. Add it to `/gallery` with fixtures in `src/components/univerus/__fixtures__/samples.ts`, an SSR smoke test in `elements.ssr.test.ts` (full and empty data), and — for manifests — a schema entry, a `mapRows` case and a registry entry (powerreact-manifest).
 5. Check `/gallery` and the real view in both themes (toggle in the header), with reduced motion emulated.
 6. Run lint, typecheck, unit and E2E tests; update this skill and run `npm run skills:sync`.
 
@@ -241,8 +267,13 @@ UI polish and motion details beyond this contract come from the vendored `better
 | :--- | :--- | :--- |
 | `bg-slate-800`, `text-teal-600`, `#34A7AD` in a component | No CSS generated / test failure; breaks the other theme | Token role: `bg-u-*`, `text-u-*`, `var(--u-*)` |
 | Colour picked with `dark:` per component | Two sources of truth per role | Add or reuse a role in `tokens.css` |
-| Hand-made card (`rounded-xl border shadow`) | Wrong radius / blur / border per theme | `Card` / `ChartCard` |
-| Curtain on hover over an interactive chart | Covers bars when the user aims at them | `ChartCard info/calc` (ⓘ) |
+| Hand-made card (`rounded-xl border shadow`), or an element wrapped in a card | Wrong radius / blur / border per theme; nested cards | The element is the card |
+| Curtain on hover over an interactive chart | Covers bars when the user aims at them | `info` / `calc` on the element (ⓘ) |
+| A Tailwind class or a document class inside a shadow root | No style: utilities do not cross the boundary | Plain CSS in the element with `var(--u-*)`; shared classes come from the package's `surfaces.css` |
+| A module named `*spec.ts` / `*e2e.ts` in the package | Stencil silently skips it (it assumes a test) and the build fails with a Rollup parse error | Another name (`formats.ts`, not `format-spec.ts`) |
+| A nested element tag only inside a shared functional component | Stencil does not define it with the parent | Write `<univerus-data-table>` in the component's own file |
+| `title` as a prop of an element | A native tooltip on the whole host | `heading` |
+| Setting `data` / `columns` as HTML attributes | Arrays and objects need properties | Use the React wrapper (it sets properties) or assign the property in JS |
 | Pie or donut with 8+ slices | Unreadable composition | `SpotlightBars` |
 | Two comparison series on a trend | Competes with the main series | One primary + one comparison, or two charts |
 | Share computed over the rows left after top N | Wrong percentages | `rankedRows` (shares over every category) |

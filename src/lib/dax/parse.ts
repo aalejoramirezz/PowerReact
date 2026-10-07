@@ -16,7 +16,7 @@ export function toNumber(value: unknown): number {
   return 0;
 }
 
-function toLabel(value: unknown): string {
+export function toLabel(value: unknown): string {
   return typeof value === 'string' && value.trim() !== '' ? value : 'Unknown';
 }
 

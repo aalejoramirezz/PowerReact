@@ -60,11 +60,21 @@ export function powerBiRouter({ config, tokens }: RouteDeps): Router {
       return;
     }
 
+    const datasetId = optionalString(body, 'datasetId') ?? config.semanticModel.datasetId;
+    if (!config.allowedDatasets.includes('*') && !config.allowedDatasets.includes(datasetId.toLowerCase())) {
+      res.status(403).json({
+        success: false,
+        error: `Dataset ${datasetId} is not allowed`,
+        hint: 'Add its id to PBI_ALLOWED_DATASETS in the server .env (comma-separated dataset ids).',
+      });
+      return;
+    }
+
     const startedAt = Date.now();
     try {
       const result = await executeDaxQuery(tokens, resolveCredentials(config.credentials, body), {
         workspaceId: optionalString(body, 'workspaceId') ?? config.semanticModel.workspaceId,
-        datasetId: optionalString(body, 'datasetId') ?? config.semanticModel.datasetId,
+        datasetId,
         query,
       });
       res.json(result);

@@ -107,8 +107,9 @@ export class UniverusKpiHero {
     return { text: `${arrow} ${formatValue(Math.abs(change), PCT1)}${this.deltaLabel ? ` ${this.deltaLabel}` : ''}`, favourable };
   }
 
+  /** Metrics carry their own format (integer by default): they are rarely in the headline's unit. */
   private metricText(m: HeroMetric): string {
-    if (typeof m.value === 'number') return formatValue(m.value, m.format ?? this.format);
+    if (typeof m.value === 'number') return formatValue(m.value, m.format);
     return m.value ?? '—';
   }
 

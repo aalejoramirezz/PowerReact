@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import { errorMessage } from '../../api/http';
 import { cx } from './cx';
 
@@ -13,6 +13,21 @@ export const StatusChip: React.FC<{ tone?: Tone; children: React.ReactNode; clas
 }) => (
   <span className={cx('u-chip', className)} data-tone={tone === 'neutral' ? undefined : tone}>
     {children}
+  </span>
+);
+
+/** An active filter that has no visible control of its own, with its remove button. */
+export const RemovableChip: React.FC<{ label: string; value: string; onRemove: () => void; removeLabel: string }> = ({
+  label,
+  value,
+  onRemove,
+  removeLabel,
+}) => (
+  <span className="u-chip" data-tone="accent">
+    {label}: <strong className="font-bold">{value}</strong>
+    <button type="button" onClick={onRemove} className="-mr-1 grid h-4 w-4 cursor-pointer place-items-center rounded" title={removeLabel}>
+      <X className="h-3 w-3" />
+    </button>
   </span>
 );
 
