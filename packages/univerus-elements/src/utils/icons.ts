@@ -1,0 +1,102 @@
+import {
+  Activity,
+  ArrowDown,
+  ArrowUp,
+  Boxes,
+  Building2,
+  Calendar,
+  ChartColumn,
+  CircleCheck,
+  CircleDollarSign,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsUpDown,
+  ClipboardCheck,
+  Clock,
+  Database,
+  Download,
+  Droplets,
+  Ellipsis,
+  Factory,
+  FileSpreadsheet,
+  FileText,
+  Gauge,
+  Info,
+  Layers,
+  MapPin,
+  Maximize2,
+  Package,
+  Percent,
+  Route,
+  ShieldCheck,
+  Table2,
+  Target,
+  Timer,
+  TrendingDown,
+  TrendingUp,
+  TriangleAlert,
+  Truck,
+  Users,
+  Wrench,
+  X,
+  Zap,
+  type IconNode,
+} from 'lucide';
+
+export type { IconNode };
+
+/**
+ * Icons a KPI may name declaratively (`icon="database"` in a manifest). A curated set keeps the
+ * bundle small; anything else goes in the element's `icon` slot as markup.
+ */
+export const KPI_ICONS = {
+  activity: Activity,
+  'alert-triangle': TriangleAlert,
+  boxes: Boxes,
+  building: Building2,
+  calendar: Calendar,
+  'check-circle': CircleCheck,
+  'clipboard-check': ClipboardCheck,
+  clock: Clock,
+  database: Database,
+  dollar: CircleDollarSign,
+  droplets: Droplets,
+  factory: Factory,
+  gauge: Gauge,
+  layers: Layers,
+  'map-pin': MapPin,
+  package: Package,
+  percent: Percent,
+  route: Route,
+  'shield-check': ShieldCheck,
+  target: Target,
+  timer: Timer,
+  'trending-down': TrendingDown,
+  'trending-up': TrendingUp,
+  truck: Truck,
+  users: Users,
+  wrench: Wrench,
+  zap: Zap,
+} as const satisfies Record<string, IconNode>;
+
+export type KpiIconName = keyof typeof KPI_ICONS;
+
+export const isKpiIconName = (name: unknown): name is KpiIconName => typeof name === 'string' && name in KPI_ICONS;
+
+/** Chrome of the visual frame (toolbar, menu, dialog, pager, sort headers). */
+export const UI_ICONS = {
+  info: Info,
+  download: Download,
+  table: Table2,
+  chart: ChartColumn,
+  focus: Maximize2,
+  close: X,
+  more: Ellipsis,
+  csv: FileText,
+  xlsx: FileSpreadsheet,
+  prev: ChevronLeft,
+  next: ChevronRight,
+  sortNone: ChevronsUpDown,
+  sortAsc: ArrowUp,
+  sortDesc: ArrowDown,
+} as const satisfies Record<string, IconNode>;

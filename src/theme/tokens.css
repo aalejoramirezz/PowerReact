@@ -9,10 +9,15 @@
  * Lens draws on a 1920 px canvas; sizes here are real CSS px for the responsive app
  * (Nocturne radii/paddings scaled ~0.7). Components read roles, never hex values:
  * see .agents/skills/powerreact-design-system.
+ *
+ * The bare [data-theme] selectors let one element pin a template regardless of <html>: the Univerus
+ * web components set data-theme on their host from their `theme` prop, and custom properties
+ * inherit into their shadow roots.
  */
 
 :root,
-:root[data-theme='neoglass'] {
+:root[data-theme='neoglass'],
+[data-theme='neoglass'] {
   color-scheme: light;
 
   /* typography (same scale in both themes: switching never reflows text) */
@@ -198,7 +203,8 @@
   --u-scrollbar-hover: #a8b8bd;
 }
 
-:root[data-theme='nocturne'] {
+:root[data-theme='nocturne'],
+[data-theme='nocturne'] {
   color-scheme: dark;
 
   --u-canvas: #0a0f12;

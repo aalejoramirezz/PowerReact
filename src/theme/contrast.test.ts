@@ -129,6 +129,11 @@ it('nocturne secondary text reaches AA over the dark card', () => {
   }
 });
 
+it('an element can pin either template with data-theme (the theme prop of the web components)', () => {
+  expect(css).toMatch(/,\s*\[data-theme='neoglass'\]\s*\{/);
+  expect(css).toMatch(/,\s*\[data-theme='nocturne'\]\s*\{/);
+});
+
 it('both themes define the same roles', () => {
   const dark = tokens(block(":root[data-theme='nocturne']"));
   const missing = Object.keys(dark).filter((k) => !(k in NEOGLASS));

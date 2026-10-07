@@ -11,8 +11,25 @@ export function daxString(value: string): string {
   return `"${value.replace(/"/g, '""')}"`;
 }
 
-export function treatAs(value: string, column: string): string {
-  return `TREATAS({${daxString(value)}}, ${column})`;
+/** A value a filter can carry: the category value exactly as the semantic model returned it. */
+export type DaxLiteralValue = string | number | boolean;
+
+/**
+ * DAX literal for a filter value, never hand-interpolated: strings are quoted and escaped, numbers
+ * are written in plain decimal notation (DAX has no `1e21`), booleans become TRUE() / FALSE().
+ */
+export function daxLiteral(value: DaxLiteralValue): string {
+  if (typeof value === 'string') return daxString(value);
+  if (typeof value === 'boolean') return value ? 'TRUE()' : 'FALSE()';
+  if (!Number.isFinite(value)) throw new Error(`Cannot filter on a non-finite number (${value})`);
+  return value.toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 20 });
+}
+
+/** `TREATAS({v1, v2…}, column)`: applies values of a column as a filter. */
+export function treatAs(values: DaxLiteralValue | readonly DaxLiteralValue[], column: string): string {
+  const list: readonly DaxLiteralValue[] = Array.isArray(values) ? values : [values];
+  if (list.length === 0) throw new Error('TREATAS needs at least one value');
+  return `TREATAS({${list.map(daxLiteral).join(', ')}}, ${column})`;
 }
 
 /** Case-insensitive "contains" filter table usable as a SUMMARIZECOLUMNS filter argument. */
@@ -27,11 +44,11 @@ const indentBlock = (text: string) =>
     .join('\n');
 
 /** Renders `FN(\n  arg1,\n  arg2\n)`, indenting multi-line arguments. */
-function call(fn: string, args: string[]): string {
+export function call(fn: string, args: readonly string[]): string {
   return `${fn}(\n${args.map(indentBlock).join(',\n')}\n)`;
 }
 
-const evaluate = (table: string) => `EVALUATE\n${table}`;
+export const evaluate = (table: string) => `EVALUATE\n${table}`;
 
 const BREAKDOWN_MEASURES = [
   '"AssetCount", [Asset Count (All States)]',

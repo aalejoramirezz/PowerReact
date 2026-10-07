@@ -132,7 +132,8 @@ export const UnityAssetsSidebar: React.FC<UnityAssetsSidebarProps> = ({ mobileOp
       <aside
         id="app-sidebar"
         aria-label="Modules"
-        inert={isDrawer && !mobileOpen ? true : undefined}
+        // React 18 passes `inert` through as a plain attribute (src/types/react-inert.d.ts)
+        {...(isDrawer && !mobileOpen ? { inert: '' } : {})}
         className={cx(
           'flex shrink-0 select-none flex-col border-r border-u-sidebar-border bg-u-sidebar-bg',
           // < lg: off-canvas drawer

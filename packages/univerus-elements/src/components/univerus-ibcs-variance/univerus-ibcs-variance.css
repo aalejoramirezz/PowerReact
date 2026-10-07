@@ -1,0 +1,31 @@
+.iv {
+  width: 100%;
+}
+.iv-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+  font: 500 11px/1 var(--u-font-body);
+  color: var(--u-label);
+}
+.iv-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.iv-row[data-interactive='true'] {
+  cursor: pointer;
+}
+.iv-band {
+  transition: opacity 0.15s ease-out;
+}
+.iv-marks {
+  transition: opacity 0.2s ease-out;
+}
+.iv-empty {
+  padding: 40px 0;
+  text-align: center;
+  font: 500 12px/1.4 var(--u-font-body);
+  color: var(--u-label);
+}

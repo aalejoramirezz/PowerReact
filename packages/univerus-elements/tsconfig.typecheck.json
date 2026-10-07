@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../../node_modules/.tmp/tsconfig.elements.tsbuildinfo",
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["src", "stencil.config.ts"],
+  "exclude": ["node_modules"]
+}

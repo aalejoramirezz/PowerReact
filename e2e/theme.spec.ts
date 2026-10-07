@@ -54,7 +54,7 @@ test.describe('Univerus themes', () => {
     await expect(renewal).toHaveAttribute('aria-pressed', 'true');
 
     await page.mouse.move(0, 0);
-    await page.getByRole('button', { name: /^Condition Assessed/ }).focus();
+    await page.getByTestId('kpi-card-condition-assessed').getByRole('button').first().focus();
     await page.keyboard.press('Tab');
     await expect(renewal).toBeFocused();
     await expect.poll(() => curtain.evaluate((el) => getComputedStyle(el).transform)).toMatch(IDENTITY);

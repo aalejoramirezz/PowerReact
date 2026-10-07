@@ -1,0 +1,74 @@
+/* A size container: below 520 px the rows restyle as a two-line list (.u-table--stack) */
+.u-table-wrap {
+  container-type: inline-size;
+  overflow-y: auto;
+  border: 1px solid var(--u-card-border);
+  border-radius: 10px;
+  transition: opacity 0.2s var(--u-ease);
+}
+.u-table-wrap[data-stale='true'] {
+  opacity: 0.6;
+}
+:host([bare]) .u-table-wrap,
+:host([bare]) .u-pager {
+  animation: u-fade 0.4s var(--u-ease) both;
+}
+.u-table th.is-end,
+.u-table td.is-end {
+  text-align: right;
+}
+.u-table th {
+  white-space: nowrap;
+}
+.u-table th.is-end .u-th-sort {
+  flex-direction: row-reverse;
+}
+.u-cell-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--u-title);
+}
+tr[aria-selected='true'] .u-cell-name {
+  font-weight: 700;
+}
+.u-cell-check {
+  flex: none;
+  color: var(--u-interaction);
+}
+.u-cell-strong {
+  font-weight: 600;
+  color: var(--u-title);
+}
+.u-cell-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.u-cell-meter__bar {
+  width: 56px;
+  flex: none;
+}
+.u-cell-pct {
+  width: 36px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--u-label);
+}
+.u-cell-muted {
+  color: var(--u-label);
+}
+.u-table td.u-cell-full {
+  height: auto;
+  padding: 12px;
+}
+.u-pager__size {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.u-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

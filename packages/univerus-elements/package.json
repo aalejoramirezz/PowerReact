@@ -1,0 +1,48 @@
+{
+  "name": "@powerreact/univerus-elements",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Univerus visuals (Neo-Glass / Nocturne) as presentational Stencil web components: props in, typed events out, no data fetching.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./components/index.js"
+    },
+    "./components": {
+      "types": "./components/index.d.ts",
+      "import": "./components/index.js"
+    },
+    "./components/*": "./components/*",
+    "./hydrate": {
+      "types": "./hydrate/index.d.ts",
+      "import": "./hydrate/index.mjs",
+      "require": "./hydrate/index.js"
+    },
+    "./styles/*": "./src/styles/*",
+    "./docs/components.json": "./docs/components.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "components",
+    "hydrate",
+    "docs",
+    "src/styles"
+  ],
+  "scripts": {
+    "build": "stencil build",
+    "watch": "stencil build --dev --watch"
+  },
+  "dependencies": {
+    "d3-scale": "^4.0.2",
+    "d3-shape": "^3.2.0",
+    "lucide": "^1.52.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "@stencil/core": "^4.45.2",
+    "@stencil/react-output-target": "^1.6.3",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.2.0"
+  }
+}
