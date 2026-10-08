@@ -5,10 +5,10 @@ import { describe, expect, it } from 'vitest';
 /**
  * "Colours come only from the theme" (Lens rule 6), made mechanical: components and stylesheets may
  * not use stock Tailwind palette classes or literal colours. Only src/theme/tokens.css defines colours;
- * the web components (packages/univerus-elements) read the same roles through var(--u-*).
+ * the web components (packages/udp-powerbi-visuals) read the same roles through var(--u-*).
  */
 
-const ROOTS = ['src', 'packages/univerus-elements/src'];
+const ROOTS = ['src', 'packages/udp-powerbi-visuals/src'];
 const ALLOWED = new Set([path.normalize('src/theme/tokens.css')]);
 /** Generated code (React wrappers, Stencil typings) is not authored, so it is not scanned. */
 const SKIP_DIRS = new Set(['__fixtures__', 'generated']);
@@ -30,7 +30,7 @@ describe('no raw colours outside the tokens', () => {
 
   it('scans the component and style sources, web components included', () => {
     expect(targets.length).toBeGreaterThan(20);
-    expect(targets.some((f) => f.includes(path.normalize('univerus-elements/src/styles/surfaces.css')))).toBe(true);
+    expect(targets.some((f) => f.includes(path.normalize('udp-powerbi-visuals/src/styles/surfaces.css')))).toBe(true);
   });
 
   it.each(targets)('%s', (file) => {

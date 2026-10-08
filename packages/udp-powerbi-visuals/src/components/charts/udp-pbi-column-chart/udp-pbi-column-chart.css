@@ -1,0 +1,20 @@
+.cc {
+  width: 100%;
+}
+.cc-plot {
+  position: relative;
+  width: 100%;
+}
+/* Columns rise from the zero line once (origin set per column), with a short stagger */
+.cc-col {
+  transform-box: fill-box;
+  animation: u-grow-y 1.1s var(--pbi-ease) both;
+}
+.cc-values {
+  animation: u-fade 0.5s var(--pbi-ease) 1.1s both;
+}
+@media (hover: hover) and (pointer: fine) {
+  .cc-capture[data-interactive='true'] {
+    cursor: pointer;
+  }
+}

@@ -12,7 +12,27 @@ const CARDS = [
   'Renewals by asset class',
   'Maintenance cost by month',
   'Asset classes',
+  'Renewal need vs budget',
+  'Work requests by status',
+  'Condition profile by group',
+  'Status by priority',
+  'Open requests by age',
+  'Criticality × condition',
+  'Condition vs criticality',
+  'Portfolio by group and class',
+  'Work orders, lollipop',
+  'Backlog by crew',
+  'Funding gap',
+  'Backlog by crew, slope',
+  'Work requests raised per day',
+  'Equipment warranties',
+  'Inventory by group and class',
+  'Backlog bridge',
+  'Financial position',
+  'Condition index by group',
 ];
+/** Already tables: no Table view toggle. */
+const TABLES = ['Asset classes', 'Criticality × condition', 'Portfolio by group and class'];
 
 /** A visual's card (inside its web component's shadow root, which locators pierce). */
 const card = (page: Page, title: string) =>
@@ -32,6 +52,8 @@ for (const theme of ['neoglass', 'nocturne']) {
   });
 
   test(`every visual carries Export, Table view and Focus view in ${theme}`, async ({ page }) => {
+    // Three checks on each of the gallery's cards
+    test.slow();
     await page.addInitScript((t) => window.localStorage.setItem('powerreact-theme', t), theme);
     await mockApi(page);
     await page.goto('/gallery');
@@ -40,8 +62,8 @@ for (const theme of ['neoglass', 'nocturne']) {
       const c = card(page, title);
       await expect(c.getByRole('button', { name: 'Export data' }), title).toBeVisible();
       await expect(c.getByRole('button', { name: 'Focus view' }), title).toBeVisible();
-      // The data table is already a table: no Table toggle there
-      await expect(c.getByRole('button', { name: 'Table view' }), title).toHaveCount(title === 'Asset classes' ? 0 : 1);
+      // The data table and the matrices are already tables: no Table toggle there
+      await expect(c.getByRole('button', { name: 'Table view' }), title).toHaveCount(TABLES.includes(title) ? 0 : 1);
     }
 
     // Focus view: a modal dialog, Esc closes it and focus returns to its button
@@ -123,9 +145,40 @@ test('the theme prop pins one element to the other template', async ({ page }) =
   await mockApi(page);
   await page.goto('/gallery');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'neoglass');
-  const pinned = page.locator('univerus-kpi-card[data-theme="nocturne"]');
+  const pinned = page.locator('udp-pbi-kpi-card[data-theme="nocturne"]');
   await expect(pinned).toHaveCount(1);
   await expect(pinned.getByTestId('kpi-pinned-template')).toHaveText('Nocturne');
   // Tokens re-resolve on the host: the pinned card takes Nocturne's title colour (white)
   expect(await pinned.getByTestId('kpi-pinned-template').evaluate((el) => getComputedStyle(el).color)).toBe('rgb(255, 255, 255)');
+});
+
+test('the matrix and the scatter work from the keyboard: one tab stop, arrows move, the tooltip follows', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('/gallery');
+
+  // Matrix (WAI-ARIA treegrid): ← collapses the focused group, → expands it, ↓ moves into its classes
+  const matrix = page.getByRole('treegrid', { name: 'Portfolio matrix by group and class' });
+  const group = matrix.getByRole('row', { name: /Utility_Line/ }).first();
+  const header = group.getByRole('rowheader');
+  await header.focus();
+  await expect(group).toHaveAttribute('aria-expanded', 'true');
+  await page.keyboard.press('ArrowLeft');
+  await expect(group).toHaveAttribute('aria-expanded', 'false');
+  await expect(matrix.getByRole('rowheader', { name: /Water_Pipes/ })).toHaveCount(0);
+  await page.keyboard.press('ArrowRight');
+  await expect(group).toHaveAttribute('aria-expanded', 'true');
+  await page.keyboard.press('ArrowDown');
+  await expect(matrix.getByRole('rowheader', { name: /Water_Pipes/ })).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(matrix.getByRole('gridcell', { name: /^Water_Pipes, Assets: / })).toBeFocused();
+
+  // Scatter: the chart is one tab stop; the arrows walk the points in x order and the tooltip names each
+  const scatter = card(page, 'Condition vs criticality');
+  await scatter.getByRole('img', { name: 'Condition vs criticality' }).focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(scatter.getByRole('status')).toContainText('Streetlights');
+  await page.keyboard.press('End');
+  await expect(scatter.getByRole('status')).toContainText('Bridges');
+  await page.keyboard.press('Escape');
+  await expect(scatter.getByRole('status')).toHaveCount(0);
 });

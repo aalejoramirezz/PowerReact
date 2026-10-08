@@ -5,6 +5,7 @@ import type { Manifest } from '../../lib/manifest/schema';
 import { selectCrossFilters, useFilterStore } from '../../store/filters';
 import { ReportTemplate } from '../template/ReportTemplate';
 import { RemovableChip } from '../ui/primitives';
+import { ManifestFilterBar } from './ManifestFilterBar';
 import { ManifestVisual, type DataSourceMode } from './ManifestVisual';
 import './manifest.css';
 
@@ -19,11 +20,13 @@ interface ManifestDashboardProps {
 
 /**
  * Renders a validated manifest: the Univerus template (eyebrow + title from the manifest), the active
- * cross-filters as removable chips with Reset all, and every visual on the 12-column grid. All data
+ * selections as removable chips with Reset all (a slicer's filter is not repeated: its control
+ * shows it), and every visual on the 12-column grid. All data
  * logic lives here and in ManifestVisual; the elements only receive props and emit events.
  */
 export const ManifestDashboard: React.FC<ManifestDashboardProps> = ({ manifest, source, actions, controls }) => {
   const filters = useFilterStore(selectCrossFilters(manifest.id));
+  const selections = filters.filter((f) => f.origin === 'select');
   const { clearCrossFilter, clearDashboard } = useFilterStore(
     useShallow((s) => ({ clearCrossFilter: s.clearCrossFilter, clearDashboard: s.clearDashboard }))
   );
@@ -36,14 +39,15 @@ export const ManifestDashboard: React.FC<ManifestDashboardProps> = ({ manifest, 
       toolbar={
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           {controls}
+          <ManifestFilterBar manifest={manifest} source={source} />
           {filters.length > 0 && (
             <div className="flex flex-wrap items-center gap-2" data-testid="manifest-filters">
-              {filters.map((f) => (
+              {selections.map((f) => (
                 <RemovableChip
                   key={f.field}
                   label={keyLabel(f.field)}
-                  value={f.label ?? String(f.value)}
-                  onRemove={() => clearCrossFilter(manifest.id, f.field)}
+                  value={(f.labels ?? f.values.map(String)).join(', ')}
+                  onRemove={() => clearCrossFilter(manifest.id, f.field, 'select')}
                   removeLabel={`Remove the ${keyLabel(f.field)} filter`}
                 />
               ))}

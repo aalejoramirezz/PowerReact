@@ -1,0 +1,48 @@
+.sc {
+  width: 100%;
+}
+.sc-plot {
+  position: relative;
+  width: 100%;
+}
+/* Points fade in once; translucent so overlaps stay readable, with an edge of their own hue
+   (a step towards the title colour) so the light categorical slots stay visible in both themes */
+.sc-dot {
+  fill: var(--dot, var(--pbi-primary));
+  fill-opacity: 0.8;
+  stroke: color-mix(in srgb, var(--dot, var(--pbi-primary)) 62%, var(--pbi-title));
+  stroke-width: 1px;
+  animation: u-fade 0.5s var(--pbi-ease) both;
+}
+.sc-dot.u-mark-active {
+  fill-opacity: 1;
+  stroke: var(--pbi-interaction);
+  stroke-width: 2px;
+}
+.sc-caption {
+  font: 600 10.5px var(--pbi-font-body);
+  fill: var(--pbi-label);
+}
+.sc-quads text {
+  font: 600 10px var(--pbi-font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: var(--pbi-subtitle);
+}
+/* Direct labels keep a halo in the card colour so they read over gridlines and other points */
+.sc-label {
+  font: 600 10.5px var(--pbi-font-body);
+  fill: var(--pbi-text-soft);
+  paint-order: stroke;
+  stroke: var(--pbi-card-solid);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.sc-label--selected {
+  fill: var(--pbi-title);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sc-capture[data-interactive='true'] {
+    cursor: pointer;
+  }
+}

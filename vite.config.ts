@@ -8,7 +8,7 @@ export default defineConfig({
   // The Univerus web components are a workspace package rebuilt by `stencil --watch` in dev:
   // never pre-bundle them, or Vite would keep serving a stale copy
   optimizeDeps: {
-    exclude: ['@powerreact/univerus-elements'],
+    exclude: ['@powerreact/udp-powerbi-visuals'],
   },
   server: {
     port: 3000,

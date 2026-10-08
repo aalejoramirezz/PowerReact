@@ -10,7 +10,8 @@ import { call, treatAs, type DaxLiteralValue } from '../dax/daxBuilder';
 export interface CrossFilterValue {
   /** Column reference, e.g. 'asset_class'[Asset_Class] or asset_class[Asset_Class]. */
   field: string;
-  value: DaxLiteralValue;
+  /** The column is in this list (OR). Several filters on one column intersect (AND), as in DAX. */
+  values: readonly DaxLiteralValue[];
 }
 
 export interface DaxQueryParts {
@@ -142,21 +143,31 @@ export function sameColumn(a: string, b: string): boolean {
 /**
  * Applies cross-filters to a manifest query. Identity when there are none (same text ⇒ same cache
  * entry); otherwise `<define>EVALUATE CALCULATETABLE(<table>, TREATAS(…), …)<tail>`, one TREATAS
- * per column (several values of one column become one list).
+ * per filter. CALCULATETABLE intersects its filter arguments, so a slicer [A, B] and a click [A]
+ * on the same column keep A. Duplicate values and identical filters are written once.
  */
 export function injectCrossFilters(dax: string, filters: readonly CrossFilterValue[]): string {
-  if (filters.length === 0) return dax;
-
-  const byColumn = new Map<string, DaxLiteralValue[]>();
+  const args = new Map<string, string>();
   for (const f of filters) {
     const column = parseColumnRef(f.field);
-    const values = byColumn.get(column) ?? [];
-    if (!values.some((v) => v === f.value)) values.push(f.value);
-    byColumn.set(column, values);
+    const values = f.values.filter((v, i) => f.values.indexOf(v) === i);
+    if (values.length === 0) continue;
+    const arg = treatAs(values, column);
+    args.set(arg, arg);
   }
+  if (args.size === 0) return dax;
 
   const { define, table, tail } = splitDaxQuery(dax);
-  const filtered = call('CALCULATETABLE', [table, ...[...byColumn].map(([column, values]) => treatAs(values, column))]);
+  const filtered = call('CALCULATETABLE', [table, ...args.values()]);
   const head = define.trim() ? `${define.trimEnd()}\n` : '';
   return `${head}EVALUATE\n${filtered}${tail ? `\n${tail}` : ''}`;
+}
+
+/**
+ * The default options query of a report filter: the column's values that have data, in order.
+ * The column is validated and normalised (never interpolated as typed).
+ */
+export function columnValuesQuery(field: string): string {
+  const column = parseColumnRef(field);
+  return `EVALUATE\nSUMMARIZECOLUMNS(${column})\nORDER BY ${column}`;
 }

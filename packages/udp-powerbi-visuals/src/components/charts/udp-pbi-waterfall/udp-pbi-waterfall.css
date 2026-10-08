@@ -1,0 +1,38 @@
+.wf {
+  width: 100%;
+}
+.wf-plot {
+  position: relative;
+  width: 100%;
+}
+/* Bars appear once, in step order (a fade: a bridge reads left to right, not from zero) */
+.wf-bar {
+  animation: u-fade 0.6s var(--pbi-ease) both;
+}
+.wf-connectors line {
+  stroke: var(--pbi-axis);
+  stroke-width: 1px;
+  stroke-dasharray: 2 3;
+}
+.wf-values {
+  animation: u-fade 0.5s var(--pbi-ease) 0.9s both;
+}
+.wf-label {
+  font: 500 11px var(--pbi-font-body);
+  fill: var(--pbi-axis);
+}
+.wf-label[data-active='true'] {
+  font-weight: 600;
+  fill: var(--pbi-title);
+}
+.wf rect[data-kind='start'],
+.wf rect[data-kind='end'],
+.wf rect[data-kind='subtotal'] {
+  shape-rendering: crispEdges;
+}
+/* The axis break on a scaled level: strokes in the card colour across the bar */
+.wf-break path {
+  fill: none;
+  stroke: var(--pbi-card-solid);
+  stroke-width: 2.5px;
+}

@@ -79,6 +79,46 @@
       },
       "additionalProperties": false
     },
+    "filters": {
+      "maxItems": 8,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "mode": {
+            "default": "dropdown",
+            "type": "string",
+            "enum": [
+              "auto",
+              "buttons",
+              "dropdown"
+            ]
+          },
+          "multiple": {
+            "default": true,
+            "type": "boolean"
+          },
+          "dax": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "field",
+          "label"
+        ],
+        "additionalProperties": false
+      }
+    },
     "visuals": {
       "minItems": 1,
       "maxItems": 40,
@@ -1041,6 +1081,14 @@
                       "desc",
                       "asc"
                     ]
+                  },
+                  "mark": {
+                    "default": "bar",
+                    "type": "string",
+                    "enum": [
+                      "bar",
+                      "lollipop"
+                    ]
                   }
                 },
                 "required": [
@@ -1809,6 +1857,57 @@
                   "comparison": {
                     "type": "string",
                     "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "tooltips": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
                   }
                 },
                 "required": [
@@ -1926,6 +2025,38 @@
                   "directLabels": {
                     "default": true,
                     "type": "boolean"
+                  },
+                  "gap": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "goodWhen": {
+                    "default": "higher",
+                    "type": "string",
+                    "enum": [
+                      "higher",
+                      "lower"
+                    ]
+                  },
+                  "referenceLines": {
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number"
+                        },
+                        "label": {
+                          "type": "string",
+                          "maxLength": 40
+                        }
+                      },
+                      "required": [
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    }
                   },
                   "chartHeight": {
                     "default": 260,
@@ -2513,6 +2644,3440 @@
                     "type": "integer",
                     "minimum": 160,
                     "maximum": 1200
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusColumnChart"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "string",
+                    "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                  },
+                  "series": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "values": {
+                    "minItems": 1,
+                    "maxItems": 12,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "tooltips": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "category"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "calc": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "format": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "export": {
+                    "type": "object",
+                    "properties": {
+                      "csv": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "xlsx": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "source": {
+                        "default": "visual",
+                        "type": "string",
+                        "enum": [
+                          "visual",
+                          "query"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "focusMode": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "neoglass",
+                      "nocturne"
+                    ]
+                  },
+                  "tableView": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "emptyMessage": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "palette": {
+                    "default": "categorical",
+                    "type": "string",
+                    "enum": [
+                      "categorical",
+                      "sequential",
+                      "diverging"
+                    ]
+                  },
+                  "sort": {
+                    "default": "none",
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "desc",
+                      "asc"
+                    ]
+                  },
+                  "topN": {
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "labels": {
+                    "default": "auto",
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "none"
+                    ]
+                  },
+                  "categoryLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "seriesOrder": {
+                    "maxItems": 24,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60
+                    }
+                  },
+                  "layout": {
+                    "default": "stacked",
+                    "type": "string",
+                    "enum": [
+                      "grouped",
+                      "stacked",
+                      "percent"
+                    ]
+                  },
+                  "variant": {
+                    "default": "column",
+                    "type": "string",
+                    "enum": [
+                      "column",
+                      "histogram"
+                    ]
+                  },
+                  "referenceLines": {
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number"
+                        },
+                        "label": {
+                          "type": "string",
+                          "maxLength": 40
+                        }
+                      },
+                      "required": [
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "chartHeight": {
+                    "default": 260,
+                    "type": "integer",
+                    "minimum": 160,
+                    "maximum": 640
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusStackedBars"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "string",
+                    "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                  },
+                  "series": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "values": {
+                    "minItems": 1,
+                    "maxItems": 12,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "tooltips": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "category"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "calc": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "format": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "export": {
+                    "type": "object",
+                    "properties": {
+                      "csv": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "xlsx": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "source": {
+                        "default": "visual",
+                        "type": "string",
+                        "enum": [
+                          "visual",
+                          "query"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "focusMode": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "neoglass",
+                      "nocturne"
+                    ]
+                  },
+                  "tableView": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "emptyMessage": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "palette": {
+                    "default": "categorical",
+                    "type": "string",
+                    "enum": [
+                      "categorical",
+                      "sequential",
+                      "diverging"
+                    ]
+                  },
+                  "sort": {
+                    "default": "none",
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "desc",
+                      "asc"
+                    ]
+                  },
+                  "topN": {
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "labels": {
+                    "default": "auto",
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "none"
+                    ]
+                  },
+                  "categoryLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "seriesOrder": {
+                    "maxItems": 24,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60
+                    }
+                  },
+                  "layout": {
+                    "default": "stacked",
+                    "type": "string",
+                    "enum": [
+                      "stacked",
+                      "percent",
+                      "diverging",
+                      "grouped"
+                    ]
+                  },
+                  "negativeSeries": {
+                    "maxItems": 12,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60
+                    }
+                  },
+                  "neutralSeries": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60
+                    }
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusScatter"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "x": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "y": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "size": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "group": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "tooltips": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "category",
+                  "x",
+                  "y"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "calc": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "format": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "export": {
+                    "type": "object",
+                    "properties": {
+                      "csv": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "xlsx": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "source": {
+                        "default": "visual",
+                        "type": "string",
+                        "enum": [
+                          "visual",
+                          "query"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "focusMode": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "neoglass",
+                      "nocturne"
+                    ]
+                  },
+                  "tableView": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "emptyMessage": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "xLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "yLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "sizeLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "xFormat": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "sizeFormat": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "xReference": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "number"
+                      },
+                      "label": {
+                        "type": "string",
+                        "maxLength": 40
+                      }
+                    },
+                    "required": [
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "yReference": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "number"
+                      },
+                      "label": {
+                        "type": "string",
+                        "maxLength": 40
+                      }
+                    },
+                    "required": [
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "quadrantLabels": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "string",
+                        "maxLength": 30
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 30
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 30
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 30
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 4,
+                    "maxItems": 4
+                  },
+                  "xZero": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "yZero": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "labelTop": {
+                    "default": 5,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 20
+                  },
+                  "categoryLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "chartHeight": {
+                    "default": 300,
+                    "type": "integer",
+                    "minimum": 200,
+                    "maximum": 640
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusMatrix"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "rows": {
+                    "minItems": 1,
+                    "maxItems": 3,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                    }
+                  },
+                  "column": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "values": {
+                    "minItems": 1,
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "heatmap": {
+                          "default": "none",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "sequential",
+                            "diverging"
+                          ]
+                        },
+                        "goodWhen": {
+                          "default": "higher",
+                          "type": "string",
+                          "enum": [
+                            "higher",
+                            "lower"
+                          ]
+                        },
+                        "center": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "rowTotals": {
+                    "minItems": 1,
+                    "maxItems": 3,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\[[^\\]]+\\]$"
+                    }
+                  },
+                  "columnTotal": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  }
+                },
+                "required": [
+                  "rows",
+                  "values"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "calc": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "format": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "export": {
+                    "type": "object",
+                    "properties": {
+                      "csv": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "xlsx": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "source": {
+                        "default": "visual",
+                        "type": "string",
+                        "enum": [
+                          "visual",
+                          "query"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "focusMode": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "neoglass",
+                      "nocturne"
+                    ]
+                  },
+                  "emptyMessage": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "rowLevels": {
+                    "maxItems": 3,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 40
+                    }
+                  },
+                  "columnHeader": {
+                    "type": "string",
+                    "maxLength": 60
+                  },
+                  "rowOrder": {
+                    "maxItems": 40,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60
+                    }
+                  },
+                  "columnOrder": {
+                    "maxItems": 40,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60
+                    }
+                  },
+                  "expandLevel": {
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2
+                  },
+                  "maxHeight": {
+                    "default": 440,
+                    "type": "integer",
+                    "minimum": 160,
+                    "maximum": 1200
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusWaterfall"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "string",
+                    "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                  },
+                  "tooltips": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "category",
+                  "value"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "calc": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "format": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "export": {
+                    "type": "object",
+                    "properties": {
+                      "csv": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "xlsx": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "source": {
+                        "default": "visual",
+                        "type": "string",
+                        "enum": [
+                          "visual",
+                          "query"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "focusMode": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "neoglass",
+                      "nocturne"
+                    ]
+                  },
+                  "tableView": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "emptyMessage": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "goodWhen": {
+                    "default": "higher",
+                    "type": "string",
+                    "enum": [
+                      "higher",
+                      "lower"
+                    ]
+                  },
+                  "orientation": {
+                    "default": "vertical",
+                    "type": "string",
+                    "enum": [
+                      "vertical",
+                      "horizontal"
+                    ]
+                  },
+                  "baseline": {
+                    "default": "zero",
+                    "type": "string",
+                    "enum": [
+                      "zero",
+                      "auto"
+                    ]
+                  },
+                  "labels": {
+                    "default": "auto",
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "none"
+                    ]
+                  },
+                  "categoryLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "chartHeight": {
+                    "default": 280,
+                    "type": "integer",
+                    "minimum": 160,
+                    "maximum": 640
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusTreemap"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "levels": {
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                    }
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "tooltips": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "levels",
+                  "value"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "calc": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "format": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "export": {
+                    "type": "object",
+                    "properties": {
+                      "csv": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "xlsx": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "source": {
+                        "default": "visual",
+                        "type": "string",
+                        "enum": [
+                          "visual",
+                          "query"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "focusMode": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "neoglass",
+                      "nocturne"
+                    ]
+                  },
+                  "tableView": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "emptyMessage": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "colorLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "colorFormat": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "colorScale": {
+                    "default": "sequential",
+                    "type": "string",
+                    "enum": [
+                      "sequential",
+                      "diverging"
+                    ]
+                  },
+                  "goodWhen": {
+                    "default": "higher",
+                    "type": "string",
+                    "enum": [
+                      "higher",
+                      "lower"
+                    ]
+                  },
+                  "colorCenter": {
+                    "default": 0,
+                    "type": "number"
+                  },
+                  "levelLabels": {
+                    "maxItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 40
+                    }
+                  },
+                  "chartHeight": {
+                    "default": 320,
+                    "type": "integer",
+                    "minimum": 200,
+                    "maximum": 800
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusCalendarHeatmap"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "tooltips": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "date",
+                  "value"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "calc": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "format": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "export": {
+                    "type": "object",
+                    "properties": {
+                      "csv": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "xlsx": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "source": {
+                        "default": "visual",
+                        "type": "string",
+                        "enum": [
+                          "visual",
+                          "query"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "focusMode": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "neoglass",
+                      "nocturne"
+                    ]
+                  },
+                  "tableView": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "emptyMessage": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "valueLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "weekStart": {
+                    "default": "monday",
+                    "type": "string",
+                    "enum": [
+                      "monday",
+                      "sunday"
+                    ]
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusDotPlot"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "from": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "to": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "tooltips": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "category",
+                  "from",
+                  "to"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "calc": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "format": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "export": {
+                    "type": "object",
+                    "properties": {
+                      "csv": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "xlsx": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "source": {
+                        "default": "visual",
+                        "type": "string",
+                        "enum": [
+                          "visual",
+                          "query"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "focusMode": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "neoglass",
+                      "nocturne"
+                    ]
+                  },
+                  "tableView": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "emptyMessage": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "variant": {
+                    "default": "dumbbell",
+                    "type": "string",
+                    "enum": [
+                      "dumbbell",
+                      "slope"
+                    ]
+                  },
+                  "fromLabel": {
+                    "default": "Before",
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "toLabel": {
+                    "default": "After",
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "goodWhen": {
+                    "default": "higher",
+                    "type": "string",
+                    "enum": [
+                      "higher",
+                      "lower"
+                    ]
+                  },
+                  "sort": {
+                    "default": "none",
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "to",
+                      "change"
+                    ]
+                  },
+                  "categoryLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "chartHeight": {
+                    "default": 320,
+                    "type": "integer",
+                    "minimum": 200,
+                    "maximum": 800
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusTimeline"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "item": {
+                    "type": "string",
+                    "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                  },
+                  "start": {
+                    "type": "string",
+                    "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                  },
+                  "end": {
+                    "type": "string",
+                    "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                  },
+                  "lane": {
+                    "type": "string",
+                    "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                  },
+                  "tone": {
+                    "type": "string",
+                    "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                  },
+                  "tooltips": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "item",
+                  "start"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "calc": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "format": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "export": {
+                    "type": "object",
+                    "properties": {
+                      "csv": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "xlsx": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "source": {
+                        "default": "visual",
+                        "type": "string",
+                        "enum": [
+                          "visual",
+                          "query"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "focusMode": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "neoglass",
+                      "nocturne"
+                    ]
+                  },
+                  "tableView": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "emptyMessage": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "today": {
+                    "default": "auto",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "auto",
+                          "none"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "format": "date",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      }
+                    ]
+                  },
+                  "toneLabels": {
+                    "type": "object",
+                    "properties": {
+                      "ok": {
+                        "type": "string",
+                        "maxLength": 40
+                      },
+                      "warn": {
+                        "type": "string",
+                        "maxLength": 40
+                      },
+                      "bad": {
+                        "type": "string",
+                        "maxLength": 40
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "categoryLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "laneLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusBoxplot"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                  },
+                  "min": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "q1": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "median": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "q3": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "max": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "mean": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "count": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  },
+                  "tooltips": {
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^(?:'(?:[^']|'')+'|[A-Za-z_][\\w ]*)?\\[[^\\]]+\\]$"
+                        },
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "integer",
+                                "decimal",
+                                "percent",
+                                "currency",
+                                "compact"
+                              ]
+                            },
+                            "decimals": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "currency": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z]{3}$"
+                            }
+                          },
+                          "required": [
+                            "style"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "category"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "calc": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "format": {
+                    "type": "object",
+                    "properties": {
+                      "style": {
+                        "type": "string",
+                        "enum": [
+                          "integer",
+                          "decimal",
+                          "percent",
+                          "currency",
+                          "compact"
+                        ]
+                      },
+                      "decimals": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                      },
+                      "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$"
+                      }
+                    },
+                    "required": [
+                      "style"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "export": {
+                    "type": "object",
+                    "properties": {
+                      "csv": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "xlsx": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "fileName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "source": {
+                        "default": "visual",
+                        "type": "string",
+                        "enum": [
+                          "visual",
+                          "query"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "focusMode": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "neoglass",
+                      "nocturne"
+                    ]
+                  },
+                  "tableView": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "emptyMessage": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "showMean": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "zero": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "categoryLabel": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "title"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "component",
+              "id",
+              "grid",
+              "query",
+              "fields",
+              "props"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "const": "UniverusSlicer"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][\\w-]*$"
+              },
+              "grid": {
+                "type": "object",
+                "properties": {
+                  "colSpan": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "rowSpan": {
+                    "default": 1,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "colSpan"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "dax": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "dax"
+                ],
+                "additionalProperties": false
+              },
+              "crossFilter": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "emit": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "respect": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "field"
+                ],
+                "additionalProperties": false
+              },
+              "sample": {
+                "maxItems": 5000,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "pattern": "^'(?:[^']|'')+'\\[[^\\]]+\\]$|^[A-Za-z_][\\w ]*\\[[^\\]]+\\]$"
+                  },
+                  "count": {
+                    "type": "string",
+                    "pattern": "^\\[[^\\]]+\\]$"
+                  }
+                },
+                "required": [
+                  "value"
+                ],
+                "additionalProperties": false
+              },
+              "props": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "info": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "mode": {
+                    "default": "auto",
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "buttons",
+                      "dropdown"
+                    ]
+                  },
+                  "multiple": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "allLabel": {
+                    "default": "All",
+                    "type": "string",
+                    "maxLength": 40
                   }
                 },
                 "required": [

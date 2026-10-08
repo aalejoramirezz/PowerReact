@@ -123,6 +123,26 @@ describe.each([
   });
 });
 
+/** Labels drawn on heatmap / treemap cells: every step of both ramps carries its own text role. */
+const RAMP_PAIRS: Array<[string, string]> = [1, 2, 3, 4, 5, 6, 7].flatMap((k) => [
+  [`seq-text-${k}`, `seq-${k}`] as [string, string],
+  [`div-text-${k}`, `div-${k}`] as [string, string],
+]);
+
+describe.each([
+  ['neoglass', NEOGLASS],
+  ['nocturne', NOCTURNE],
+] as const)('%s ramps', (_name, theme) => {
+  it.each(RAMP_PAIRS)('%s on %s reaches 4.5:1', (fg, bg) => {
+    expect(contrast(theme, fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('the sequential ramp is ordered: each step moves further from the card than the last', () => {
+    const steps = [1, 2, 3, 4, 5, 6, 7].map((k) => contrast(theme, `seq-${k}`, 'card-solid'));
+    for (let k = 1; k < steps.length; k++) expect(steps[k]).toBeGreaterThan(steps[k - 1] as number);
+  });
+});
+
 it('nocturne secondary text reaches AA over the dark card', () => {
   for (const [fg, bg] of SECONDARY_PAIRS) {
     expect(contrast(NOCTURNE, fg, bg)).toBeGreaterThanOrEqual(4.5);

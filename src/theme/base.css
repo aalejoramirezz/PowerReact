@@ -1,7 +1,9 @@
 /* Document defaults and scrollbars. Colours come from tokens.css. */
 
+/* --pbi-* roles (Univerus tokens, Fluent fallback): the shared surfaces and motion read them too */
+@import '@powerreact/udp-powerbi-visuals/styles/tokens-bridge.css';
 /* Keyframes, entrance classes and the reduced-motion rule: shared with the web components' shadow roots */
-@import '@powerreact/univerus-elements/styles/motion.css';
+@import '@powerreact/udp-powerbi-visuals/styles/motion.css';
 
 html,
 body,

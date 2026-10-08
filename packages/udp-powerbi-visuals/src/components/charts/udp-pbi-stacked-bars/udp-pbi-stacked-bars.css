@@ -1,0 +1,136 @@
+.sb {
+  width: 100%;
+}
+.sb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 6px;
+}
+/* label · bar · total (diverging and grouped: label · bar) */
+.sb-row {
+  display: grid;
+  grid-template-columns: minmax(72px, 28%) 1fr 64px;
+  align-items: center;
+  gap: 12px;
+  min-height: 34px;
+  padding: 4px;
+  border-radius: 6px;
+}
+.sb[data-layout='diverging'] .sb-row,
+.sb[data-layout='grouped'] .sb-row {
+  grid-template-columns: minmax(72px, 28%) 1fr;
+}
+.sb-row[data-active='true'] {
+  background: var(--pbi-row-hover);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sb-row[data-interactive='true'] {
+    cursor: pointer;
+  }
+}
+/* Likert end shares, outside the bar ends (the wrap leaves room for them) */
+.sb-end {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  font: 600 11.5px/1 var(--pbi-font-display);
+  color: var(--pbi-text-soft);
+  white-space: nowrap;
+}
+.sb-end--neg {
+  margin-right: 7px;
+}
+.sb-end--pos {
+  margin-left: 7px;
+}
+.sb[data-layout='diverging'] .sb-track-wrap {
+  margin: 0 40px;
+}
+
+.sb-track-wrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+.sb-track {
+  position: relative;
+  display: block;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--pbi-track);
+}
+.sb-track[data-mode='diverging'],
+.sb-track[data-mode='grouped'] {
+  background: none;
+}
+.sb-track[data-mode='grouped'] {
+  height: calc(var(--n, 1) * 9px - 2px);
+}
+/* The zero axis when bars cross it (diverging, or stacked with negative values), behind the bars */
+.sb-track[data-axis='true']::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  left: var(--zero);
+  width: 1px;
+  background: var(--pbi-axis);
+}
+/* Segments grow from the zero line once, staggered with the rows */
+.sb-bars {
+  position: absolute;
+  inset: 0;
+  animation: u-grow 1.1s var(--pbi-ease) calc(var(--i, 0) * 80ms + var(--k, 0) * 60ms + 300ms) both;
+}
+.sb-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font: 600 10.5px/1 var(--pbi-font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  background: linear-gradient(90deg, var(--pbi-bar-1), var(--pbi-bar-2) 60%, var(--pbi-bar-3));
+  /* A hairline in the card colour separates touching parts */
+  box-shadow: inset -1px 0 0 var(--pbi-card-solid);
+}
+.sb-seg[data-last='true'] {
+  box-shadow: none;
+}
+.sb-seg[data-first='true'] {
+  border-top-left-radius: 999px;
+  border-bottom-left-radius: 999px;
+}
+.sb-seg[data-last='true'] {
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
+}
+.sb-track[data-mode='grouped'] .sb-seg {
+  bottom: auto;
+  height: 7px;
+  border-radius: 999px;
+  box-shadow: none;
+}
+.sb-seg.sb-seg--active {
+  z-index: 1;
+  box-shadow: inset 0 0 0 2px var(--pbi-interaction);
+}
+
+/* Narrow cards: the label goes above its bar */
+@container (max-width: 26rem) {
+  .sb-row {
+    grid-template-columns: 1fr 56px;
+    row-gap: 6px;
+  }
+  .sb-label {
+    grid-column: 1 / -1;
+  }
+  .sb[data-layout='diverging'] .sb-row,
+  .sb[data-layout='grouped'] .sb-row {
+    grid-template-columns: 1fr;
+  }
+}

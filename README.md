@@ -15,7 +15,7 @@ PowerReact is an ultra-efficient architectural proof-of-concept demonstrating ho
 * **🔍 DAX Inspector & Live Playground:** Built-in terminal to inspect live DAX queries, execution latency (ms), and execute custom DAX queries on the fly.
 * **📊 Dual Mode:** Seamlessly switch between native React visuals and traditional Power BI Embed / Paginated Report (RDL) view.
 * **🌗 Univerus Design System:** The Neo-Glass (light) and Nocturne (dark) templates from Univerus-Lens, switched app-wide with the dark-mode button.
-* **🧩 Univerus web components:** KPI card, hero KPI, spotlight / ranking / bullet / diverging bars, donut, trend, IBCS variance and data table as **Stencil** custom elements (Shadow DOM, themed only through `var(--u-*)`), wrapped for React 18. Purely presentational — props in, typed events out (`dataPointClick`, `exportData`, `focusModeChange`, `viewChange`) — and every one carries the standard toolbar: **Export** (CSV / Excel, on the client), **Table view** (sortable, paginated), **Focus view** (modal dialog) and the "What it means" curtain.
+* **🧩 Univerus web components (`udp-powerbi-visuals`):** KPI card, hero KPI, spotlight / ranking / bullet / diverging bars, columns (grouped, stacked, 100 %, histogram), stacked and Likert bars, donut, treemap, trend (with funding-gap shading), calendar heatmap, timeline, waterfall (IBCS bridge), dot plot (dumbbell / slope), lollipop, boxplot, IBCS variance, scatter / bubble, matrix with heatmap and data table as **Stencil** custom elements laid out like Univerus' official UDP library (`udp-pbi-*`, ready to move there: `packages/udp-powerbi-visuals/MIGRATION.md`), themed through a token bridge (Univerus template here, Fluent tokens inside UDP), wrapped for React 18. Purely presentational — props in, typed events out (`dataPointClick`, `exportData`, `focusModeChange`, `viewChange`) — and every one carries the standard toolbar: **Export** (CSV / Excel, on the client), **Table view** (sortable, paginated), **Focus view** (modal dialog) and the "What it means" curtain.
 * **📄 Manifest engine:** `/manifest-preview` renders a report from a `manifest.json` (from Univerus-Lens or hand-written): Zod-validated with path-precise errors, a published JSON Schema, cross-filters injected into each visual's DAX as `CALCULATETABLE(…, TREATAS(…))`, Live (semantic model) or Sample (offline rows) mode, upload by button or drag & drop.
 
 ---
@@ -80,7 +80,7 @@ npm start       # Express serves the API and the built SPA on $PORT
 | Script | What it does |
 | --- | --- |
 | `npm run dev` | Elements build + `stencil --watch`, API (`tsx watch`) and Vite client with `/api` proxy |
-| `npm run elements:build` / `elements:watch` | Stencil build of `packages/univerus-elements` (custom elements, SSR hydrate script, `docs/components.json`, React wrappers) |
+| `npm run elements:build` / `elements:watch` | Stencil build of `packages/udp-powerbi-visuals` (custom elements, SSR hydrate script, `docs/components.json`, React wrappers) |
 | `npm run build` | `build:client` (elements + typecheck + Vite) and `build:server` (`tsc` → `dist-server/`) |
 | `npm start` | Runs the compiled server |
 | `npm run lint` | oxlint (rules of hooks, `exhaustive-deps`, no explicit `any`) |
@@ -124,7 +124,7 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit tests, build and the 
 ### Project layout
 
 ```
-packages/univerus-elements/   Stencil web components (npm workspace): the ten visuals, shared frame/toolbar,
+packages/udp-powerbi-visuals/   Stencil web components (npm workspace): the ten visuals, shared frame/toolbar,
                               chart layout math, formats, CSV / Excel export, motion + surface styles
 server/
   config.ts              env + preconfigured reports + dataset allow-list
@@ -139,7 +139,7 @@ src/
   lib/manifest/          schema (Zod) · DAX cross-filter injection · row mapping · Sample mode · JSON Schema
   hooks/                 useSemanticQuery (TanStack Query per dataset + DAX), useDashboardData
   store/                 Zustand: shared filters + manifest cross-filters, theme, DAX log, embed diagnostics
-  components/univerus/   React 18 wrappers of the web components (generated) + fixtures + SSR tests
+  components/powerbi-visuals/   React 18 wrappers of the web components (generated) + fixtures + SSR tests
   components/manifest/   ManifestDashboard · ManifestVisual (Live / Sample) · registry · 12-column grid
   components/template/   ReportTemplate (Univerus scene, plane, header) · UniverusLogo
   components/ui/         Card / ChartCard · InfoCurtain · Popover · Sheet · primitives
@@ -148,7 +148,7 @@ src/
   components/embed/      Power BI embed (single Service, token renewal)
   components/chat/       Data Agent chat (Markdown answers)
   pages/                 Gallery.tsx (/gallery) · ManifestPreview.tsx (/manifest-preview)
-public/manifests/        bundled sample manifest, index and the generated JSON Schema
+public/manifests/        bundled manifests (asset portfolio, condition & works, delivery & lifecycle), index and the generated JSON Schema
 e2e/                     Playwright specs + in-browser API mock
 .agents/skills/          canonical agent skills (mirrored to .claude/skills)
 ```

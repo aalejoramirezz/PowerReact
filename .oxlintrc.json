@@ -7,7 +7,7 @@
     "playwright-report",
     "test-results",
     "scratch",
-    "src/components/univerus/generated",
+    "src/components/powerbi-visuals/generated",
     "packages/*/components",
     "packages/*/hydrate",
     "packages/*/dist",
@@ -23,7 +23,7 @@
   },
   "overrides": [
     {
-      "files": ["packages/univerus-elements/src/**"],
+      "files": ["packages/udp-powerbi-visuals/src/**"],
       "rules": {
         "react/rules-of-hooks": "off",
         "react/exhaustive-deps": "off",

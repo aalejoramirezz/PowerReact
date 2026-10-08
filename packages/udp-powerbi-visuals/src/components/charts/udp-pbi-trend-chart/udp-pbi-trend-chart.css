@@ -1,0 +1,31 @@
+.tc {
+  position: relative;
+  width: 100%;
+}
+.tc svg:focus {
+  outline: none;
+}
+.tc svg:focus-visible {
+  border-radius: 6px;
+  box-shadow: var(--pbi-focus-ring);
+}
+.tc-capture[data-interactive='true'] {
+  cursor: pointer;
+}
+.tc .u-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+}
+.tc .u-tooltip .tc-tip-cat {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tc .u-tooltip .tc-tip-cmp {
+  display: block;
+}
+/* Surplus / deficit between the lines: quiet tones by meaning, under the lines */
+.tc-gap path {
+  fill-opacity: 0.24;
+}

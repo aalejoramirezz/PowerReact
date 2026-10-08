@@ -4,6 +4,16 @@
       "id": "asset-portfolio",
       "title": "Asset Portfolio",
       "file": "sample-manifest.json"
+    },
+    {
+      "id": "condition-works",
+      "title": "Condition & Works",
+      "file": "condition-works.json"
+    },
+    {
+      "id": "delivery-lifecycle",
+      "title": "Delivery & Lifecycle",
+      "file": "delivery-lifecycle.json"
     }
   ]
 }

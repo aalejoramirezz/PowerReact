@@ -2,7 +2,7 @@ import type React from 'react';
 import { errorMessage } from '../../api/http';
 import { GROUP_COLUMN } from '../../lib/dax/daxBuilder';
 import type { GroupRow } from '../../lib/dax/types';
-import { UniverusSpotlightBars, type BarItem } from '../univerus';
+import { UdpPbiSpotlightBars, type BarItem } from '../powerbi-visuals';
 import { CHART_DEFINITIONS } from './kpiDefinitions';
 
 interface GroupDistributionProps {
@@ -38,7 +38,7 @@ export const GroupDistribution: React.FC<GroupDistributionProps> = ({
   index = 0,
   className,
 }) => (
-  <UniverusSpotlightBars
+  <UdpPbiSpotlightBars
     index={index}
     className={className}
     visualId="groups"
@@ -63,5 +63,5 @@ export const GroupDistribution: React.FC<GroupDistributionProps> = ({
     <span slot="aside" className="u-num text-[11px] text-u-label">
       {groups?.length ?? 0} groups
     </span>
-  </UniverusSpotlightBars>
+  </UdpPbiSpotlightBars>
 );

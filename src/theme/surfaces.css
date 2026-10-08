@@ -4,7 +4,7 @@
  */
 
 /* Card, curtain, controls, chips, table, tooltip: shared with the web components (one definition) */
-@import '@powerreact/univerus-elements/styles/surfaces.css';
+@import '@powerreact/udp-powerbi-visuals/styles/surfaces.css';
 
 /* ───────────── Report scene (ambient background behind the plane) ───────────── */
 .u-scene {

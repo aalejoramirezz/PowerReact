@@ -6,19 +6,23 @@
 
 PowerReact renders **native visuals** on top of a **Power BI / Microsoft Fabric semantic model**, queried live with DAX through the Service Principal `executeQueries` API, instead of embedding Power BI iframes. It also embeds a classic Power BI report for comparison, a Fabric Data Agent chat and an AI voice briefing that cross-filters the visuals as it speaks.
 
-The visuals are **Stencil web components** (`packages/univerus-elements`), 100 % presentational: props in, typed events out, no fetching and no DAX. The React 18 app wraps them (generated wrappers) and owns all data logic. A **manifest engine** renders a whole report from a `manifest.json` (produced by Univerus-Lens or written by hand) on `/manifest-preview`.
+The visuals are **Stencil web components** (`packages/udp-powerbi-visuals`), 100 % presentational: props in, typed events out, no fetching and no DAX. The package follows the conventions of Univerus' official UDP component library (tags `udp-pbi-*`, one folder per component with its generated readme, Fluent-token fallback) so it can move there unchanged once approved (`packages/udp-powerbi-visuals/MIGRATION.md`); keep PowerReact-only logic out of it. The React 18 app wraps them (generated wrappers) and owns all data logic. A **manifest engine** renders a whole report from a `manifest.json` (produced by Univerus-Lens or written by hand) on `/manifest-preview`.
 
 The UI follows the **Univerus design system** ported from the sibling repo Univerus-Lens: two templates, **Neo-Glass** (light) and **Nocturne** (dark), switched app-wide with the dark-mode button.
 
 ## 2. Architecture
 
 ```
-packages/univerus-elements/     Stencil web components (npm workspace), Shadow DOM, styled only with var(--u-*)
-  src/components/univerus-*/    kpi-card · kpi-hero · spotlight-bars · ranking-bars · bullet-bars · diverging-bars ·
-                                donut · trend-chart · ibcs-variance · data-table  (+ src/components.d.ts: generated, committed)
-  src/functional/               frame.tsx (header, toolbar Export · Table · Focus · ⓘ curtain, focus <dialog>) · states · icon · meter
-  src/styles/                   motion.css (keyframes + reduced motion, shared with the app) · surfaces.css (shared) · shadow.css · charts.css
-  src/utils/                    layout/* (chart math, tested) · formats.ts · table/model.ts · export/{csv,xlsx} · events.ts · icons.ts
+packages/udp-powerbi-visuals/   Stencil web components (npm workspace), UDP layout, Shadow DOM, styled only with var(--pbi-*) · README.md · MIGRATION.md
+  src/components/kpi/           udp-pbi-kpi-card · udp-pbi-kpi-hero
+  src/components/charts/        udp-pbi-spotlight-bars · ranking-bars · bullet-bars · column-chart · diverging-bars · ibcs-variance ·
+                                stacked-bars · donut · trend-chart · scatter · waterfall · treemap · calendar-heatmap ·
+                                dot-plot · timeline · boxplot
+  src/components/tables/        udp-pbi-data-table · udp-pbi-matrix   (each folder: .tsx · .css · readme.md generated; src/components.d.ts generated, committed)
+  src/functional/               frame.tsx (template card or frame="none"; toolbar Export · Table · Focus · ⓘ curtain, focus <dialog>) ·
+                                chart-kit.tsx (grid, reference lines, legend, tooltip) · states · icon · meter
+  src/styles/                   tokens-bridge.css (--pbi-<role> = var(--u-<role>, Fluent token)) · motion.css · surfaces.css (both shared with the app) · shadow.css · charts.css
+  src/utils/                    layout/* (chart math, tested) · palette.ts · roving.ts · series-chart.ts · formats.ts · table/* · export/{csv,xlsx} · events.ts · icons.ts
   build output (ignored)        components/ (custom elements) · hydrate/ (SSR, tests) · docs/components.json · dist/types
 server/                         Express BFF (strict TypeScript)
   config.ts                     env, preconfigured reports, PBI_ALLOWED_DATASETS
@@ -32,14 +36,14 @@ src/
   lib/manifest/                 schema.ts (Zod) · daxInjection.ts (CALCULATETABLE + TREATAS) · mapRows.ts · crossFilters.ts · jsonSchema.ts
   hooks/                        useSemanticQuery (TanStack Query, key = dataset + DAX text) · useDashboardData
   store/                        Zustand: filters (/visuals filters + manifest cross-filters) · theme · daxLog · embedLog
-  components/univerus/          React 18 wrappers of the web components (generated/, ignored) · index.ts · fixtures · SSR test
+  components/powerbi-visuals/   React 18 wrappers of the web components (generated/, ignored) · index.ts · fixtures · SSR test
   components/manifest/          ManifestDashboard · ManifestVisual (live / sample) · registry · manifest.css (12-column grid)
   components/template/          ReportTemplate (Univerus scene, plane, header, rule) · UniverusLogo
   components/ui/                Card / ChartCard · InfoCurtain · Popover · Sheet · primitives (React chrome)
   components/visuals/           the semantic-model page (KPIs, group distribution, class table, DAX inspector)
   components/{briefing,chat,embed,layout}/
   pages/                        Gallery.tsx (/gallery) · ManifestPreview.tsx (/manifest-preview)
-public/manifests/               index.json · sample-manifest.json · manifest.schema.json (generated)
+public/manifests/               index.json · sample-manifest.json · condition-works.json · delivery-lifecycle.json · manifest.schema.json (generated)
 e2e/                            Playwright specs + in-browser fake DAX engine (support/mockApi.ts)
 .agents/skills/                 canonical agent skills (see §5)
 ```
@@ -53,7 +57,7 @@ The app runs on **React 18.3** (with React Router 7, its last major for React 18
 | Command | Purpose |
 | :--- | :--- |
 | `npm run dev` | Builds the elements, then `stencil --watch` + API (`tsx watch`, port 5000) + Vite client (port 3000, `/api` proxied) |
-| `npm run elements:build` / `elements:watch` | Stencil build of `packages/univerus-elements` (custom elements, hydrate, docs, React wrappers) |
+| `npm run elements:build` / `elements:watch` | Stencil build of `packages/udp-powerbi-visuals` (custom elements, hydrate, docs, React wrappers) |
 | `npm run lint` | oxlint: rules of hooks, `exhaustive-deps`, no explicit `any` (the Stencil package skips the React-hook rules) |
 | `npm run typecheck` | Builds the elements, then `tsc -b` over app, unit tests + scripts, tooling, server (strict), e2e and the Stencil package |
 | `npm test` | Builds the elements, then Vitest: DAX builder + injection, parsing, manifest schema / mapping, stores, chart layout, export, SSR smoke of every element (hydrate), token contrast + no-raw-colour guards (app and package), API (Supertest) |
@@ -65,7 +69,7 @@ The app runs on **React 18.3** (with React Router 7, its last major for React 18
 ## 4. Hard rules
 
 1. **Read the matching skill before working** (§5) and follow it. Update the skill in `.agents/skills/` when you change what it documents, then run `npm run skills:sync`. Never edit `.claude/skills/` (generated).
-2. **Colours only from design tokens** (`src/theme/tokens.css` → `bg-u-*`, `text-u-*`, `var(--u-*)`). The stock Tailwind palette is disabled and a test fails on raw colours, in `src/` and in `packages/univerus-elements/src/`. Inside a shadow root only `var(--u-*)` works (Tailwind classes do not cross the boundary). Both themes must keep working.
+2. **Colours only from design tokens** (`src/theme/tokens.css` → `bg-u-*`, `text-u-*`, `var(--u-*)`). The stock Tailwind palette is disabled and a test fails on raw colours, in `src/` and in `packages/udp-powerbi-visuals/src/`. Inside the web components only `var(--pbi-*)` is used: `packages/udp-powerbi-visuals/src/styles/tokens-bridge.css` maps each role to `var(--u-*)` with a Fluent fallback for UDP (`tokensBridge.test.ts` keeps it complete; Tailwind classes do not cross the shadow boundary). Both themes must keep working.
 3. **DAX is built, never concatenated by hand**: `daxString` / `daxLiteral` / `treatAs` / `containsFilter`; filters and search run in the engine before `TOPN`. **Exception:** a manifest's DAX is trusted input (written by Univerus-Lens or the report author, like a model measure); what is never trusted is a clicked value, so manifest filters are applied **only** through `injectCrossFilters` (`src/lib/manifest/daxInjection.ts`).
 4. **Data fetching goes through `useSemanticQuery` / `semanticQueryOptions`**; cross-filtering goes through the composite actions of `useFilterStore` (`toggleCrossFilter` & co. for manifests). **The web components never fetch, build DAX or call endpoints**: they take props and emit `dataPointClick`, `exportData`, `focusModeChange` and `viewChange`.
 5. **No functional regressions**: keep `data-testid`s, roles and accessible names that tests use; extend tests with every behaviour change; all four checks (lint, typecheck, unit, E2E) green before hand-over.
@@ -89,4 +93,4 @@ Vendored skills come from `npx skills add … --copy` and are pinned in `skills-
 - [ ] `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:e2e` pass
 - [ ] Checked in **Neo-Glass and Nocturne** (toggle in the header), on `/gallery` and, for manifest work, on `/manifest-preview` (Live and Sample)
 - [ ] Skills updated and `npm run skills:check` passes
-- [ ] No `.env`, tokens or build output staged (Stencil output and `src/components/univerus/generated` are ignored; `packages/univerus-elements/src/components.d.ts` is committed)
+- [ ] No `.env`, tokens or build output staged (Stencil output and `src/components/powerbi-visuals/generated` are ignored; `packages/udp-powerbi-visuals/src/components.d.ts` is committed)

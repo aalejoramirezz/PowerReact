@@ -10,7 +10,7 @@ import { selectFilters, useFilterStore, type FocusTarget } from '../../store/fil
 import { VoiceBriefingOrb } from '../briefing/VoiceBriefingOrb';
 import { ReportTemplate } from '../template/ReportTemplate';
 import { Sheet } from '../ui/Sheet';
-import { UniverusKpiCard } from '../univerus';
+import { UdpPbiKpiCard } from '../powerbi-visuals';
 import { ClassTable } from './ClassTable';
 import { DaxInspector } from './DaxInspector';
 import { FilterBar } from './FilterBar';
@@ -137,7 +137,7 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
             They are filter toggles here, so the ⋯ menu (export, focus view) is off: one tab stop per card. */}
         <div className="grid grid-cols-2 gap-(--u-gap) @4xl:grid-cols-4" data-testid="kpi-grid">
           {/* A plain action: "all" is the resting state, so it never shows a selection ring */}
-          <UniverusKpiCard
+          <UdpPbiKpiCard
             {...kpiState}
             index={0}
             visualId="kpi-total"
@@ -152,7 +152,7 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
             calc={KPI_DEFINITIONS.totalAssets.calc}
           />
 
-          <UniverusKpiCard
+          <UdpPbiKpiCard
             {...kpiState}
             index={1}
             visualId="kpi-assessed"
@@ -167,7 +167,7 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
             calc={KPI_DEFINITIONS.assessed.calc}
           />
 
-          <UniverusKpiCard
+          <UdpPbiKpiCard
             {...kpiState}
             index={2}
             visualId="kpi-renewal"
@@ -188,7 +188,7 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
             calc={KPI_DEFINITIONS.renewal.calc}
           />
 
-          <UniverusKpiCard
+          <UdpPbiKpiCard
             {...kpiState}
             index={3}
             visualId="kpi-base-life"

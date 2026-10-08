@@ -42,7 +42,7 @@ describe('injectCrossFilters', () => {
   });
 
   it('wraps the table expression in CALCULATETABLE + TREATAS', () => {
-    expect(injectCrossFilters(BASE, [{ field: GROUP, value: 'Utility_Line' }])).toBe(`EVALUATE
+    expect(injectCrossFilters(BASE, [{ field: GROUP, values: ['Utility_Line'] }])).toBe(`EVALUATE
 CALCULATETABLE(
   SUMMARIZECOLUMNS('asset_class'[Asset_Class], "Assets", [Asset Count (All States)]),
   TREATAS({"Utility_Line"}, 'asset_class_group'[Asset_Class_Group])
@@ -53,37 +53,48 @@ CALCULATETABLE(
     const dax = `DEFINE VAR _n = 5
 EVALUATE TOPN(_n, VALUES('t'[c]))
 ORDER BY 't'[c]`;
-    const out = injectCrossFilters(dax, [{ field: "'t'[g]", value: 'A' }]);
+    const out = injectCrossFilters(dax, [{ field: "'t'[g]", values: ['A'] }]);
     expect(out.startsWith('DEFINE VAR _n = 5\nEVALUATE\nCALCULATETABLE(')).toBe(true);
     expect(out).toContain("TREATAS({\"A\"}, 't'[g])");
     expect(out.endsWith("\nORDER BY 't'[c]")).toBe(true);
   });
 
   it('escapes quotes in values (no injection through a clicked label)', () => {
-    const out = injectCrossFilters(BASE, [{ field: "'p'[Name]", value: 'O"Brien"), ALL(\'p\'' }]);
+    const out = injectCrossFilters(BASE, [{ field: "'p'[Name]", values: ['O"Brien"), ALL(\'p\''] }]);
     expect(out).toContain(`TREATAS({"O""Brien""), ALL('p'"}, 'p'[Name])`);
     expect(out.match(/TREATAS/g)).toHaveLength(1);
   });
 
   it('writes numbers and booleans as typed literals', () => {
-    expect(injectCrossFilters(BASE, [{ field: "'d'[Year]", value: 2024 }])).toContain("TREATAS({2024}, 'd'[Year])");
-    expect(injectCrossFilters(BASE, [{ field: "'d'[Rate]", value: 0.125 }])).toContain("TREATAS({0.125}, 'd'[Rate])");
-    expect(injectCrossFilters(BASE, [{ field: "'a'[Active]", value: true }])).toContain("TREATAS({TRUE()}, 'a'[Active])");
+    expect(injectCrossFilters(BASE, [{ field: "'d'[Year]", values: [2024] }])).toContain("TREATAS({2024}, 'd'[Year])");
+    expect(injectCrossFilters(BASE, [{ field: "'d'[Rate]", values: [0.125] }])).toContain("TREATAS({0.125}, 'd'[Rate])");
+    expect(injectCrossFilters(BASE, [{ field: "'a'[Active]", values: [true] }])).toContain("TREATAS({TRUE()}, 'a'[Active])");
   });
 
-  it('adds one TREATAS per column and lists several values of one column together', () => {
+  it('writes one TREATAS per filter: values listed together, filters on one column intersected', () => {
     const out = injectCrossFilters(BASE, [
-      { field: GROUP, value: 'Core' },
-      { field: "'asset_class'[Asset_Class]", value: 'Buildings' },
-      { field: 'asset_class_group[Asset_Class_Group]', value: 'Transport' },
+      { field: GROUP, values: ['Core', 'Transport', 'Core'] },
+      { field: "'asset_class'[Asset_Class]", values: ['Buildings'] },
+      { field: 'asset_class_group[Asset_Class_Group]', values: ['Transport'] },
     ]);
     expect(out).toContain(`TREATAS({"Core", "Transport"}, ${GROUP})`);
+    expect(out).toContain(`TREATAS({"Transport"}, ${GROUP})`);
     expect(out).toContain(`TREATAS({"Buildings"}, 'asset_class'[Asset_Class])`);
+    expect(out.match(/TREATAS/g)).toHaveLength(3);
+  });
+
+  it('writes identical filters once and skips empty ones', () => {
+    const out = injectCrossFilters(BASE, [
+      { field: GROUP, values: ['Core'] },
+      { field: 'asset_class_group[Asset_Class_Group]', values: ['Core'] },
+    ]);
+    expect(out.match(/TREATAS/g)).toHaveLength(1);
+    expect(injectCrossFilters(BASE, [{ field: GROUP, values: [] }])).toBe(BASE);
   });
 
   it('rejects a filter on something that is not a column reference', () => {
-    expect(() => injectCrossFilters(BASE, [{ field: 'ALL(x)', value: 'a' }])).toThrow(/column reference/);
-    expect(() => injectCrossFilters(BASE, [{ field: "'t'[c]) , ('x", value: 'a' }])).toThrow(/column reference/);
+    expect(() => injectCrossFilters(BASE, [{ field: 'ALL(x)', values: ['a'] }])).toThrow(/column reference/);
+    expect(() => injectCrossFilters(BASE, [{ field: "'t'[c]) , ('x", values: ['a'] }])).toThrow(/column reference/);
   });
 });
 

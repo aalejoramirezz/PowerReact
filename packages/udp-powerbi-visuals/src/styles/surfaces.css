@@ -1,0 +1,867 @@
+/*
+ * Univerus surfaces shared by the app and every web component: card, hover curtain, controls,
+ * chips, data table, tooltip, skeleton — plus the menu, focus dialog and pager the elements add.
+ * One definition for both sides of the shadow boundary: src/theme/surfaces.css imports this file,
+ * and each element lists it in its styleUrls. Colours only through var(--pbi-*) (src/theme/tokens.css).
+ */
+
+/* ───────────── Card: the standard chart surface ───────────── */
+.u-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--pbi-card-radius);
+  background: var(--pbi-card-bg);
+  border: 1px solid var(--pbi-card-border);
+  box-shadow: var(--pbi-card-shadow);
+  backdrop-filter: var(--pbi-card-blur);
+  -webkit-backdrop-filter: var(--pbi-card-blur);
+  color: var(--pbi-text);
+  transition:
+    border-color 0.25s var(--pbi-ease),
+    box-shadow 0.25s var(--pbi-ease),
+    transform 0.25s var(--pbi-ease);
+  animation: u-rise 0.7s var(--pbi-ease) calc(var(--i, 0) * 80ms) both;
+}
+.u-card--pad {
+  padding: var(--pbi-card-pad);
+}
+/* Hoverable cards: border moves to the primary, a 2px lift in light (DESIGN.md "Cards") */
+.u-card--interactive {
+  cursor: pointer;
+  text-align: left;
+}
+/* Hover only where a pointer really hovers: on touch a tap would leave the card lifted (emil-design-eng) */
+@media (hover: hover) and (pointer: fine) {
+  .u-card--interactive:hover {
+    border-color: var(--pbi-card-hover-border);
+    box-shadow: var(--pbi-card-hover-shadow);
+    transform: translateY(var(--pbi-card-hover-lift));
+  }
+}
+.u-card--interactive:focus-visible,
+.u-card--interactive:has(> :focus-visible) {
+  outline: none;
+  border-color: var(--pbi-focus);
+  box-shadow: var(--pbi-focus-ring), var(--pbi-card-shadow);
+}
+.u-card--active,
+.u-card--active:hover {
+  border-color: var(--pbi-interaction);
+  box-shadow:
+    inset 0 0 0 1px var(--pbi-interaction),
+    var(--pbi-card-shadow);
+}
+.u-card-title {
+  font: 600 15px/1.3 var(--pbi-font-display);
+  letter-spacing: -0.012em;
+  color: var(--pbi-title);
+}
+.u-card-subtitle {
+  font: 400 12px/1.4 var(--pbi-font-body);
+  color: var(--pbi-subtitle);
+}
+
+/* ───────────── Hover curtain (Lens univerus_html._curtain) ─────────────
+ * An opaque panel drops from the top edge with an accent hem: "What it means" + definition + ƒ calc.
+ * KPI cards open it on hover / keyboard focus; chart cards open it from their ⓘ button. */
+.u-curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  padding: inherit;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  background: var(--pbi-curtain-bg);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transform: translateY(-101%);
+  transition: transform 0.55s var(--pbi-ease);
+  pointer-events: none;
+}
+.u-curtain::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--pbi-curtain-accent);
+  box-shadow: 0 0 12px var(--pbi-curtain-glow);
+}
+.u-curtain > * {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.35s var(--pbi-ease),
+    transform 0.45s var(--pbi-ease);
+}
+/* Hover-driven only on hover-capable pointers: on touch a tap must not leave the curtain covering the card */
+@media (hover: hover) and (pointer: fine) {
+  .u-curtain-host:hover > .u-curtain {
+    transform: none;
+  }
+  .u-curtain-host:hover > .u-curtain > * {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0.16s;
+  }
+}
+.u-curtain-host:focus-visible > .u-curtain,
+.u-curtain-host:has(> :focus-visible) > .u-curtain,
+.u-curtain[data-open='true'] {
+  transform: none;
+}
+.u-curtain-host:focus-visible > .u-curtain > *,
+.u-curtain-host:has(> :focus-visible) > .u-curtain > *,
+.u-curtain[data-open='true'] > * {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.16s;
+}
+/* An open chart curtain is a surface you can click to dismiss */
+.u-curtain[data-open='true'] {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.u-curtain__kicker {
+  font: 600 10px/1 var(--pbi-font-body);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--pbi-curtain-accent);
+}
+.u-curtain__info {
+  font: 500 12.5px/1.4 var(--pbi-font-body);
+  color: var(--pbi-title);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.u-curtain__calc {
+  font: 500 11.5px/1.3 var(--pbi-font-display);
+  color: var(--pbi-label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.u-curtain__calc b {
+  font-weight: 600;
+  color: var(--pbi-curtain-accent);
+  margin-right: 6px;
+}
+
+/* ───────────── Controls ───────────── */
+/* Press feedback on controls (better-ui: exactly 0.96; not on cards or chart rows) */
+.u-btn,
+.u-btn-ghost,
+.u-icon-btn,
+.u-tab {
+  transition-property: scale, background-color, color, border-color, box-shadow, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+.u-btn:active:not(:disabled),
+.u-btn-ghost:active:not(:disabled),
+.u-icon-btn:active:not(:disabled),
+.u-tab:active {
+  scale: 0.96;
+}
+
+.u-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: 1px solid var(--pbi-btn-border);
+  background: var(--pbi-btn-bg);
+  color: var(--pbi-btn-text);
+  font: 600 12px/1 var(--pbi-font-body);
+  cursor: pointer;
+}
+.u-btn:hover:not(:disabled) {
+  background: var(--pbi-btn-bg-hover);
+}
+.u-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.u-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 1px solid var(--pbi-ghost-border);
+  background: var(--pbi-ghost-bg);
+  color: var(--pbi-text-soft);
+  font: 600 12px/1 var(--pbi-font-body);
+  cursor: pointer;
+}
+.u-btn-ghost:hover:not(:disabled) {
+  background: var(--pbi-ghost-hover);
+  color: var(--pbi-title);
+}
+.u-btn-ghost[aria-pressed='true'] {
+  border-color: var(--pbi-interaction);
+  color: var(--pbi-interaction);
+}
+.u-btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.u-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--pbi-label);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.u-icon-btn:hover,
+.u-icon-btn[aria-expanded='true'] {
+  color: var(--pbi-interaction);
+  background: var(--pbi-ghost-hover);
+}
+.u-icon-btn[aria-pressed='true'] {
+  color: var(--pbi-interaction);
+  border-color: var(--pbi-interaction);
+}
+
+.u-input {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--pbi-input-border);
+  background: var(--pbi-input-bg);
+  color: var(--pbi-title);
+  font: 500 12px/1 var(--pbi-font-body);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.u-input::placeholder {
+  color: var(--pbi-input-placeholder);
+}
+.u-input:focus {
+  outline: none;
+  border-color: var(--pbi-focus);
+  box-shadow: var(--pbi-focus-ring);
+}
+
+/* Filter buttons = Lens page navigator: framed buttons like the cards, 8px apart, no shadows.
+   Borders carry the structure; the selected one is a teal fill with white text (palette, AA). */
+.u-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.u-tab {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  white-space: nowrap;
+  border: 1px solid var(--pbi-tab-border);
+  border-radius: var(--pbi-tab-radius);
+  background: var(--pbi-tab-bg);
+  color: var(--pbi-tab-text);
+  font: 600 12px/1 var(--pbi-font-body);
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .u-tab:hover:not([aria-pressed='true']):not([aria-selected='true']) {
+    background: var(--pbi-tab-hover-bg);
+    color: var(--pbi-tab-hover-text);
+  }
+}
+.u-tab[aria-pressed='true'],
+.u-tab[aria-selected='true'] {
+  background: var(--pbi-tab-active-bg);
+  border-color: var(--pbi-tab-active-border);
+  color: var(--pbi-tab-active-text);
+}
+
+/* Horizontal scroller (filter rows on narrow screens): snap, no scrollbar, the right edge fades
+   to say "there is more". The end padding keeps the last item clear of the fade. */
+.u-scroll-x {
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding: 3px 28px 3px 3px;
+  -webkit-mask-image: linear-gradient(90deg, black calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, black calc(100% - 28px), transparent);
+}
+.u-scroll-x::-webkit-scrollbar {
+  display: none;
+}
+.u-scroll-x > * {
+  scroll-snap-align: start;
+}
+
+/* A chart that needs more width than its card: it scrolls inside the card (thin visible scrollbar,
+   so the extra width is discoverable) and never pushes the page sideways. */
+.u-chart-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  padding-bottom: 6px;
+  border-radius: 6px;
+}
+
+/* Chips: status (data-tone) and removable filter chips */
+.u-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font: 600 10.5px/1 var(--pbi-font-body);
+  white-space: nowrap;
+  background: var(--pbi-track);
+  color: var(--pbi-label);
+}
+.u-chip[data-tone='ok'] {
+  background: var(--pbi-ok-bg);
+  color: var(--pbi-ok-text);
+}
+.u-chip[data-tone='warn'] {
+  background: var(--pbi-warn-bg);
+  color: var(--pbi-warn-text);
+}
+.u-chip[data-tone='bad'] {
+  background: var(--pbi-bad-bg);
+  color: var(--pbi-bad-text);
+}
+.u-chip[data-tone='accent'] {
+  background: var(--pbi-mark-bg);
+  color: var(--pbi-mark-fg);
+}
+
+/* Status dot with a static halo (light mockup .status-dot), never a pinging loop */
+.u-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pbi-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--pbi-primary) 14%, transparent);
+  flex: none;
+}
+
+/* ───────────── Data table (DESIGN.md "Data Tables") ───────────── */
+.u-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 500 12.5px/1.3 var(--pbi-font-body);
+  color: var(--pbi-td-text);
+}
+.u-table th {
+  height: 34px;
+  padding: 0 12px;
+  background: var(--pbi-th-bg);
+  border-bottom: 1px solid var(--pbi-row-line);
+  font: 600 10px/1 var(--pbi-font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pbi-th-text);
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.u-table td {
+  height: 40px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--pbi-row-line);
+}
+/* End-aligned cell content (flex); the stacked list layout re-aligns it to the start */
+.u-cell-end {
+  justify-content: flex-end;
+}
+.u-table tbody tr:nth-child(even) {
+  background: var(--pbi-row-alt);
+}
+.u-table tbody tr[data-interactive='true'] {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.u-table tbody tr[data-interactive='true']:hover {
+  background: var(--pbi-row-hover);
+}
+.u-table tbody tr[aria-selected='true'] {
+  background: var(--pbi-row-selected);
+  box-shadow: inset 3px 0 0 var(--pbi-interaction);
+}
+.u-table tbody tr:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 3px 0 0 var(--pbi-focus),
+    inset 0 0 0 1px var(--pbi-focus);
+}
+.u-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.u-num {
+  font-family: var(--pbi-font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ───────────── Tooltip (principle 29: interactions concentrate contrast) ───────────── */
+.u-tooltip {
+  pointer-events: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--pbi-tooltip-bg);
+  color: var(--pbi-tooltip-text);
+  font: 500 11px/1.35 var(--pbi-font-body);
+  box-shadow: var(--pbi-tooltip-shadow);
+  white-space: nowrap;
+}
+.u-tooltip b {
+  font: 700 14px/1.2 var(--pbi-font-display);
+}
+.u-tooltip span {
+  color: var(--pbi-tooltip-muted);
+}
+
+/* ───────────── Skeleton with the final geometry (principle 34) ───────────── */
+.u-skeleton {
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--pbi-track), color-mix(in srgb, var(--pbi-track) 55%, transparent), var(--pbi-track));
+  background-size: 200% 100%;
+}
+
+/* ───────────── Visual frame (header + toolbar) of the web components ───────────── */
+/* A size container: header tools, tables and charts adapt to the card's own width */
+.u-card--frame {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+}
+.u-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  column-gap: 16px;
+  row-gap: 12px;
+  margin-bottom: 16px;
+}
+.u-card-head__text {
+  min-width: 0;
+  flex: 1 1 0%;
+}
+.u-card-head__text .u-card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.u-card-head__text .u-card-subtitle {
+  margin-top: 4px;
+}
+/* Above the curtain (z 5): the ⓘ that opened it must stay reachable to close it */
+.u-card-head__tools {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.u-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+/* Phone-width cards: the tools take their own line, so an aside (a search box) can fill it */
+@container (max-width: 26rem) {
+  .u-card-head__tools {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+.u-card-body {
+  position: relative;
+  min-height: 0;
+  flex: 1 1 0%;
+  transition: opacity 0.2s var(--pbi-ease);
+}
+/* Previous filters' data stays visible (dimmed) while the new query runs */
+.u-card-body[data-stale='true'],
+.u-plot[data-stale='true'] {
+  opacity: 0.6;
+}
+/* frame="none": the visual without its card; still a size container so it adapts to its host */
+.u-plot {
+  display: block;
+  container-type: inline-size;
+}
+.u-focus-placeholder {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  border: 1px dashed var(--pbi-card-border);
+  border-radius: 10px;
+  font: 500 12px/1.4 var(--pbi-font-body);
+  color: var(--pbi-label);
+}
+
+/* ───────────── Action menu (export, KPI ⋯): a popover in the top layer ─────────────
+ * The top layer escapes the card's overflow and the plane's backdrop-filter (which would trap a
+ * fixed layer). Position is set from the trigger on open; it scales in from the trigger's corner. */
+.u-menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  min-width: 176px;
+  padding: 6px;
+  overflow: visible;
+  border: 1px solid var(--pbi-panel-border);
+  border-radius: 12px;
+  background: var(--pbi-panel-solid);
+  color: var(--pbi-text);
+  box-shadow: var(--pbi-panel-shadow);
+  transform-origin: top right;
+}
+.u-menu:popover-open {
+  animation: u-pop 0.15s var(--pbi-ease) both;
+}
+.u-menu[data-placement='top'] {
+  transform-origin: bottom right;
+}
+.u-menu__item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font: 500 12.5px/1 var(--pbi-font-body);
+  color: var(--pbi-text-soft);
+  white-space: nowrap;
+  transition-property: background-color, color;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+.u-menu__item:hover,
+.u-menu__item:focus-visible {
+  outline: none;
+  background: var(--pbi-ghost-hover);
+  color: var(--pbi-title);
+}
+.u-menu__item svg {
+  color: var(--pbi-label);
+}
+
+/* ───────────── Focus view: a native modal <dialog> (top layer, focus trapped, Esc closes) ───────────── */
+.u-dialog {
+  width: min(1120px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--pbi-panel-border);
+  border-radius: var(--pbi-card-radius);
+  background: var(--pbi-panel-solid);
+  color: var(--pbi-text);
+  box-shadow: var(--pbi-modal-shadow);
+}
+.u-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  animation: u-pop 0.25s var(--pbi-ease) both;
+}
+.u-dialog::backdrop {
+  background: var(--pbi-overlay);
+}
+.u-dialog__head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px 12px 20px;
+  border-bottom: 1px solid var(--pbi-panel-border);
+}
+.u-dialog__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 15px/1.3 var(--pbi-font-display);
+  letter-spacing: -0.012em;
+  color: var(--pbi-title);
+}
+.u-dialog__body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 20px;
+  container-type: inline-size;
+}
+
+/* ───────────── Pager and sortable headers (table view) ───────────── */
+.u-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-top: 10px;
+  font: 500 11.5px/1 var(--pbi-font-body);
+  color: var(--pbi-label);
+}
+.u-pager__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.u-select {
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 1px solid var(--pbi-input-border);
+  background: var(--pbi-input-bg);
+  color: var(--pbi-title);
+  font: 500 12px/1 var(--pbi-font-body);
+}
+.u-th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+}
+.u-th-sort:hover {
+  color: var(--pbi-title);
+}
+th[aria-sort='ascending'] .u-th-sort,
+th[aria-sort='descending'] .u-th-sort {
+  color: var(--pbi-interaction);
+}
+
+/* ───────────── Responsive ───────────── */
+
+/* Table → two-line list when its card is narrow (the card is a size container):
+   line 1 = identifier + main value, line 2 = secondary measures. No horizontal scroll. */
+@container (max-width: 520px) {
+  .u-table--stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .u-table--stack tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 6px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--pbi-row-line);
+  }
+  .u-table--stack tbody tr:last-child {
+    border-bottom: 0;
+  }
+  /* .u-table doubled: beats the 48px touch row height (the whole row is the target here) */
+  .u-table.u-table--stack tbody td {
+    display: block;
+    height: auto;
+    padding: 0;
+    border: 0;
+  }
+  .u-table--stack tbody td[colspan] {
+    grid-column: 1 / -1;
+  }
+  .u-table--stack .u-cell-end {
+    justify-content: flex-start;
+  }
+}
+
+/* Touch: comfortable hit areas (WCAG 2.5.8 target size, ~44px) */
+@media (pointer: coarse) {
+  .u-tab {
+    height: 40px;
+    padding: 0 16px;
+  }
+  .u-btn,
+  .u-btn-ghost {
+    height: 40px;
+  }
+  .u-icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .u-table tbody td {
+    height: 48px;
+  }
+}
+
+/* ───────────── Loading / empty / error states (final geometry) ───────────── */
+.u-state--loading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+.u-state__row {
+  display: block;
+  height: 36px;
+  width: 100%;
+}
+.u-state__spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 0;
+  font: 500 12px/1.3 var(--pbi-font-body);
+  color: var(--pbi-label);
+}
+.u-state__dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--pbi-track);
+  border-top-color: var(--pbi-primary);
+}
+.u-state--empty {
+  padding: 40px 0;
+  text-align: center;
+  font: 500 12px/1.4 var(--pbi-font-body);
+  color: var(--pbi-label);
+}
+.u-state--error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--pbi-bad-bg);
+  color: var(--pbi-bad-text);
+  font: 500 12px/1.4 var(--pbi-font-body);
+}
+.u-state--error svg {
+  flex: none;
+  margin-top: 1px;
+}
+.u-state--error + * {
+  margin-top: 12px;
+}
+
+/* ───────────── Mini meter and bar fills ───────────── */
+.u-mini-meter {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--pbi-track);
+}
+.u-mini-meter > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--pbi-bar-1), var(--pbi-bar-2) 60%, var(--pbi-bar-3));
+  transform-origin: left;
+  animation: u-grow 1.1s var(--pbi-ease) 0.3s both;
+}
+
+/* ───────────── Chart kit: legend, tooltip rows, focusable SVG (roving keyboard model) ───────────── */
+.u-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+  font: 500 11px/1.2 var(--pbi-font-body);
+  color: var(--pbi-label);
+}
+.u-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.u-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.u-chart-tooltip {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transform: translate(-50%, calc(-100% - 10px));
+}
+.u-chart-tooltip__title {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.u-chart-tooltip__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.u-chart-tooltip__row i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+.u-chart-tooltip__row[data-active='true'] span {
+  color: var(--pbi-tooltip-text);
+  font-weight: 700;
+}
+.u-chart-tooltip__row b {
+  margin-left: auto;
+  padding-left: 10px;
+  font-size: 12px;
+}
+.u-chart-svg {
+  display: block;
+  overflow: visible;
+}
+.u-chart-svg:focus {
+  outline: none;
+}
+.u-chart-svg:focus-visible {
+  border-radius: 6px;
+  box-shadow: var(--pbi-focus-ring);
+}
+/* The active mark under the keyboard (or pointer): a token ring, never a colour change alone */
+.u-mark-active {
+  stroke: var(--pbi-interaction);
+  stroke-width: 2px;
+}
+.u-mark[data-dimmed='true'] {
+  opacity: 0.35;
+}
+.u-mark {
+  transition: opacity 150ms ease-out;
+}
+@media (hover: hover) and (pointer: fine) {
+  .u-mark[data-interactive='true'] {
+    cursor: pointer;
+  }
+}

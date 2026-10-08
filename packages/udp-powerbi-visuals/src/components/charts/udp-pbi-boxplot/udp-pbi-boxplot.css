@@ -1,0 +1,57 @@
+.bx {
+  width: 100%;
+}
+.bx-plot {
+  position: relative;
+  width: 100%;
+}
+.bx-row {
+  animation: u-fade 0.5s var(--pbi-ease) 0.2s both;
+}
+.bx-band {
+  fill: transparent;
+}
+.bx-band--active {
+  fill: var(--pbi-row-hover);
+}
+.bx-label {
+  font: 500 12px var(--pbi-font-body);
+  fill: var(--pbi-label);
+}
+.bx-label--active {
+  font-weight: 600;
+  fill: var(--pbi-title);
+}
+.bx-whisker line {
+  stroke: var(--pbi-secondary);
+  stroke-width: 1.5px;
+}
+/* The middle half: a quiet fill and the series hue; the median is the strongest mark */
+.bx-box {
+  fill: color-mix(in srgb, var(--pbi-primary) 22%, transparent);
+  stroke: var(--pbi-primary);
+  stroke-width: 1.5px;
+}
+.bx-box.u-mark-active {
+  stroke: var(--pbi-interaction);
+  stroke-width: 2px;
+}
+.bx-median {
+  stroke: var(--pbi-ac);
+  stroke-width: 2.5px;
+}
+.bx-mean {
+  fill: var(--pbi-card-solid);
+  stroke: var(--pbi-ac);
+  stroke-width: 1.5px;
+}
+.bx-outlier {
+  fill: none;
+  stroke: var(--pbi-secondary);
+  stroke-width: 1.2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .bx-row[data-interactive='true'] {
+    cursor: pointer;
+  }
+}

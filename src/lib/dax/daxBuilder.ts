@@ -14,12 +14,25 @@ export function daxString(value: string): string {
 /** A value a filter can carry: the category value exactly as the semantic model returned it. */
 export type DaxLiteralValue = string | number | boolean;
 
+/** executeQueries' serialisation of a date / datetime value: `2026-08-03T00:00:00`. */
+const DATETIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/;
+
 /**
  * DAX literal for a filter value, never hand-interpolated: strings are quoted and escaped, numbers
- * are written in plain decimal notation (DAX has no `1e21`), booleans become TRUE() / FALSE().
+ * are written in plain decimal notation (DAX has no `1e21`), booleans become TRUE() / FALSE(), and a
+ * datetime exactly as executeQueries returns it goes back as DATE(…) [+ TIME(…)] so it matches a
+ * date column (a click on a calendar day reports the row's own value).
  */
 export function daxLiteral(value: DaxLiteralValue): string {
-  if (typeof value === 'string') return daxString(value);
+  if (typeof value === 'string') {
+    const dt = DATETIME.exec(value);
+    if (dt) {
+      const [y, mo, d, h, mi, s] = dt.slice(1).map(Number) as [number, number, number, number, number, number];
+      const date = `DATE(${y}, ${mo}, ${d})`;
+      return h || mi || s ? `${date} + TIME(${h}, ${mi}, ${s})` : date;
+    }
+    return daxString(value);
+  }
   if (typeof value === 'boolean') return value ? 'TRUE()' : 'FALSE()';
   if (!Number.isFinite(value)) throw new Error(`Cannot filter on a non-finite number (${value})`);
   return value.toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 20 });

@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
-import type { DataPointClickDetail } from '@powerreact/univerus-elements';
+import type { DataPointClickDetail } from '@powerreact/udp-powerbi-visuals';
 import { errorMessage } from '../../api/http';
 import { useSemanticQuery } from '../../hooks/useSemanticQuery';
-import { appliedFilters, sampleRows, selectionOf } from '../../lib/manifest/crossFilters';
+import { appliedFilters, sampleRows, selectionOf, selectionOn, slicerValuesOf, type CrossFilter } from '../../lib/manifest/crossFilters';
 import { injectCrossFilters } from '../../lib/manifest/daxInjection';
 import { mapRows } from '../../lib/manifest/mapRows';
 import type { Manifest, ManifestVisual as ManifestVisualSpec } from '../../lib/manifest/schema';
 import { selectCrossFilters, useFilterStore } from '../../store/filters';
-import { renderVisual, type VisualState } from './registry';
+import { renderVisual, type VisualContext, type VisualState } from './registry';
 
 export type DataSourceMode = 'live' | 'sample';
 
@@ -17,14 +17,40 @@ interface ManifestVisualProps {
   index: number;
 }
 
-/** A click on the visual toggles its cross-filter (when the manifest lets it emit one). */
+/**
+ * A click on the visual toggles its selection (when the manifest lets it emit one). A mark with
+ * several dimensions (a matrix cell, a stacked segment) reports them all in `filters`.
+ */
 function useClickToFilter(manifest: Manifest, visual: ManifestVisualSpec) {
   const toggle = useFilterStore((s) => s.toggleCrossFilter);
   return (event: CustomEvent<DataPointClickDetail>) => {
     const cf = visual.crossFilter;
-    const { value, label } = event.detail;
-    if (!cf?.emit || value === null) return;
-    toggle(manifest.id, { field: cf.field, value, label, sourceVisualId: visual.id });
+    const { value, label, filters } = event.detail;
+    if (!cf?.emit) return;
+    const points = filters?.length ? filters : value === null ? [] : [{ field: cf.field, value, label }];
+    toggle(manifest.id, visual.id, points);
+  };
+}
+
+/** Selection state and handlers a visual renders with (highlights, series and matrix columns, slicers). */
+function useVisualContext(
+  manifest: Manifest,
+  visual: ManifestVisualSpec,
+  filters: readonly CrossFilter[],
+  index: number,
+  onDataPointClick: VisualContext['onDataPointClick']
+): VisualContext {
+  const setSlicer = useFilterStore((s) => s.setSlicerFilter);
+  return {
+    index,
+    selectedValue: selectionOf(visual, filters),
+    selectionOn: (field) => selectionOn(filters, field),
+    onDataPointClick,
+    slicerValues: slicerValuesOf(visual, filters),
+    onSlicerChange: (values, labels) => {
+      if (visual.component !== 'UniverusSlicer') return;
+      setSlicer(manifest.id, { field: visual.fields.value, values, labels, sourceVisualId: visual.id });
+    },
   };
 }
 
@@ -60,7 +86,7 @@ const LiveVisual: React.FC<ManifestVisualProps> = ({ manifest, visual, index }) 
     rows: query.data?.rows,
     data: query.data?.data ?? empty,
   };
-  return renderVisual(visual, state, { index, selectedValue: selectionOf(visual, filters), onDataPointClick });
+  return renderVisual(visual, state, useVisualContext(manifest, visual, filters, index, onDataPointClick));
 };
 
 /** Sample: the manifest's own `sample` rows, filtered in the browser. No network at all. */
@@ -79,7 +105,7 @@ const SampleVisual: React.FC<ManifestVisualProps> = ({ manifest, visual, index }
     rows: result.rows,
     data: result.data,
   };
-  return renderVisual(visual, state, { index, selectedValue: selectionOf(visual, filters), onDataPointClick });
+  return renderVisual(visual, state, useVisualContext(manifest, visual, filters, index, onDataPointClick));
 };
 
 /** One visual of a manifest dashboard. Changing `source` swaps the component, so hooks never change order. */

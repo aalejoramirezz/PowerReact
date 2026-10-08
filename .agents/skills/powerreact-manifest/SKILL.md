@@ -24,7 +24,9 @@ manifest.json ─► validateManifest (Zod) ─► ManifestDashboard ─► Mani
 | Cross-filter injection, DAX scanner, column references | `src/lib/manifest/daxInjection.ts` |
 | Result rows → element props | `src/lib/manifest/mapRows.ts` |
 | Which filters a visual obeys / highlights; Sample mode | `src/lib/manifest/crossFilters.ts` |
-| Cross-filter state (per dashboard) | `src/store/filters.ts` (`crossFilters`, `toggleCrossFilter`, `clearCrossFilter`, `clearDashboard`) |
+| Cross-filter state (per dashboard) | `src/store/filters.ts` (`crossFilters`, `toggleCrossFilter` (a click, one or several dimensions), `setSlicerFilter`, `clearCrossFilter`, `clearDashboard`) |
+| Slicers and report filters (controls of the container, not elements) | `src/components/manifest/ManifestSlicer.tsx`, `ManifestFilterBar.tsx` |
+| A bundled example of every newer component | `public/manifests/condition-works.json` (Lens p_condition + p_works; DAX validated on the real model) |
 | Rendering | `src/components/manifest/` (`ManifestDashboard`, `ManifestVisual`, `registry.tsx`, `manifest.css`) |
 | Harness | `src/pages/ManifestPreview.tsx` (`/manifest-preview`), bundled manifests in `public/manifests/` (`index.json`) |
 | Dataset allow-list | `server/config.ts` (`PBI_ALLOWED_DATASETS`), `server/routes/powerbi.ts` |
@@ -66,11 +68,23 @@ manifest.json ─► validateManifest (Zod) ─► ManifestDashboard ─► Mani
 | :--- | :--- | :--- |
 | `UniverusKpiCard` | `value`, `comparison?`, `meter?` (0..1) | `icon` (named), `caption`, `goodWhen`, `deltaLabel`, `meterLabel`, `meterDetail` |
 | `UniverusKpiHero` | `value`, `comparison?`, `meter?`, `metrics?: [{label, field, format?}] (≤ 4)` | `unit`, `goodWhen`, `deltaLabel`, `meterLabel` |
-| `UniverusSpotlightBars` · `UniverusRankingBars` · `UniverusDivergingBars` · `UniverusDonut` | `category`, `value` | spotlight: `topN`, `rank`, `secondary`, `selectedBadge` · ranking: `topN`, `order` · diverging: `negativeLabel`, `positiveLabel`, `maxRows` · donut: `centerLabel` |
+| `UniverusSpotlightBars` · `UniverusRankingBars` · `UniverusDivergingBars` · `UniverusDonut` | `category`, `value` | spotlight: `topN`, `rank`, `secondary`, `selectedBadge` · ranking: `topN`, `order`, `mark: bar|lollipop` · diverging: `negativeLabel`, `positiveLabel`, `maxRows` · donut: `centerLabel` |
 | `UniverusBulletBars` | `category`, `actual`, `target` | `goodWhen: above|below`, `topN`, `targetLabel` |
-| `UniverusTrendChart` | `category` (rows in time order: ORDER BY), `value`, `comparison?` | `seriesLabel`, `comparisonLabel`, `area`, `directLabels`, `chartHeight` |
+| `UniverusTrendChart` | `category` (rows in time order: ORDER BY), `value`, `comparison?`, `tooltips?` (per period) | `seriesLabel`, `comparisonLabel`, `area`, `directLabels`, `gap` (shade value vs comparison), `goodWhen`, `referenceLines`, `chartHeight` |
 | `UniverusIbcsVariance` | `category`, `actual`, `comparison` | `orientation`, `scenario`, `goodWhen`, `actualLabel`, `comparisonLabel`, `sort`, `topN`, `pctCap`, `decimals`, `chartHeight` |
 | `UniverusDataTable` | `columns: [{field, label, kind?, format?, ratioField?, suffix?, tone?, emptyLabel?}]`, `rowKey?` | `paginated`, `pageSize` (10/25/50), `maxHeight`, `emptyMessage` |
+| `UniverusColumnChart` · `UniverusStackedBars` | `category` (a model column, or a column the query builds, e.g. DATATABLE bins) and one of: `value` (one series) · `series` + `value` (long rows, one series per series value) · `values: [{field, label}]` (wide rows, one series per measure); `tooltips?: [{field, label, format?}]` | both: `palette: categorical|sequential|diverging`, `sort`, `topN` (+ "Other"), `labels`, `categoryLabel`, `seriesOrder` · columns: `layout: grouped|stacked|percent`, `variant: column|histogram`, `referenceLines`, `chartHeight` · bars: `layout: stacked|percent|diverging|grouped`, `negativeSeries`, `neutralSeries` |
+| `UniverusScatter` | `category`, `x`, `y`, `size?` (bubble area), `group?` (colour), `tooltips?` | `xLabel`, `yLabel`, `sizeLabel`, `xFormat` (`format` is y's), `sizeFormat`, `xReference`, `yReference`, `quadrantLabels` (4), `xZero`, `yZero`, `labelTop` |
+| `UniverusMatrix` | `rows` (1–3 columns, top first), `column?` (pivot), `values: [{field, label, format?, heatmap?: none|sequential|diverging, goodWhen?, center?}]`, `rowTotals?` / `columnTotal?` (ROLLUPADDISSUBTOTAL flags) | `rowLevels`, `columnHeader`, `rowOrder`, `columnOrder`, `expandLevel`, `maxHeight` |
+| `UniverusWaterfall` | `category` (step name, often a query-built `[Step]`), `value` (signed movements; levels as totals), `kind?` (`start|delta|subtotal|end` per row), `tooltips?`; rows in bridge order (ORDER BY) | `goodWhen`, `orientation`, `baseline: zero|auto`, `labels`, `categoryLabel`, `chartHeight` |
+| `UniverusTreemap` | `levels` (1–2 columns: group, item), `value` (size), `color?` (colour measure), `tooltips?` | `colorLabel`, `colorFormat`, `colorScale`, `goodWhen`, `colorCenter`, `levelLabels`, `chartHeight`; a tile selects its group and item (both are its own columns) |
+| `UniverusCalendarHeatmap` | `date` (a date column, one row per day), `value`, `tooltips?` | `valueLabel`, `weekStart`; a clicked day filters as `DATE(y, m, d)` |
+| `UniverusDotPlot` | `category`, `from`, `to`, `tooltips?` | `variant: dumbbell|slope`, `fromLabel`, `toLabel`, `goodWhen`, `sort`, `categoryLabel`, `chartHeight` |
+| `UniverusTimeline` | `item`, `start`, `end?` (blank: open-ended), `lane?`, `tone?` (`ok|warn|bad|accent|neutral` from DAX), `tooltips?`; one row per item (several may share a name) | `today: auto|none|YYYY-MM-DD`, `toneLabels {ok, warn, bad}`, `categoryLabel`, `laneLabel` |
+| `UniverusBoxplot` | `category` and either engine statistics (`q1`, `median`, `q3`, optional `min`, `max`, `mean`, `count`) or `value` (raw observations, one row each, ≤ 5,000 per category) | `showMean`, `zero`, `categoryLabel` |
+| `UniverusSlicer` | `value` (the column it filters), `count?` | `mode: auto|buttons|dropdown` (auto: buttons up to 6 short options), `multiple`, `allLabel` |
+
+Root `filters: [{field, label, mode?, multiple?, dax?}]` draw report filters in the toolbar (Lens `report_filters`); their options default to `EVALUATE SUMMARIZECOLUMNS(<field>) ORDER BY <field>` (built by `columnValuesQuery`, never from text), and in Sample mode come from the visuals' sample rows.
 
 Every visual also takes `title` (required), `subtitle`, `info`, `calc`, `format`, `export`, `focusMode`, `theme`; charts and the table add `tableView` (not the table) and `emptyMessage`. The schema file is the complete reference.
 
@@ -81,12 +95,48 @@ Every visual also takes `title` (required), `subtitle`, `info`, `calc`, `format`
   `<define>EVALUATE CALCULATETABLE(<table>, TREATAS({…}, 'table'[Column]), …)<order by>` — one `TREATAS` per column, values through `daxLiteral` (escaped strings, plain-decimal numbers, `TRUE()` / `FALSE()`), columns validated and normalised by `parseColumnRef`. No filters ⇒ the text is unchanged (same cache entry).
 - **A visual is never filtered on its own column**: it keeps every category and highlights the selection (`selectedValue`), like Power BI's default. This holds for every visual whose `crossFilter.field` is that column (a donut on the same column as the clicked spotlight highlights too). `respect: false` ignores all filters; `emit: false` makes clicks inert.
 - Same column and value again ⇒ the filter is removed; same column, other value ⇒ replaced; chips list them with **Reset all**. `resetAll()` (the /visuals Reset) clears every dashboard too.
-- **Validate new DAX shapes against the real model once, read-only** (run the BFF and POST the query, plain and wrapped in `CALCULATETABLE(…, TREATAS(…))`), then teach the fake engine (`evaluateManifest` in `e2e/support/mockApi.ts`) any new measure or expression.
+- **Two kinds of filter, as in Power BI.** A click is a *selection*: visuals on that column highlight, the others filter. A slicer or report filter filters every visual but itself (including those on its column) and shows no chip — its control is the visible state. A column can hold one of each; `injectCrossFilters` writes **one TREATAS per filter**, which CALCULATETABLE intersects (a slicer [A, B] and a click [A] keep A), several values of one filter in one list: `TREATAS({"A", "B"}, …)`.
+- **Multi-dimensional clicks.** A matrix cell reports its row level and column member, a stacked segment its category and series (`dataPointClick.detail.filters`); the store applies them in one update, and the visual treats all of them as its own columns (`ownColumns`).
+- **Matrix totals come from the engine**: query `SUMMARIZECOLUMNS(ROLLUPADDISSUBTOTAL('t'[Row], "IsRowTotal"), ROLLUPADDISSUBTOTAL('t'[Col], "IsColTotal"), …)` and map the flags; never sum ratios in the browser. Exclusions belong in the query as `KEEPFILTERS(TREATAS({…}, column))` so subtotals respect them and injected filters still intersect.
+- **Validate new DAX shapes against the real model once, read-only** (run the BFF and POST the query, plain and wrapped in `CALCULATETABLE(…, TREATAS(…))`), then teach the fake engine (`evaluateManifest` in `e2e/support/mockApi.ts`) any new measure or expression. `condition-works.json` and `delivery-lifecycle.json` are answered there from their own sample rows (`evaluateVocabulary`, which also reads `DATE(y, m, d)` in TREATAS and answers report-filter option queries from the samples): add a new bundled manifest to its list.
+
+### DAX patterns (validated)
+
+| Need | Pattern |
+| :--- | :--- |
+| Text months in time order | Group by `'Date'[Year Month]` and add `"Month Start", IF(NOT ISBLANK([M1]) \|\| NOT ISBLANK([M2]), MIN('Date'[Date]))`, then `ORDER BY [Month Start]` (the IF keeps empty calendar months out) |
+| Histogram bins without a band column | `ADDCOLUMNS(DATATABLE("Band", STRING, "Band Order", INTEGER, {{…}}), "N", SWITCH([Band Order], 1, [Bin 1], …))` + `ORDER BY [Band Order]`; `category: "[Band]"` (not cross-filterable) |
+| Exclude N/A grades or a 0 criticality | `KEEPFILTERS(TREATAS({"Excellent", …}, column))` inside SUMMARIZECOLUMNS |
+| Pivot with totals | `ROLLUPADDISSUBTOTAL` per dimension + `rowTotals` / `columnTotal`; blanks with a false flag are real "(Blank)" members |
+| Ordinal text (criticality, grades) | `rowOrder` / `columnOrder` / `seriesOrder` in props (the engine sorts text alphabetically) |
+| A bridge (waterfall) from measures | `EVALUATE VAR S = [Start] VAR E = [End] VAR In = … VAR Out = … RETURN UNION(ROW("Order", 1, "Step", "…", "Kind", "start", "Value", S), …, ROW(…, "Kind", "delta", "Value", E - S - In + Out), ROW(…, "Kind", "end", "Value", E)) ORDER BY [Order]`: outflows negative, an "Other changes" residual so the bridge always reconciles; injected filters wrap the whole VAR block |
+| Every day of a window, zeros included | `SUMMARIZECOLUMNS('Date'[Date], FILTER(ALL('Date'[Date]), 'Date'[Date] > EDATE(TODAY(), -6) && 'Date'[Date] <= TODAY()), "N", [Measure] + 0)` — `+ 0` keeps quiet days, the FILTER bounds them |
+| Quartiles in the engine | per category: `PERCENTILEX.INC(FILTER('t', 't'[X] > 0), 't'[X], 0.25)` (0.5, 0.75), `MINX` / `MAXX` / `AVERAGEX` / `COUNTROWS` over the same FILTER so every statistic describes one population |
+| A tone column from dates | `"Tone", VAR e = MAX('t'[End]) RETURN IF(ISBLANK(e), BLANK(), SWITCH(TRUE(), e < TODAY(), "bad", e < TODAY() + 365, "warn", "ok"))` — the ISBLANK guard matters: a never-blank expression makes SUMMARIZECOLUMNS return the cross join of its columns |
+| Two counts on different date columns | `CALCULATE(COUNTROWS('t'), 't'[Raised] >= TODAY() - 89, 't'[Raised] < TODAY() + 1)` and the same on `'t'[Closed]`; compare as a dumbbell |
+
+### Lens → manifest
+
+| Lens visual | Manifest |
+| :--- | :--- |
+| `kpi_card` / `kpi_hero` | `UniverusKpiCard` / `UniverusKpiHero` |
+| `column` (one value) | `UniverusColumnChart`, `value`; ordinal bands with `variant: "histogram"` |
+| `column` + `series` | `UniverusColumnChart`, `series` + `value` (or `values` per measure) |
+| `bar` without series | `UniverusRankingBars` (or `UniverusSpotlightBars` when it filters the page) |
+| `bar` + `series` | `UniverusStackedBars` (`layout: percent` for profiles, `diverging` for grades) |
+| `line` / `area` | `UniverusTrendChart` |
+| `donut` | `UniverusDonut` (≤ 6 parts) |
+| `matrix` (+ `heatmap`) | `UniverusMatrix` (`heatmap` per value) |
+| `scatter` | `UniverusScatter` |
+| `table` | `UniverusDataTable` |
+| `slicer` | `UniverusSlicer` on the grid |
+| `report_filters` | root `filters` |
+| `tooltips` · `top_n` · `sort_by` | `fields.tooltips` · `props.topN` · query `ORDER BY` or `props.sort` |
 
 ## Live, Sample and the BFF
 
 - **Live**: each visual's DAX goes to `POST /api/powerbi/query` with `workspaceId` / `datasetId` from `dataSource`; the cache key is `["dax", kind, datasetId, DAX text]`. The BFF answers only datasets in `PBI_ALLOWED_DATASETS` (comma-separated ids; default: the configured `PBI_DATASET_ID`; `*` = any, development only) and returns **403** with a hint otherwise.
-- **Sample**: no network. Each visual's `sample` rows (same shape as executeQueries rows) are filtered in the browser by the active cross-filters that name a column the rows carry, then aggregated to the visual's grain: measures are summed; ratios (`meter`, `ratioField`, percent formats) are averaged — an approximation for UI checks; Live is the truth. Ship samples at the finest grain you want to filter on (e.g. one row per class with its group).
+- **Sample**: no network. Each visual's `sample` rows (same shape as executeQueries rows) are filtered in the browser by the active cross-filters that name a column the rows carry, then aggregated to the visual's grain: measures are summed; ratios (`meter`, `ratioField`, percent formats, a treemap's colour, boxplot statistics) are averaged — an approximation for UI checks; Live is the truth. Timelines and raw-value boxplots keep every row (each row is a mark). Ship samples at the finest grain you want to filter on (e.g. one row per class with its group).
 - Changing Live / Sample remounts the dashboard (`key`), so hooks never change order.
 
 ## The harness (`/manifest-preview`)
@@ -99,7 +149,9 @@ Bundled manifests (from `public/manifests/index.json`), **Upload** (button or dr
 2. `schema.ts`: a strict object in the discriminated union (`component` literal, `fields`, `props` with defaults).
 3. `mapRows.ts`: a case returning the element's data props (and its entry in `MappedDataMap`); `crossFilters.ts`: how Sample mode aggregates it.
 4. `registry.tsx`: the wrapper in `REGISTRY` and a `renderVisual` case (`satisfies` fails the build if a name is missing).
-5. `npm run manifest:schema`; extend `schema.test.ts`, `mapRows.test.ts`, the fake engine and `e2e/manifest-preview.spec.ts`.
+5. `npm run manifest:schema`; extend `schema.test.ts`, `mapRows.test.ts` / `vocabulary.test.ts`, the fake engine and the manifest e2e specs (`manifest-preview`, `manifest-vocabulary`).
+
+A control the container draws (like the slicer) goes in `CONTROL_COMPONENTS` (`schema.ts`): it is checked by the compiler, not against the built elements.
 
 ## Common mistakes
 

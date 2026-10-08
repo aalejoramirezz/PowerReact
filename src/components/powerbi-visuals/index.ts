@@ -1,0 +1,48 @@
+/**
+ * Univerus visuals as React 18 components: thin wrappers (@lit/react) around the Stencil web
+ * components in packages/udp-powerbi-visuals, generated on every `npm run elements:build`.
+ * Props in, typed events out (`onDataPointClick`, `onExportData`, `onFocusModeChange`, `onViewChange`).
+ */
+export * from './generated/components';
+export type {
+  BarItem,
+  BarMeta,
+  BoxPlotItem,
+  BulletItem,
+  CalendarDay,
+  CategorySort,
+  ChartCategory,
+  ChartSeries,
+  ChipTone,
+  DataPointClickDetail,
+  DataPointValue,
+  DonutItem,
+  DotPlotItem,
+  ExportDetail,
+  ExportFormat,
+  FocusModeDetail,
+  FormatSpec,
+  HeroMeter,
+  HeroMetric,
+  IbcsItem,
+  KpiBadge,
+  KpiDelta,
+  KpiIconName,
+  KpiMeter,
+  MatrixColumn,
+  MatrixMeasure,
+  MatrixNode,
+  PaletteKind,
+  ReferenceLineSpec,
+  Scenario,
+  ScatterPoint,
+  TableColumn,
+  TableRow,
+  TimelineTask,
+  ThemeName,
+  TooltipItem,
+  TrendSeries,
+  TreemapNode,
+  ViewChangeDetail,
+  WaterfallStep,
+} from '@powerreact/udp-powerbi-visuals';

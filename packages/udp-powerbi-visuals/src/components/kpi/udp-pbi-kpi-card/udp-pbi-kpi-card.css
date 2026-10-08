@@ -1,0 +1,225 @@
+.kpi {
+  min-height: 112px;
+}
+.kpi-body {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--pbi-kpi-pad);
+  text-align: left;
+}
+.kpi-body:focus-visible {
+  outline: none;
+}
+button.kpi-body {
+  cursor: pointer;
+}
+.kpi-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.kpi-label {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font: 600 11px/1.25 var(--pbi-font-body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pbi-label);
+}
+.kpi-mark {
+  display: none;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--pbi-mark-bg);
+  color: var(--pbi-mark-fg);
+  animation: u-fade 0.6s var(--pbi-ease) calc(var(--i, 0) * 80ms + 250ms) both;
+}
+::slotted([slot='icon']) {
+  flex: none;
+}
+.kpi-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  column-gap: 12px;
+  row-gap: 4px;
+  margin-top: 12px;
+  transition: opacity 0.2s ease-out;
+}
+.kpi-main[data-stale='true'] {
+  opacity: 0.5;
+}
+.kpi-value {
+  white-space: nowrap;
+  font: 600 24px/1 var(--pbi-font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.045em;
+  color: var(--pbi-title);
+  animation: u-fade 0.8s var(--pbi-ease) calc(var(--i, 0) * 80ms + 120ms) both;
+}
+.kpi-aside {
+  display: flex;
+  min-width: 0;
+  flex-shrink: 1;
+  align-items: center;
+  gap: 6px;
+}
+.kpi-caption {
+  font: 500 11px/1.2 var(--pbi-font-body);
+  color: var(--pbi-label);
+}
+.kpi-delta {
+  white-space: nowrap;
+  font: 600 12px/1 var(--pbi-font-body);
+  animation: u-fade 0.6s var(--pbi-ease) calc(var(--i, 0) * 80ms + 320ms) both;
+}
+.kpi-delta[data-favourable='true'] {
+  color: var(--pbi-delta-up);
+}
+.kpi-delta[data-favourable='false'] {
+  color: var(--pbi-delta-down);
+}
+.kpi-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.kpi-meter .u-mini-meter {
+  min-width: 24px;
+  flex: 1 1 0%;
+}
+.kpi-meter__text {
+  flex: none;
+  font: 500 11px/1 var(--pbi-font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--pbi-label);
+}
+.kpi-detail {
+  display: none;
+}
+
+/* Wider report: the label fits one line, the icon mark shows, the number grows (container = report) */
+@container (min-width: 28rem) {
+  .kpi-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .kpi-mark {
+    display: grid;
+  }
+  .kpi-value {
+    font-size: 30px;
+  }
+  .kpi-detail {
+    display: inline;
+  }
+}
+
+/* Touch: hover does not exist, so the icon slot becomes an ⓘ that toggles the same curtain */
+.kpi-info {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 6;
+  display: none;
+}
+/* The ⋯ menu: visible on hover or keyboard focus with a fine pointer, always on touch */
+.kpi-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 6;
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+}
+.kpi:hover .kpi-actions,
+.kpi-actions:focus-within,
+.kpi-actions:has([aria-expanded='true']) {
+  opacity: 1;
+}
+@media (hover: none) {
+  .kpi-info {
+    display: inline-grid;
+  }
+  .kpi--curtain .kpi-mark {
+    visibility: hidden;
+  }
+  .kpi-actions {
+    opacity: 1;
+  }
+  .kpi--curtain .kpi-actions {
+    right: 52px;
+  }
+  .kpi--curtain .kpi-top {
+    padding-right: 32px;
+  }
+  .kpi--curtain.kpi--actions .kpi-top {
+    padding-right: 84px;
+  }
+}
+
+/* Focus view: the number with room to breathe */
+.kpi-focus {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 4px 12px;
+}
+.kpi-focus__label {
+  font: 600 12px/1.2 var(--pbi-font-body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pbi-label);
+}
+.kpi-focus__value {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font: 600 clamp(52px, 8vw, 84px) / 1 var(--pbi-font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.045em;
+  color: var(--pbi-title);
+}
+.kpi-focus__caption {
+  font: 500 14px/1.2 var(--pbi-font-body);
+  letter-spacing: 0;
+  color: var(--pbi-label);
+}
+.kpi-focus__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.kpi-focus .kpi-detail {
+  display: inline;
+}
+.kpi-focus .kpi-meter {
+  max-width: 420px;
+}
+.kpi-focus__info {
+  max-width: 64ch;
+  font: 500 13px/1.5 var(--pbi-font-body);
+  color: var(--pbi-text-soft);
+}
+.kpi-focus__calc {
+  font: 500 12px/1.3 var(--pbi-font-display);
+  color: var(--pbi-label);
+}
+.kpi-focus__calc b {
+  margin-right: 6px;
+  color: var(--pbi-curtain-accent);
+}

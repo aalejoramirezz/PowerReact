@@ -24,6 +24,13 @@ describe('daxLiteral / treatAs', () => {
     expect(() => daxLiteral(Number.NaN)).toThrow(/non-finite/);
   });
 
+  it('writes a datetime from executeQueries back as a date (and only that exact shape)', () => {
+    expect(daxLiteral('2026-08-03T00:00:00')).toBe('DATE(2026, 8, 3)');
+    expect(daxLiteral('2026-08-03T14:05:00')).toBe('DATE(2026, 8, 3) + TIME(14, 5, 0)');
+    expect(daxLiteral('2026-08-03')).toBe('"2026-08-03"');
+    expect(daxLiteral('2026-08-03T00:00:00") , ALL(x')).toBe('"2026-08-03T00:00:00"") , ALL(x"');
+  });
+
   it('applies one or several values of a column', () => {
     expect(treatAs('Core', "'g'[G]")).toBe(`TREATAS({"Core"}, 'g'[G])`);
     expect(treatAs(['Core', 'Transport'], "'g'[G]")).toBe(`TREATAS({"Core", "Transport"}, 'g'[G])`);

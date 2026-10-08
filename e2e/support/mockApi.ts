@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
 import type { Page } from '@playwright/test';
+import { sampleColumnValues, sampleRows, type CrossFilter } from '../../src/lib/manifest/crossFilters';
+import { validateManifest } from '../../src/lib/manifest/schema';
 
 interface FakeClass {
   group: string;
@@ -85,8 +88,53 @@ function evaluateManifest(query: string, group?: string, className?: string): Re
   return rows;
 }
 
+/**
+ * The vocabulary manifests (condition-works.json, delivery-lifecycle.json) are answered from their own
+ * sample rows: the visual is recognised by its table expression inside the (possibly injected) query,
+ * and every TREATAS in the query narrows the rows through the app's Sample-mode logic. Report-filter
+ * option queries get the column's sample values (Community, which no sample carries, a short list).
+ * Returns null for any other query.
+ */
+const VOCABULARY_VISUALS = ['condition-works.json', 'delivery-lifecycle.json'].flatMap((file) => {
+  const result = validateManifest(JSON.parse(readFileSync(`public/manifests/${file}`, 'utf8')));
+  if (!result.ok) throw new Error(`${file} is invalid`);
+  return result.manifest.visuals;
+});
+const squash = (dax: string) => dax.replace(/\s+/g, '');
+const tableOf = (dax: string) => squash(dax.replace(/^\s*EVALUATE/i, '').replace(/\s+ORDER BY[\s\S]*$/i, ''));
+const COMMUNITIES = ['Falls North', 'Falls South', 'Valley'];
+
+const pad = (n: string) => n.padStart(2, '0');
+
+/** Every TREATAS({…}, column) in a query, as the cross-filters it stands for (DATE(y, m, d) as the engine's date text). */
+export function treatAsFilters(query: string): CrossFilter[] {
+  return [...query.matchAll(/TREATAS\(\{([^}]*)\},\s*((?:'(?:[^']|'')+'|[A-Za-z_][\w ]*)\[[^\]]+\])\)/g)].map(([, list = '', field = '']) => ({
+    field,
+    values: [...list.matchAll(/DATE\((\d+),\s*(\d+),\s*(\d+)\)|"((?:[^"]|"")*)"|(-?\d+(?:\.\d+)?)/g)].map(([, y, m, d, text, num]) =>
+      y !== undefined ? `${y}-${pad(m ?? '')}-${pad(d ?? '')}T00:00:00` : text !== undefined ? text.replace(/""/g, '"') : Number(num)
+    ),
+    sourceVisualId: 'engine',
+    origin: 'slicer' as const,
+  }));
+}
+
+function evaluateVocabulary(query: string): Record<string, unknown>[] | null {
+  if (/SUMMARIZECOLUMNS\(\s*'asset_register'\[Community\]\s*\)/.test(query)) return COMMUNITIES.map((c) => ({ 'asset_register[Community]': c }));
+  // A report filter's options (possibly wrapped by the other filters): SUMMARIZECOLUMNS(column) ORDER BY column
+  const options = /SUMMARIZECOLUMNS\(\s*('([^']+)'\[([^\]]+)\])\s*\)[\s\S]*ORDER BY\s+\1\s*$/.exec(query);
+  if (options?.[1]) {
+    const key = `${options[2]}[${options[3]}]`;
+    return sampleColumnValues(VOCABULARY_VISUALS, options[1], treatAsFilters(query)).map((value) => ({ [key]: value }));
+  }
+  const q = squash(query);
+  const visual = VOCABULARY_VISUALS.find((v) => q.includes(tableOf(v.query.dax)));
+  return visual ? (sampleRows(visual, treatAsFilters(query)) as Record<string, unknown>[]) : null;
+}
+
 /** Interprets just enough of the DAX the app generates to filter the fake register. */
 function evaluate(query: string): Record<string, unknown>[] {
+  const vocabulary = evaluateVocabulary(query);
+  if (vocabulary) return vocabulary;
   const group = match(query, /TREATAS\(\{"([^"]+)"\}, 'asset_class_group'\[Asset_Class_Group\]\)/);
   const className = match(query, /TREATAS\(\{"([^"]+)"\}, 'asset_class'\[Asset_Class\]\)/);
   const search = match(query, /CONTAINSSTRING\('asset_class'\[Asset_Class\], "([^"]*)"\)/);

@@ -99,6 +99,38 @@
   --u-series-5: #237a7f;
   --u-series-6: #506169;
 
+  /* ordered ramps for heatmaps, treemaps and ordinal series (index 1..7, never interpolated in JS).
+     seq: low → high in one hue (tonal teal); div: unfavourable (1) ↔ neutral (4) ↔ favourable (7).
+     The *-text roles are the label colour on that step (≥ 4.5:1, contrast.test.ts). */
+  --u-seq-1: #eef6f7;
+  --u-seq-2: #d6eced;
+  --u-seq-3: #b4dcdf;
+  --u-seq-4: #8ac7cb;
+  --u-seq-5: #5eb0b5;
+  --u-seq-6: #34939a;
+  --u-seq-7: #1e6a70;
+  --u-seq-text-1: #0d1317;
+  --u-seq-text-2: #0d1317;
+  --u-seq-text-3: #0d1317;
+  --u-seq-text-4: #0d1317;
+  --u-seq-text-5: #0d1317;
+  --u-seq-text-6: #0d1317;
+  --u-seq-text-7: #ffffff;
+  --u-div-1: #ba1a1a;
+  --u-div-2: #e0857a;
+  --u-div-3: #f6d8d3;
+  --u-div-4: #e3e9ee;
+  --u-div-5: #d4ecee;
+  --u-div-6: #6fbfc4;
+  --u-div-7: #1e6a70;
+  --u-div-text-1: #ffffff;
+  --u-div-text-2: #0d1317;
+  --u-div-text-3: #0d1317;
+  --u-div-text-4: #0d1317;
+  --u-div-text-5: #0d1317;
+  --u-div-text-6: #0d1317;
+  --u-div-text-7: #ffffff;
+
   /* semantic status (ok/bad from DESIGN.md; warn and delta-down from the light mockup) */
   --u-ok: #34a7ad;
   /* DESIGN.md chip text #237A7F is 4.4:1 on #E0F2F3; DESIGN primary #00696E reaches AA */
@@ -272,6 +304,36 @@
   --u-series-4: #b7c9d2;
   --u-series-5: #62c0c5;
   --u-series-6: #6cd6dd;
+
+  /* ordered ramps: intensity grows towards the bright end, so the dark window keeps its calm base */
+  --u-seq-1: #1b262b;
+  --u-seq-2: #1c353a;
+  --u-seq-3: #1d4a50;
+  --u-seq-4: #1f6267;
+  --u-seq-5: #2f8f95;
+  --u-seq-6: #5fbcc2;
+  --u-seq-7: #8af3f9;
+  --u-seq-text-1: #ffffff;
+  --u-seq-text-2: #ffffff;
+  --u-seq-text-3: #ffffff;
+  --u-seq-text-4: #ffffff;
+  --u-seq-text-5: #0d1317;
+  --u-seq-text-6: #0d1317;
+  --u-seq-text-7: #0d1317;
+  --u-div-1: #ff7a6b;
+  --u-div-2: #a8463d;
+  --u-div-3: #4a2b28;
+  --u-div-4: #3a4248;
+  --u-div-5: #1d4448;
+  --u-div-6: #2f8f95;
+  --u-div-7: #8af3f9;
+  --u-div-text-1: #0d1317;
+  --u-div-text-2: #ffffff;
+  --u-div-text-3: #ffffff;
+  --u-div-text-4: #ffffff;
+  --u-div-text-5: #ffffff;
+  --u-div-text-6: #0d1317;
+  --u-div-text-7: #0d1317;
 
   /* EXCEPTION (as in Lens): DESIGN.md has no on-dark status colours; #BA1A1A is 2.2:1 here */
   --u-ok: #8af3f9;

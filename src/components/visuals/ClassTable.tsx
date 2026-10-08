@@ -3,7 +3,7 @@ import { Search } from 'lucide-react';
 import { errorMessage } from '../../api/http';
 import { CLASS_COLUMN, CLASS_LIMIT } from '../../lib/dax/daxBuilder';
 import type { ClassRow, KpiFocus } from '../../lib/dax/types';
-import { UniverusDataTable, type TableColumn } from '../univerus';
+import { UdpPbiDataTable, type TableColumn } from '../powerbi-visuals';
 import { CHART_DEFINITIONS } from './kpiDefinitions';
 
 interface ClassTableProps {
@@ -54,7 +54,7 @@ export const ClassTable: React.FC<ClassTableProps> = ({
   index = 0,
   className,
 }) => (
-  <UniverusDataTable
+  <UdpPbiDataTable
     index={index}
     className={className}
     visualId="classes"
@@ -93,5 +93,5 @@ export const ClassTable: React.FC<ClassTableProps> = ({
         Showing the top {CLASS_LIMIT} classes by inventory. Use search to reach the rest.
       </p>
     )}
-  </UniverusDataTable>
+  </UdpPbiDataTable>
 );

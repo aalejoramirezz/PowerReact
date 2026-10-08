@@ -75,8 +75,9 @@ export const ManifestPreview: React.FC = () => {
   };
 
   const controls = (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-      <div className="flex min-w-0 items-center gap-3">
+    <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-4 gap-y-2">
+      {/* Capped at the toolbar's width: the manifest list scrolls instead of widening the page */}
+      <div className="flex min-w-0 max-w-full items-center gap-3">
         <span className="hidden shrink-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-u-label @md:flex">
           <FileJson className="h-3.5 w-3.5" aria-hidden="true" />
           Manifest

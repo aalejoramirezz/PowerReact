@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { appliedFilters, sampleRows, selectionOf, type CrossFilter } from './crossFilters';
+import { appliedFilters, sampleRows, selectionOf, slicerValuesOf, type CrossFilter } from './crossFilters';
 import { categoryLabel, mapRows, normalizeKey, toNullableNumber } from './mapRows';
 import { validateManifest, type Manifest, type ManifestComponentName, type VisualOf } from './schema';
 
@@ -12,7 +12,8 @@ const visual = <C extends ManifestComponentName>(id: string, _component: C) =>
 
 const GROUP = "'asset_class_group'[Asset_Class_Group]";
 const CLASS = "'asset_class'[Asset_Class]";
-const filter = (field: string, value: string, sourceVisualId: string): CrossFilter => ({ field, value, sourceVisualId });
+const filter = (field: string, value: string, sourceVisualId: string): CrossFilter => ({ field, values: [value], sourceVisualId, origin: 'select' });
+const slicer = (field: string, values: string[], sourceVisualId = 'slicer'): CrossFilter => ({ field, values, sourceVisualId, origin: 'slicer' });
 
 describe('keys and values', () => {
   it('normalises quoted table names to the executeQueries spelling', () => {
@@ -122,6 +123,14 @@ describe('cross-filter rules', () => {
     expect(selectionOf(kpi, filters)).toBeNull();
     expect(appliedFilters({ ...ranking, crossFilter: { field: CLASS, emit: true, respect: false } }, filters)).toEqual([]);
   });
+
+  it('a slicer filters every visual but itself, including those on its column, and never highlights', () => {
+    const groupSlicer = slicer(GROUP, ['Core', 'Transport']);
+    expect(appliedFilters(groups, [groupSlicer])).toEqual([groupSlicer]);
+    expect(selectionOf(groups, [groupSlicer])).toBeNull();
+    expect(slicerValuesOf(groups, [groupSlicer, ...filters])).toEqual(['Core', 'Transport']);
+    expect(appliedFilters({ ...groups, id: 'slicer' }, [groupSlicer])).toEqual([]);
+  });
 });
 
 describe('Sample mode', () => {
@@ -130,6 +139,9 @@ describe('Sample mode', () => {
     expect(sampleRows(kpi, [])).toMatchObject([{ '[Total Assets]': 10000 }]);
     expect(sampleRows(kpi, [filter(GROUP, 'Utility_Line', 'groups')])).toMatchObject([{ '[Total Assets]': 5451 }]);
     expect(sampleRows(kpi, [filter(GROUP, 'Utility_Line', 'groups'), filter(CLASS, 'Water_Pipes', 'x')])).toMatchObject([{ '[Total Assets]': 1979 }]);
+    // A slicer keeps any of its values; filters on one column intersect
+    expect(sampleRows(kpi, [slicer(GROUP, ['Utility_Line', 'Core'])])).toMatchObject([{ '[Total Assets]': 5451 + 1200 }]);
+    expect(sampleRows(kpi, [slicer(GROUP, ['Utility_Line', 'Core']), filter(GROUP, 'Core', 'groups')])).toMatchObject([{ '[Total Assets]': 1200 }]);
   });
 
   it('ignores filters on columns the sample does not carry, and averages ratios', () => {
