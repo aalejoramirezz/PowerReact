@@ -157,6 +157,62 @@ const KpiHero = z.strictObject({
   }),
 });
 
+const KpiTrend = z.strictObject({
+  component: z.literal('UniverusKpiTrend'),
+  ...common,
+  /**
+   * One row per period in time order (ORDER BY). The latest period is the headline; the delta is
+   * against `comparison` on that row (e.g. PY) or, without it, against the previous period.
+   */
+  fields: z.strictObject({ category: FieldKey, value: MeasureKey, comparison: MeasureKey.optional(), target: MeasureKey.optional() }),
+  props: z.strictObject({
+    ...baseProps,
+    icon: z.enum(KPI_ICON_NAMES).optional(),
+    caption: z.string().max(40).optional(),
+    goodWhen: z.enum(['higher', 'lower']).default('higher'),
+    deltaLabel: z.string().max(40).optional(),
+    targetLabel: z.string().max(40).default('Target'),
+    periodLabel: z.string().max(40).optional(),
+  }),
+});
+
+const KpiBullet = z.strictObject({
+  component: z.literal('UniverusKpiBullet'),
+  ...common,
+  /** One row: the value, its target and an optional forecast (end-of-period projection). */
+  fields: z.strictObject({ value: MeasureKey, target: MeasureKey.optional(), forecast: MeasureKey.optional() }),
+  props: z.strictObject({
+    ...baseProps,
+    icon: z.enum(KPI_ICON_NAMES).optional(),
+    caption: z.string().max(40).optional(),
+    /** Band limits in the value's unit, ascending (two give poor / fair / good). */
+    thresholds: z.array(z.number()).max(4).default([]),
+    /** Scale end (default: a nice value above everything drawn; 100 % for shares). */
+    max: z.number().positive().optional(),
+    goodWhen: z.enum(['higher', 'lower']).default('higher'),
+    targetLabel: z.string().max(40).default('Target'),
+    forecastLabel: z.string().max(40).default('Forecast'),
+    statusLabels: z.strictObject({ ok: z.string().max(40).optional(), warn: z.string().max(40).optional(), bad: z.string().max(40).optional() }).optional(),
+  }),
+});
+
+const KpiVariance = z.strictObject({
+  component: z.literal('UniverusKpiVariance'),
+  ...common,
+  /** One row: the actual and its comparison scenario. */
+  fields: z.strictObject({ actual: MeasureKey, comparison: MeasureKey }),
+  props: z.strictObject({
+    ...baseProps,
+    icon: z.enum(KPI_ICON_NAMES).optional(),
+    caption: z.string().max(40).optional(),
+    scenario: z.enum(['PY', 'PL', 'FC', 'BU']).default('PY'),
+    goodWhen: z.enum(['higher', 'lower']).default('higher'),
+    actualLabel: z.string().max(12).default('AC'),
+    comparisonLabel: z.string().max(24).optional(),
+    decimals: z.int().min(0).max(3).default(1),
+  }),
+});
+
 const categoryValue = z.strictObject({ category: ColumnRef, value: MeasureKey });
 
 const SpotlightBars = z.strictObject({
@@ -577,6 +633,76 @@ const BoxPlot = z.strictObject({
   }),
 });
 
+/**
+ * Boundaries a map draws: a set of public/geo/index.json ("world", "north-america") or a custom
+ * boundary file in /geo/ ("service-areas.topo.json", WGS 84). Served by the app; never fetched by the element.
+ */
+const GeoRef = z.strictObject({
+  set: z.string().regex(/^[\w.-]{1,80}$/, 'A boundary set id or a .json file name in /geo/'),
+  /** Topology object holding the regions (default: the set's). */
+  object: z.string().max(60).optional(),
+  /** Feature property the region keys match (default: the set's, e.g. "code" = ISO 3166). */
+  key: z.string().max(60).optional(),
+});
+
+const Projection = z.enum(['auto', 'mercator', 'conic', 'equal-earth', 'globe']);
+
+const PointMap = z.strictObject({
+  component: z.literal('UniverusPointMap'),
+  ...common,
+  /** One row per location: WGS 84 latitude / longitude (decimal degrees), its name, an optional value and group. */
+  fields: z.strictObject({
+    latitude: FieldKey,
+    longitude: FieldKey,
+    category: FieldKey,
+    value: FieldKey.optional(),
+    group: FieldKey.optional(),
+    tooltips: Tooltips.optional(),
+  }),
+  props: z.strictObject({
+    ...chartProps,
+    mark: z.enum(['dot', 'bubble', 'spike', 'hexbin', 'heat']).default('dot'),
+    projection: Projection.default('auto'),
+    /** Context boundaries under the points (optional). */
+    geo: GeoRef.optional(),
+    /** `tiles`: the host's raster basemap (VITE_MAP_TILE_URL), when configured; otherwise vector. */
+    basemap: z.enum(['vector', 'tiles']).default('vector'),
+    categoryLabel: z.string().max(40).optional(),
+    valueLabel: z.string().max(40).optional(),
+    groupLabel: z.string().max(40).optional(),
+    zoomable: z.boolean().default(true),
+    chartHeight: z.int().min(200).max(800).default(360),
+  }),
+});
+
+const Choropleth = z.strictObject({
+  component: z.literal('UniverusChoropleth'),
+  ...common,
+  /**
+   * One row per region: its key (ISO code, postal code or name, matching `geo.key`), a rate or ratio
+   * (never a raw count) and an optional display name.
+   */
+  fields: z.strictObject({ region: FieldKey, value: MeasureKey, label: FieldKey.optional(), tooltips: Tooltips.optional() }),
+  props: z.strictObject({
+    ...chartProps,
+    geo: GeoRef,
+    colorScale: z.enum(['sequential', 'diverging']).default('sequential'),
+    classes: z.enum(['continuous', 'quantize', 'quantile']).default('quantize'),
+    classCount: z.int().min(3).max(7).default(5),
+    goodWhen: z.enum(['higher', 'lower']).default('higher'),
+    colorCenter: z.number().default(0),
+    /** `tiles`: the set's equal-area tile grid (every region the same size). */
+    shape: z.enum(['map', 'tiles']).default('map'),
+    projection: Projection.default('auto'),
+    fit: z.enum(['data', 'all']).default('data'),
+    labels: z.enum(['auto', 'none']).default('auto'),
+    regionLabel: z.string().max(40).optional(),
+    valueLabel: z.string().max(40).optional(),
+    zoomable: z.boolean().default(true),
+    chartHeight: z.int().min(200).max(800).default(360),
+  }),
+});
+
 const SlicerMode = z.enum(['auto', 'buttons', 'dropdown']);
 
 /**
@@ -630,6 +756,11 @@ const Visual = z.discriminatedUnion('component', [
   DotPlot,
   Timeline,
   BoxPlot,
+  KpiTrend,
+  KpiBullet,
+  KpiVariance,
+  PointMap,
+  Choropleth,
   Slicer,
 ]);
 

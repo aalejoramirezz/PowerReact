@@ -95,6 +95,13 @@ Values are CSS as written in `src/theme/tokens.css`.
 | `--u-div-text-5` | `#0d1317` | `#ffffff` |
 | `--u-div-text-6` | `#0d1317` | `#0d1317` |
 | `--u-div-text-7` | `#ffffff` | `#0d1317` |
+| `--u-map-water` | `#f1f6f9` | `#0f181d` |
+| `--u-map-land` | `#e3e9ee` | `#222a2f` |
+| `--u-map-border` | `#ffffff` | `#161c20` |
+| `--u-map-outline` | `#b8cacb` | `#3e4a52` |
+| `--u-map-graticule` | `#dde6ec` | `#1c252a` |
+| `--u-map-nodata` | `#f4f6f8` | `#1a2125` |
+| `--u-map-shade` | `#c6d6dd` | `#050a0d` |
 | `--u-ok` | `#34a7ad` | `#8af3f9` |
 | `--u-ok-text` | `#00696e` | `#8af3f9` |
 | `--u-ok-bg` | `#e0f2f3` | `rgba(138, 243, 249, 0.12)` |

@@ -61,8 +61,8 @@ describe('manifest schema', () => {
     expect(result).toMatchObject({ ok: false, issues: [{ path: '(root)', message: expect.stringMatching(/^Not valid JSON/) }] });
   });
 
-  it('lists the twenty visuals and the slicer', () => {
-    expect(MANIFEST_COMPONENTS).toHaveLength(21);
+  it('lists the twenty-five visuals and the slicer', () => {
+    expect(MANIFEST_COMPONENTS).toHaveLength(26);
     expect(MANIFEST_COMPONENTS).toEqual(
       expect.arrayContaining([
         'UniverusColumnChart',
@@ -75,6 +75,11 @@ describe('manifest schema', () => {
         'UniverusDotPlot',
         'UniverusTimeline',
         'UniverusBoxplot',
+        'UniverusKpiTrend',
+        'UniverusKpiBullet',
+        'UniverusKpiVariance',
+        'UniverusPointMap',
+        'UniverusChoropleth',
         'UniverusSlicer',
       ])
     );
@@ -111,6 +116,23 @@ describe('manifest schema', () => {
     const values = [{ field: '[Assets]', label: 'Assets', heatmap: 'sequential' }];
     expect(matrix({ rows: ["'a'[Criticality]"], column: "'a'[Condition]", values, rowTotals: ['[IsCritTotal]'], columnTotal: '[IsCondTotal]' }).ok).toBe(true);
     expect(matrix({ rows: ["'g'[Group]", "'c'[Class]"], values, rowTotals: ['[IsGroupTotal]'] }).ok).toBe(false);
+  });
+
+  it('maps need a boundary set by id or file name; a choropleth always names one', () => {
+    const withVisual = (visual: Record<string, unknown>) =>
+      validateManifest({ ...clone(), visuals: [{ id: 'v', grid: { colSpan: 6 }, query: { dax: 'EVALUATE ROW("x", 1)' }, ...visual }] });
+    const choropleth = (props: Record<string, unknown>) =>
+      withVisual({ component: 'UniverusChoropleth', fields: { region: '[Code]', value: '[Rate]' }, props: { title: 'Map', ...props } });
+    expect(choropleth({ geo: { set: 'north-america' } }).ok).toBe(true);
+    expect(choropleth({ geo: { set: 'service-areas.topo.json', key: 'name' } }).ok).toBe(true);
+    expect(choropleth({}).ok).toBe(false);
+    expect(choropleth({ geo: { set: '../secrets.json' } }).ok).toBe(false);
+    const points = withVisual({
+      component: 'UniverusPointMap',
+      fields: { latitude: "'wr'[Latitude]", longitude: "'wr'[Longitude]", category: "'wr'[WR_Number]" },
+      props: { title: 'Map', projection: 'globe', mark: 'spike' },
+    });
+    expect(points.ok).toBe(true);
   });
 
   it('names exactly the icons the KPI element can draw', () => {

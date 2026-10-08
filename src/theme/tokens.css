@@ -131,6 +131,15 @@
   --u-div-text-6: #0d1317;
   --u-div-text-7: #ffffff;
 
+  /* maps: quiet geography under the data (land and water stay below the lightest ramp step) */
+  --u-map-water: #f1f6f9;
+  --u-map-land: #e3e9ee;
+  --u-map-border: #ffffff;
+  --u-map-outline: #b8cacb;
+  --u-map-graticule: #dde6ec;
+  --u-map-nodata: #f4f6f8;
+  --u-map-shade: #c6d6dd;
+
   /* semantic status (ok/bad from DESIGN.md; warn and delta-down from the light mockup) */
   --u-ok: #34a7ad;
   /* DESIGN.md chip text #237A7F is 4.4:1 on #E0F2F3; DESIGN primary #00696E reaches AA */
@@ -334,6 +343,15 @@
   --u-div-text-5: #ffffff;
   --u-div-text-6: #0d1317;
   --u-div-text-7: #0d1317;
+
+  /* maps: the dark window's geography; data regions glow on the ramp above it */
+  --u-map-water: #0f181d;
+  --u-map-land: #222a2f;
+  --u-map-border: #161c20;
+  --u-map-outline: #3e4a52;
+  --u-map-graticule: #1c252a;
+  --u-map-nodata: #1a2125;
+  --u-map-shade: #050a0d;
 
   /* EXCEPTION (as in Lens): DESIGN.md has no on-dark status colours; #BA1A1A is 2.2:1 here */
   --u-ok: #8af3f9;

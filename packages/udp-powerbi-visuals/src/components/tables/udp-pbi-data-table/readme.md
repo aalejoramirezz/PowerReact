@@ -67,13 +67,18 @@ Also the table view of every other visual (`frame="none"`: no card, no toolbar).
  - [udp-pbi-boxplot](../../charts/udp-pbi-boxplot)
  - [udp-pbi-bullet-bars](../../charts/udp-pbi-bullet-bars)
  - [udp-pbi-calendar-heatmap](../../charts/udp-pbi-calendar-heatmap)
+ - [udp-pbi-choropleth](../../charts/udp-pbi-choropleth)
  - [udp-pbi-column-chart](../../charts/udp-pbi-column-chart)
  - [udp-pbi-diverging-bars](../../charts/udp-pbi-diverging-bars)
  - [udp-pbi-donut](../../charts/udp-pbi-donut)
  - [udp-pbi-dot-plot](../../charts/udp-pbi-dot-plot)
  - [udp-pbi-ibcs-variance](../../charts/udp-pbi-ibcs-variance)
+ - [udp-pbi-kpi-bullet](../../kpi/udp-pbi-kpi-bullet)
  - [udp-pbi-kpi-card](../../kpi/udp-pbi-kpi-card)
  - [udp-pbi-kpi-hero](../../kpi/udp-pbi-kpi-hero)
+ - [udp-pbi-kpi-trend](../../kpi/udp-pbi-kpi-trend)
+ - [udp-pbi-kpi-variance](../../kpi/udp-pbi-kpi-variance)
+ - [udp-pbi-point-map](../../charts/udp-pbi-point-map)
  - [udp-pbi-ranking-bars](../../charts/udp-pbi-ranking-bars)
  - [udp-pbi-scatter](../../charts/udp-pbi-scatter)
  - [udp-pbi-spotlight-bars](../../charts/udp-pbi-spotlight-bars)
@@ -89,13 +94,18 @@ graph TD;
   udp-pbi-boxplot --> udp-pbi-data-table
   udp-pbi-bullet-bars --> udp-pbi-data-table
   udp-pbi-calendar-heatmap --> udp-pbi-data-table
+  udp-pbi-choropleth --> udp-pbi-data-table
   udp-pbi-column-chart --> udp-pbi-data-table
   udp-pbi-diverging-bars --> udp-pbi-data-table
   udp-pbi-donut --> udp-pbi-data-table
   udp-pbi-dot-plot --> udp-pbi-data-table
   udp-pbi-ibcs-variance --> udp-pbi-data-table
+  udp-pbi-kpi-bullet --> udp-pbi-data-table
   udp-pbi-kpi-card --> udp-pbi-data-table
   udp-pbi-kpi-hero --> udp-pbi-data-table
+  udp-pbi-kpi-trend --> udp-pbi-data-table
+  udp-pbi-kpi-variance --> udp-pbi-data-table
+  udp-pbi-point-map --> udp-pbi-data-table
   udp-pbi-ranking-bars --> udp-pbi-data-table
   udp-pbi-scatter --> udp-pbi-data-table
   udp-pbi-spotlight-bars --> udp-pbi-data-table

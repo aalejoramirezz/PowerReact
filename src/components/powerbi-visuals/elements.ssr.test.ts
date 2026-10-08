@@ -1,10 +1,14 @@
+import { readFileSync } from 'node:fs';
 import { renderToString } from '@powerreact/udp-powerbi-visuals/hydrate';
 import { describe, expect, it } from 'vitest';
 import {
   AGEING_BINS,
   ASSET_GROUPS,
+  ASSET_GROWTH_BY_COUNTRY,
+  ASSET_LOCATIONS,
   BACKLOG_BRIDGE,
   BACKLOG_BY_CREW,
+  BACKLOG_TREND,
   CLASS_RISK_POINTS,
   CONDITION_BY_GROUP,
   CONDITION_DISTRIBUTION,
@@ -19,16 +23,20 @@ import {
   PORTFOLIO_MEASURES,
   PORTFOLIO_TOTAL,
   PORTFOLIO_TREE,
+  POOR_CONDITION_BY_REGION,
   PORTFOLIO_TREEMAP,
   RENEWALS_AC_VS_PY,
   RENEWAL_NEED_VS_BUDGET,
   RENEWAL_YEARS,
   REQUESTS_BY_CHANNEL,
   REQUESTS_BY_DAY,
+  REQUESTS_RAISED_TREND,
   RISK_MATRIX,
   RISK_MEASURES,
   RISK_TOTAL,
+  SERVICE_CENTRES,
   SERVICE_REQUESTS,
+  SERVICE_SITES,
   WARRANTIES,
   WARRANTY_TODAY,
   WORK_ORDERS_BY_DEPARTMENT,
@@ -265,6 +273,116 @@ describe('flows, hierarchies, calendars, lifecycles and distributions render ser
       expect(out).toContain('No data for the current selection.');
     }
   );
+});
+
+describe('KPI variants render server-side', () => {
+  it('the trend KPI heads with the latest period, its delta and the sparkline', async () => {
+    const out = await render('udp-pbi-kpi-trend', { heading: 'Requests raised', series: REQUESTS_RAISED_TREND, periodLabel: 'Last 12 months' });
+    expect(out).toContain('data-testid="kpi-requests-raised"');
+    for (const text of ['>380<', '↑ 5.0% vs Aug', 'Sep · 380', 'Last 12 months']) expect(out).toContain(text);
+    for (const part of ['kt-area', 'kt-line', 'kt-last']) expect(count(out, withClass(part))).toBe(1);
+    expect(count(out, withClass('kt-extreme'))).toBe(2);
+    const target = await render('udp-pbi-kpi-trend', { heading: 'Backlog', series: BACKLOG_TREND, target: 300, goodWhen: 'lower' });
+    expect(count(target, withClass('kt-target'))).toBe(1);
+    expect(target).toContain('Target 300');
+  });
+
+  it('the bullet KPI states the gap to target in points and colours it by band', async () => {
+    const out = await render('udp-pbi-kpi-bullet', {
+      heading: 'SLA compliance',
+      value: 0.942,
+      target: 0.95,
+      thresholds: [0.85, 0.92],
+      forecast: 0.948,
+      format: { style: 'percent', decimals: 1 },
+    });
+    expect(out).toContain('0.8 pp below target');
+    expect(out).toContain('data-tone="warn"');
+    expect(count(out, withClass('kb-band'))).toBe(3);
+    for (const tick of ['>0%<', '>50%<', '>100%<']) expect(out).toContain(tick);
+    expect(out).toContain('aria-label="SLA compliance 94.2%, target 95.0%, forecast 94.8%, 0.8 pp below target"');
+  });
+
+  it('the variance KPI shows AC, the scenario and both variances in IBCS notation', async () => {
+    const out = await render('udp-pbi-kpi-variance', { heading: 'Maintenance cost', actual: 1.284e6, comparison: 1.19e6, scenario: 'PL', comparisonLabel: 'Plan', goodWhen: 'lower', format: { style: 'compact' } });
+    for (const text of ['>ΔPL<', '>+94K<', '>ΔPL%<', '>+7.9%<']) expect(out).toContain(text);
+    expect(out).toContain('unfavourable');
+    expect(count(out, withClass('kv-row'))).toBe(4);
+  });
+
+  it.each(['udp-pbi-kpi-trend', 'udp-pbi-kpi-bullet', 'udp-pbi-kpi-variance'])('%s shows a dash without a value', async (tag) => {
+    const out = await render(tag, { heading: 'Empty KPI' });
+    expect(out).toContain('data-testid="kpi-empty-kpi"');
+    // Hydrate leaves a text-node marker before the dash
+    expect(out).toMatch(/data-testid="kpi-empty-kpi"[^>]*>(<!--[^>]*-->)?—</);
+  });
+});
+
+describe('maps render server-side', () => {
+  const NA = JSON.parse(readFileSync('public/geo/na-admin1.topo.json', 'utf8'));
+  const WORLD = JSON.parse(readFileSync('public/geo/world-110m.topo.json', 'utf8'));
+  const TILES = JSON.parse(readFileSync('public/geo/na-tiles.json', 'utf8')).tiles;
+  const na = { geometry: NA, geometryObject: 'regions', contextObject: 'context' };
+
+  it('the point map places every location, keyed for tests, with a group legend', async () => {
+    const out = await render('udp-pbi-point-map', { heading: 'Sites', ...na, points: SERVICE_SITES, testIdPrefix: 'sites' });
+    expect(count(out, withClass('pm-dot'))).toBe(SERVICE_SITES.length);
+    expect(out).toContain('data-testid="sites-point-nyc"');
+    expect(out).toContain('aria-label="Sites: 24 locations"');
+    for (const group of ['Water', 'Roads', 'Facilities']) expect(out).toContain(`>${group}<`);
+    expect(count(out, withClass('map-land'))).toBe(1);
+    expect(out).toContain('aria-label="Zoom in"');
+  });
+
+  it('bubbles and spikes carry a size legend; hexbins and heat a density ramp', async () => {
+    const bubble = await render('udp-pbi-point-map', { heading: 'B', ...na, points: SERVICE_SITES, mark: 'bubble' });
+    expect(count(bubble, withClass('pm-bubble'))).toBe(SERVICE_SITES.length);
+    expect(bubble).toContain('map-size-legend');
+    const spike = await render('udp-pbi-point-map', { heading: 'S', ...na, points: SERVICE_SITES, mark: 'spike' });
+    expect(count(spike, withClass('pm-spike'))).toBe(SERVICE_SITES.length);
+    const hex = await render('udp-pbi-point-map', { heading: 'H', ...na, points: ASSET_LOCATIONS, mark: 'hexbin' });
+    expect(count(hex, withClass('pm-hex'))).toBeGreaterThan(5);
+    expect(hex).toContain('>Fewer<');
+    const heat = await render('udp-pbi-point-map', { heading: 'D', ...na, points: ASSET_LOCATIONS, mark: 'heat' });
+    expect(count(heat, withClass('pm-heat'))).toBeGreaterThan(2);
+  });
+
+  it('the globe draws a shaded sphere with only the near side of the data', async () => {
+    const out = await render('udp-pbi-point-map', { heading: 'G', geometry: WORLD, points: SERVICE_CENTRES, projection: 'globe', mark: 'spike' });
+    expect(out).toContain('data-globe="true"');
+    expect(count(out, withClass('map-sphere'))).toBe(1);
+    const spikes = count(out, withClass('pm-spike'));
+    expect(spikes).toBeGreaterThan(3);
+    expect(spikes).toBeLessThan(SERVICE_CENTRES.length);
+  });
+
+  it('the choropleth shades matched regions, hatches the rest and lists what it cannot place', async () => {
+    const out = await render('udp-pbi-choropleth', { heading: 'Poor', ...na, regions: POOR_CONDITION_BY_REGION, format: { style: 'percent', decimals: 0 }, testIdPrefix: 'cond' });
+    expect(count(out, /class="map-mark cp-region/g)).toBe(POOR_CONDITION_BY_REGION.length - 1);
+    expect(out).toContain('data-testid="cond-region-US-NY"');
+    expect(out).toContain('cp-region--nodata');
+    expect(out).toContain('1 region is not on this map: Victoria (Australia)');
+    for (const label of ['≤ 11%', '&gt; 22%', 'No data']) expect(out).toContain(label);
+  });
+
+  it('the tile map gives every region of the countries present one tile; the globe choropleth diverges', async () => {
+    const tiles = await render('udp-pbi-choropleth', { heading: 'Tiles', ...na, tileLayout: TILES, shape: 'tiles', regions: POOR_CONDITION_BY_REGION });
+    expect(count(tiles, /class="map-mark cp-tile/g)).toBe(64);
+    expect(tiles).toContain('>NY<');
+    const globe = await render('udp-pbi-choropleth', { heading: 'Growth', geometry: WORLD, regions: ASSET_GROWTH_BY_COUNTRY, projection: 'globe', colorScale: 'diverging' });
+    expect(globe).toContain('data-globe="true"');
+    expect(globe).toContain('>Around 0<');
+  });
+
+  it('frame="none" draws the map without the card; no data keeps the card with its empty state', async () => {
+    const bare = await render('udp-pbi-point-map', { heading: 'Bare', ...na, points: SERVICE_SITES, frame: 'none' });
+    expect(bare).not.toContain('u-card-head');
+    expect(bare).toContain('map-svg');
+    for (const tag of ['udp-pbi-point-map', 'udp-pbi-choropleth']) {
+      const empty = await render(tag, { heading: 'x' });
+      expect(empty).toContain('No data for the current selection.');
+    }
+  });
 });
 
 describe('the standard frame', () => {

@@ -3,15 +3,20 @@ import {
   UdpPbiBoxplot,
   UdpPbiBulletBars,
   UdpPbiCalendarHeatmap,
+  UdpPbiChoropleth,
   UdpPbiColumnChart,
   UdpPbiDataTable,
   UdpPbiDivergingBars,
   UdpPbiDonut,
   UdpPbiDotPlot,
   UdpPbiIbcsVariance,
+  UdpPbiKpiBullet,
   UdpPbiKpiCard,
   UdpPbiKpiHero,
+  UdpPbiKpiTrend,
+  UdpPbiKpiVariance,
   UdpPbiMatrix,
+  UdpPbiPointMap,
   UdpPbiRankingBars,
   UdpPbiScatter,
   UdpPbiSpotlightBars,
@@ -26,7 +31,10 @@ import {
 } from '../components/powerbi-visuals';
 import {
   AGEING_BINS,
+  ASSET_GROWTH_BY_COUNTRY,
+  ASSET_LOCATIONS,
   BACKLOG_BRIDGE,
+  BACKLOG_TREND,
   BACKLOG_BY_CREW,
   CLASS_RISK_POINTS,
   ASSET_CLASSES,
@@ -44,6 +52,7 @@ import {
   PORTFOLIO_MEASURES,
   PORTFOLIO_TOTAL,
   PORTFOLIO_TREE,
+  POOR_CONDITION_BY_REGION,
   PORTFOLIO_TREEMAP,
   PRIORITIES,
   RENEWAL_NEED_VS_BUDGET,
@@ -51,10 +60,13 @@ import {
   RENEWALS_AC_VS_PY,
   REQUESTS_BY_CHANNEL,
   REQUESTS_BY_DAY,
+  REQUESTS_RAISED_TREND,
   RISK_MATRIX,
   RISK_MEASURES,
   RISK_TOTAL,
+  SERVICE_CENTRES,
   SERVICE_REQUESTS,
+  SERVICE_SITES,
   STATUS_BY_PRIORITY,
   WARRANTIES,
   WARRANTY_TODAY,
@@ -62,6 +74,7 @@ import {
   WORK_REQUESTS_BY_STATUS,
 } from '../components/powerbi-visuals/__fixtures__/samples';
 import { ReportTemplate } from '../components/template/ReportTemplate';
+import { useGeoAsset } from '../lib/geo/useGeoAsset';
 import { Legend, StatusChip, Tab, Tabs } from '../components/ui/primitives';
 import { THEMES, useThemeStore } from '../store/theme';
 
@@ -84,6 +97,7 @@ const FAMILIES = [
   { id: 'flow', title: 'Flow', question: 'How does one level become another?' },
   { id: 'distribution', title: 'Distribution', question: 'How are the values spread?' },
   { id: 'correlation', title: 'Correlation', question: 'How do two things relate?' },
+  { id: 'spatial', title: 'Spatial', question: 'Where is it, and how does it vary by place?' },
   { id: 'exact', title: 'Exact values', question: 'Which rows, owners and statuses?' },
 ] as const;
 
@@ -120,6 +134,11 @@ export const Gallery: React.FC = () => {
     setSelected((cur) => (cur === value ? null : value));
   };
   const opposite = theme === 'neoglass' ? 'nocturne' : 'neoglass';
+  // Boundaries come from the app's own /geo folder (public domain); the elements never fetch
+  const na = useGeoAsset('north-america');
+  const world = useGeoAsset('world');
+  const naGeo = { geometry: na.data?.geometry, geometryObject: na.data?.object, contextObject: na.data?.context };
+  const worldGeo = { geometry: world.data?.geometry, geometryObject: world.data?.object };
 
   return (
     <ReportTemplate
@@ -184,6 +203,52 @@ export const Gallery: React.FC = () => {
               badge={{ text: '18 urgent', tone: 'warn' }}
               info="Work orders still open at the end of the period."
               calc="Open Work Orders"
+            />
+          </section>
+          <section aria-label="KPI variants" className="grid grid-cols-1 gap-(--u-gap) @2xl:grid-cols-2 @5xl:grid-cols-4">
+            <UdpPbiKpiTrend
+              index={4}
+              heading="Requests raised"
+              icon="trending-up"
+              series={REQUESTS_RAISED_TREND}
+              periodLabel="Last 12 months"
+              info="Work requests raised each month; the headline is the latest month, the delta compares it with the month before."
+              calc="[WRs Raised] by month"
+            />
+            <UdpPbiKpiTrend
+              index={5}
+              heading="Backlog vs target"
+              icon="wrench"
+              series={BACKLOG_TREND}
+              goodWhen="lower"
+              target={300}
+              info="Open work requests at each month end against the backlog target; lower is better."
+              calc="[Open WRs] at month end"
+            />
+            <UdpPbiKpiBullet
+              index={6}
+              heading="SLA compliance"
+              icon="target"
+              value={0.942}
+              target={0.95}
+              thresholds={[0.85, 0.92]}
+              forecast={0.948}
+              format={{ style: 'percent', decimals: 1 }}
+              info="Requests resolved within their SLA window. Bands: below 85 % poor, 85–92 % fair, above 92 % good; the tick is the 95 % target."
+              calc="Requests within SLA ÷ Requests closed"
+            />
+            <UdpPbiKpiVariance
+              index={7}
+              heading="Maintenance cost"
+              icon="dollar"
+              actual={1.284e6}
+              comparison={1.19e6}
+              scenario="PL"
+              comparisonLabel="Plan"
+              goodWhen="lower"
+              format={{ style: 'compact' }}
+              info="Maintenance spend this year against the plan, in IBCS notation: AC solid, plan outlined, variances in green (favourable) or red."
+              calc="[Maintenance Cost] AC vs PL"
             />
           </section>
           <div className="grid grid-cols-1 gap-(--u-gap) @5xl:grid-cols-12">
@@ -615,6 +680,158 @@ export const Gallery: React.FC = () => {
               selectedValue={selected}
               onDataPointClick={toggle}
               testIdPrefix="risk-scatter"
+            />
+          </div>
+        </Family>
+
+        <Family id="spatial">
+          <div className="grid grid-cols-1 gap-(--u-gap) @5xl:grid-cols-12">
+            <UdpPbiPointMap
+              index={40}
+              className="@5xl:col-span-7"
+              heading="Service sites"
+              subheading="Exact coordinates · colour = network · click to select"
+              info="Each dot is a service site at its latitude and longitude, coloured by network. Zoom with the buttons, Ctrl + scroll or a pinch."
+              calc="Latitude, Longitude by Site"
+              {...naGeo}
+              points={SERVICE_SITES}
+              mark="dot"
+              valueLabel="Open requests"
+              groupLabel="Network"
+              categoryLabel="Site"
+              crossFilterField="'site'[Site]"
+              selectedValue={selected}
+              onDataPointClick={toggle}
+              testIdPrefix="sites"
+            />
+            <UdpPbiPointMap
+              index={41}
+              className="@5xl:col-span-5"
+              heading="Open requests by site"
+              subheading="Proportional symbols · area = open requests"
+              info="Bubble area is proportional to the open work requests at each site, so totals compare fairly."
+              calc="[Open WRs] by Site"
+              {...naGeo}
+              points={SERVICE_SITES}
+              mark="bubble"
+              valueLabel="Open requests"
+              groupLabel="Network"
+              categoryLabel="Site"
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-(--u-gap) @5xl:grid-cols-12">
+            <UdpPbiPointMap
+              index={42}
+              className="@5xl:col-span-6"
+              heading="Backlog spikes"
+              subheading="Spike map (2.5D) · height = open requests"
+              info="Spike height is proportional to the open work requests at each site; spikes are drawn back to front."
+              calc="[Open WRs] by Site"
+              {...naGeo}
+              points={SERVICE_SITES}
+              mark="spike"
+              valueLabel="Open requests"
+              categoryLabel="Site"
+            />
+            <UdpPbiPointMap
+              index={43}
+              className="@5xl:col-span-3"
+              heading="Asset density"
+              subheading="Hexagonal bins · click a bin to zoom"
+              info="Assets binned into hexagons; darker bins hold more assets. Click a bin to zoom into it."
+              calc="Count of assets by location"
+              {...naGeo}
+              points={ASSET_LOCATIONS}
+              mark="hexbin"
+              valueLabel="Assets"
+              categoryLabel="Asset"
+              chartHeight={320}
+            />
+            <UdpPbiPointMap
+              index={44}
+              className="@5xl:col-span-3"
+              heading="Fault hotspots"
+              subheading="Density contours · weighted by severity"
+              info="Where reported faults concentrate, weighted by their severity; bands go from sparse to dense."
+              calc="Kernel density of faults × severity"
+              {...naGeo}
+              points={ASSET_LOCATIONS}
+              mark="heat"
+              valueLabel="Severity"
+              categoryLabel="Fault"
+              chartHeight={320}
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-(--u-gap) @5xl:grid-cols-12">
+            <UdpPbiChoropleth
+              index={45}
+              className="@5xl:col-span-7"
+              heading="Assets in poor condition"
+              subheading="Choropleth · share of assets by state / province · 5 equal classes"
+              info="Share of each region's assets rated poor or very poor. A rate, never a count: large regions do not win by size."
+              calc="Assets in poor condition ÷ Assets assessed"
+              {...naGeo}
+              tileLayout={na.data?.tileLayout}
+              regions={POOR_CONDITION_BY_REGION}
+              format={{ style: 'percent', decimals: 0 }}
+              goodWhen="lower"
+              valueLabel="Poor condition"
+              regionLabel="State / province"
+              crossFilterField="'region'[Code]"
+              selectedValue={selected}
+              onDataPointClick={toggle}
+              testIdPrefix="condition-map"
+            />
+            <UdpPbiChoropleth
+              index={46}
+              className="@5xl:col-span-5"
+              heading="Poor condition, tile map"
+              subheading="Equal-area cartogram · every region the same size"
+              info="The same rates on a tile grid: small states weigh as much as large provinces."
+              calc="Assets in poor condition ÷ Assets assessed"
+              {...naGeo}
+              tileLayout={na.data?.tileLayout}
+              shape="tiles"
+              regions={POOR_CONDITION_BY_REGION}
+              format={{ style: 'percent', decimals: 0 }}
+              goodWhen="lower"
+              valueLabel="Poor condition"
+              regionLabel="State / province"
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-(--u-gap) @5xl:grid-cols-12">
+            <UdpPbiPointMap
+              index={47}
+              className="@5xl:col-span-6"
+              heading="Service centres worldwide"
+              subheading="Globe (3D) · spikes = active contracts · drag to turn"
+              info="An orthographic globe: drag it, or move between centres with the arrow keys, and it turns to bring them into view."
+              calc="[Active Contracts] by Service Centre"
+              {...worldGeo}
+              points={SERVICE_CENTRES}
+              projection="globe"
+              mark="spike"
+              valueLabel="Active contracts"
+              categoryLabel="Centre"
+              chartHeight={380}
+            />
+            <UdpPbiChoropleth
+              index={48}
+              className="@5xl:col-span-6"
+              heading="Asset growth by country"
+              subheading="Globe choropleth · diverging around zero"
+              info="Year-on-year change of the asset base: teal grows, red shrinks."
+              calc="([Assets] − [Assets PY]) ÷ [Assets PY]"
+              {...worldGeo}
+              regions={ASSET_GROWTH_BY_COUNTRY}
+              projection="globe"
+              colorScale="diverging"
+              colorCenter={0}
+              fit="all"
+              format={{ style: 'percent', decimals: 0 }}
+              valueLabel="Change"
+              regionLabel="Country"
+              chartHeight={380}
             />
           </div>
         </Family>

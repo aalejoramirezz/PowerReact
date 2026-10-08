@@ -12,13 +12,19 @@ import { VisualFrameMode } from "./functional/frame";
 import { BoxPlotItem } from "./utils/layout/boxplot";
 import { BarItem, BulletItem, DonutItem, IbcsItem } from "./utils/data";
 import { CalendarDay } from "./utils/layout/calendar";
+import { ClassMode, GeometryInput, GeoPoint, ProjectionName, RegionValue } from "./utils/layout/geo";
 import { CategorySort, ChartCategory, ChartSeries, ReferenceLineSpec } from "./utils/series-chart";
 import { PaletteKind } from "./utils/palette";
 import { DotPlotItem, DotPlotSort } from "./utils/layout/dotplot";
 import { Scenario } from "./utils/layout/ibcs";
-import { KpiBadge, KpiDelta, KpiMeter } from "./components/kpi/udp-pbi-kpi-card/udp-pbi-kpi-card";
+import { KpiStatusLabels } from "./components/kpi/udp-pbi-kpi-bullet/udp-pbi-kpi-bullet";
+import { KpiDelta } from "./functional/kpi-shell";
+import { KpiBadge, KpiMeter } from "./components/kpi/udp-pbi-kpi-card/udp-pbi-kpi-card";
 import { HeroMeter, HeroMetric } from "./components/kpi/udp-pbi-kpi-hero/udp-pbi-kpi-hero";
+import { KpiPoint } from "./utils/layout/kpi";
 import { MatrixColumn, MatrixMeasure, MatrixNode } from "./utils/layout/matrix";
+import { PointMark } from "./components/charts/udp-pbi-point-map/udp-pbi-point-map";
+import { MapTiles } from "./functional/map-kit";
 import { ScatterPoint } from "./utils/layout/scatter";
 import { TimelineTask } from "./utils/layout/timeline";
 import { TreemapNode } from "./utils/layout/treemap";
@@ -31,13 +37,19 @@ export { VisualFrameMode } from "./functional/frame";
 export { BoxPlotItem } from "./utils/layout/boxplot";
 export { BarItem, BulletItem, DonutItem, IbcsItem } from "./utils/data";
 export { CalendarDay } from "./utils/layout/calendar";
+export { ClassMode, GeometryInput, GeoPoint, ProjectionName, RegionValue } from "./utils/layout/geo";
 export { CategorySort, ChartCategory, ChartSeries, ReferenceLineSpec } from "./utils/series-chart";
 export { PaletteKind } from "./utils/palette";
 export { DotPlotItem, DotPlotSort } from "./utils/layout/dotplot";
 export { Scenario } from "./utils/layout/ibcs";
-export { KpiBadge, KpiDelta, KpiMeter } from "./components/kpi/udp-pbi-kpi-card/udp-pbi-kpi-card";
+export { KpiStatusLabels } from "./components/kpi/udp-pbi-kpi-bullet/udp-pbi-kpi-bullet";
+export { KpiDelta } from "./functional/kpi-shell";
+export { KpiBadge, KpiMeter } from "./components/kpi/udp-pbi-kpi-card/udp-pbi-kpi-card";
 export { HeroMeter, HeroMetric } from "./components/kpi/udp-pbi-kpi-hero/udp-pbi-kpi-hero";
+export { KpiPoint } from "./utils/layout/kpi";
 export { MatrixColumn, MatrixMeasure, MatrixNode } from "./utils/layout/matrix";
+export { PointMark } from "./components/charts/udp-pbi-point-map/udp-pbi-point-map";
+export { MapTiles } from "./functional/map-kit";
 export { ScatterPoint } from "./utils/layout/scatter";
 export { TimelineTask } from "./utils/layout/timeline";
 export { TreemapNode } from "./utils/layout/treemap";
@@ -381,6 +393,169 @@ export namespace Components {
           * @default 'monday'
          */
         "weekStart": 'monday' | 'sunday';
+    }
+    /**
+     * Choropleth (FT "spatial"): regions coloured by a rate or a ratio. Never shade raw counts — larger
+     * regions would win by size alone; a count belongs on a point map's bubbles or spikes. Classes are
+     * equal intervals (`quantize`), equal counts (`quantile`) or a continuous 7-step ramp; `diverging`
+     * colours around `colorCenter`, favourable side by `goodWhen`. `shape="tiles"` is an equal-area
+     * cartogram (every region one tile, from `tileLayout`), `projection="globe"` an orthographic globe.
+     * Regions the boundaries do not know are listed under the map, never dropped silently.
+     */
+    interface UdpPbiChoropleth {
+        "calc"?: string;
+        /**
+          * @default 360
+         */
+        "chartHeight": number;
+        /**
+          * Number of classes (3–7).
+          * @default 5
+         */
+        "classCount": number;
+        /**
+          * @default 'quantize'
+         */
+        "classes": ClassMode;
+        /**
+          * Diverging centre (target, average, zero).
+          * @default 0
+         */
+        "colorCenter": number;
+        /**
+          * @default 'sequential'
+         */
+        "colorScale": 'sequential' | 'diverging';
+        /**
+          * Topology object drawn as neighbouring context land.
+         */
+        "contextObject"?: string;
+        "crossFilterField"?: string;
+        "emptyMessage"?: string;
+        "error"?: string;
+        "exportFileName"?: string;
+        /**
+          * @default ['csv', 'xlsx']
+         */
+        "exportFormats": ExportFormat[];
+        "exportRows"?: TableRow[];
+        /**
+          * @default true
+         */
+        "exportable": boolean;
+        /**
+          * Feature property the region keys match (ISO code by default; postal codes and names match too).
+          * @default 'code'
+         */
+        "featureKey": string;
+        /**
+          * `data`: frame the regions with values; `all`: every boundary.
+          * @default 'data'
+         */
+        "fit": 'data' | 'all';
+        /**
+          * @default true
+         */
+        "focusable": boolean;
+        /**
+          * Format of the values.
+         */
+        "format"?: FormatSpec;
+        /**
+          * @default 'card'
+         */
+        "frame": VisualFrameMode;
+        /**
+          * The boundaries: a TopoJSON topology or a GeoJSON FeatureCollection (WGS 84).
+         */
+        "geometry"?: GeometryInput;
+        /**
+          * Topology object holding the regions (default: the first).
+         */
+        "geometryObject"?: string;
+        /**
+          * @default 'higher'
+         */
+        "goodWhen": 'higher' | 'lower';
+        /**
+          * @default ''
+         */
+        "heading": string;
+        /**
+          * @default 0
+         */
+        "index": number;
+        "info"?: string;
+        "interactive"?: boolean;
+        "label"?: string;
+        /**
+          * @default 'auto'
+         */
+        "labels": 'auto' | 'none';
+        /**
+          * @default false
+         */
+        "loading": boolean;
+        /**
+          * @default 5
+         */
+        "loadingRows": number;
+        /**
+          * @default 'No data'
+         */
+        "noDataLabel": string;
+        /**
+          * @default 'auto'
+         */
+        "projection": ProjectionName;
+        /**
+          * @default 'Region'
+         */
+        "regionLabel": string;
+        /**
+          * One value per region.
+          * @default []
+         */
+        "regions": RegionValue[];
+        /**
+          * The selected region (its raw value or key).
+         */
+        "selectedValue"?: DataPointValue | null;
+        /**
+          * `map`: the real shapes; `tiles`: an equal-area tile grid (`tileLayout`).
+          * @default 'map'
+         */
+        "shape": 'map' | 'tiles';
+        /**
+          * @default false
+         */
+        "stale": boolean;
+        "subheading"?: string;
+        /**
+          * @default true
+         */
+        "tableToggle": boolean;
+        /**
+          * data-testid prefix: `${p}-region-${key}`.
+         */
+        "testIdPrefix"?: string;
+        "theme"?: ThemeName;
+        /**
+          * Tile grid: region code → [column, row].
+         */
+        "tileLayout"?: Record<string, [number, number]>;
+        /**
+          * @default 'Value'
+         */
+        "valueLabel": string;
+        /**
+          * Identifies the visual in its events.
+         */
+        "visualId"?: string;
+        /**
+          * @default true
+         */
+        "zoomable": boolean;
     }
     /**
      * Columns (FT "magnitude", "change over time", "distribution"): vertical bars for periods and ordinal
@@ -1168,6 +1343,94 @@ export namespace Components {
         "visualId"?: string;
     }
     /**
+     * KPI against a target as a bullet graph (Stephen Few): qualitative bands (poor / fair / good from
+     * `thresholds`), the value as a bar, the target as a tick, an optional forecast marker, and a status
+     * chip saying how far from the target it is. The readable replacement for a gauge.
+     */
+    interface UdpPbiKpiBullet {
+        "active"?: boolean;
+        "calc"?: string;
+        "caption"?: string;
+        "crossFilterField"?: string;
+        "displayValue"?: string;
+        "error"?: string;
+        "exportFileName"?: string;
+        /**
+          * @default ['csv', 'xlsx']
+         */
+        "exportFormats": ExportFormat[];
+        "exportRows"?: TableRow[];
+        /**
+          * @default true
+         */
+        "exportable": boolean;
+        /**
+          * @default true
+         */
+        "focusable": boolean;
+        /**
+          * A projected value (end of period), drawn as a hollow marker.
+         */
+        "forecast"?: number | null;
+        /**
+          * @default 'Forecast'
+         */
+        "forecastLabel": string;
+        /**
+          * Format of the value, the target, the thresholds and the scale.
+         */
+        "format"?: FormatSpec;
+        /**
+          * @default 'higher'
+         */
+        "goodWhen": 'higher' | 'lower';
+        /**
+          * The KPI label.
+          * @default ''
+         */
+        "heading": string;
+        "icon"?: string;
+        /**
+          * @default 0
+         */
+        "index": number;
+        "info"?: string;
+        "interactive"?: boolean;
+        /**
+          * @default false
+         */
+        "loading": boolean;
+        /**
+          * Scale end (default: a nice value above everything drawn).
+         */
+        "max"?: number | null;
+        /**
+          * @default false
+         */
+        "stale": boolean;
+        /**
+          * Status chip texts (default: "On target" / "Close to target" / "Off target", with the gap).
+          * @default {}
+         */
+        "statusLabels": KpiStatusLabels;
+        "target"?: number | null;
+        /**
+          * @default 'Target'
+         */
+        "targetLabel": string;
+        "theme"?: ThemeName;
+        /**
+          * Band limits, ascending: two give poor / fair / good (the order flips when lower is better).
+          * @default []
+         */
+        "thresholds": number[];
+        "value"?: number | null;
+        /**
+          * Identifies the visual in its events.
+         */
+        "visualId"?: string;
+    }
+    /**
      * KPI card (Lens `kpi_card`): uppercase label, tinted icon mark, the number as the dominant element,
      * a delta / badge / meter. "What it means / how it is calculated" lives one hover (or keyboard focus)
      * away in the curtain (principle 35), never on the card face.
@@ -1390,6 +1653,205 @@ export namespace Components {
         "visualId"?: string;
     }
     /**
+     * KPI with its recent trend: the number, its delta and a sparkline of the last periods with the
+     * current one marked, the lowest and highest points and an optional target line. Answers "how much,
+     * and which way is it going?". Without `value` the latest period is the headline; without a
+     * comparison the delta is against the previous period. Hovering the line reads any period.
+     */
+    interface UdpPbiKpiTrend {
+        /**
+          * Toggle state; leave undefined for a plain action.
+         */
+        "active"?: boolean;
+        /**
+          * Curtain: how it is calculated, one line.
+         */
+        "calc"?: string;
+        /**
+          * Quiet words beside the number.
+         */
+        "caption"?: string;
+        "comparisonValue"?: number | null;
+        "crossFilterField"?: string;
+        /**
+          * Explicit delta; otherwise derived from `comparisonValue` (default: the previous period).
+         */
+        "delta"?: KpiDelta;
+        /**
+          * Suffix of the derived delta (default: "vs <previous period>").
+         */
+        "deltaLabel"?: string;
+        /**
+          * Ready text for the number; wins over `value`.
+         */
+        "displayValue"?: string;
+        "error"?: string;
+        "exportFileName"?: string;
+        /**
+          * @default ['csv', 'xlsx']
+         */
+        "exportFormats": ExportFormat[];
+        "exportRows"?: TableRow[];
+        /**
+          * @default true
+         */
+        "exportable": boolean;
+        /**
+          * @default true
+         */
+        "focusable": boolean;
+        /**
+          * Format of the number, the series and the target.
+         */
+        "format"?: FormatSpec;
+        /**
+          * @default 'higher'
+         */
+        "goodWhen": 'higher' | 'lower';
+        /**
+          * The KPI label.
+          * @default ''
+         */
+        "heading": string;
+        /**
+          * Icon mark by name, or the `icon` slot.
+         */
+        "icon"?: string;
+        /**
+          * @default 0
+         */
+        "index": number;
+        /**
+          * Curtain: what the number means, one sentence.
+         */
+        "info"?: string;
+        "interactive"?: boolean;
+        /**
+          * @default false
+         */
+        "loading": boolean;
+        /**
+          * What the line covers, e.g. "Last 12 months".
+         */
+        "periodLabel"?: string;
+        /**
+          * The recent periods, oldest first.
+          * @default []
+         */
+        "series": KpiPoint[];
+        /**
+          * @default false
+         */
+        "stale": boolean;
+        /**
+          * A target drawn as a dashed line.
+         */
+        "target"?: number | null;
+        /**
+          * @default 'Target'
+         */
+        "targetLabel": string;
+        "theme"?: ThemeName;
+        /**
+          * The headline number (default: the latest period's value).
+         */
+        "value"?: number | null;
+        /**
+          * Identifies the visual in its events.
+         */
+        "visualId"?: string;
+    }
+    /**
+     * IBCS variance KPI: the actual (AC) against one scenario (PY, PL, FC or BU) in IBCS notation —
+     * the AC bar solid, the scenario bar in its notation (PY grey, PL outlined, FC hatched-dashed,
+     * BU dotted), the absolute variance as a green / red bar and the relative variance as a pin.
+     * Answers "better or worse than plan / last year, and by how much?".
+     */
+    interface UdpPbiKpiVariance {
+        "active"?: boolean;
+        /**
+          * The actual (AC).
+         */
+        "actual"?: number | null;
+        /**
+          * @default 'AC'
+         */
+        "actualLabel": string;
+        "calc"?: string;
+        "caption"?: string;
+        /**
+          * The scenario value (prior year, plan, forecast or budget).
+         */
+        "comparison"?: number | null;
+        /**
+          * Name of the scenario row (default: the scenario code).
+         */
+        "comparisonLabel"?: string;
+        "crossFilterField"?: string;
+        /**
+          * Decimals of the relative variance.
+          * @default 1
+         */
+        "decimals": number;
+        /**
+          * Ready text for the headline; wins over `actual`.
+         */
+        "displayValue"?: string;
+        "error"?: string;
+        "exportFileName"?: string;
+        /**
+          * @default ['csv', 'xlsx']
+         */
+        "exportFormats": ExportFormat[];
+        "exportRows"?: TableRow[];
+        /**
+          * @default true
+         */
+        "exportable": boolean;
+        /**
+          * @default true
+         */
+        "focusable": boolean;
+        /**
+          * Format of the actual, the comparison and the absolute variance.
+         */
+        "format"?: FormatSpec;
+        /**
+          * Whether a higher actual is favourable (colours the variances).
+          * @default 'higher'
+         */
+        "goodWhen": 'higher' | 'lower';
+        /**
+          * The KPI label.
+          * @default ''
+         */
+        "heading": string;
+        "icon"?: string;
+        /**
+          * @default 0
+         */
+        "index": number;
+        "info"?: string;
+        "interactive"?: boolean;
+        /**
+          * @default false
+         */
+        "loading": boolean;
+        /**
+          * @default 'PY'
+         */
+        "scenario": Scenario;
+        /**
+          * @default false
+         */
+        "stale": boolean;
+        "theme"?: ThemeName;
+        /**
+          * Identifies the visual in its events.
+         */
+        "visualId"?: string;
+    }
+    /**
      * Matrix (Lens matrix; FT XY heatmap, e.g. the criticality × condition risk matrix): hierarchical
      * rows (1–3 levels, expand / collapse), an optional column dimension and several measures, each
      * optionally heat-mapped with a token ramp (sequential, or diverging by business meaning). Totals
@@ -1533,6 +1995,143 @@ export namespace Components {
           * Identifies the visual in its events.
          */
         "visualId"?: string;
+    }
+    /**
+     * Point map (FT "spatial"): locations at their exact coordinates (WGS 84 latitude / longitude).
+     * `dot` places them (colour by group), `bubble` and `spike` size them by value (area ∝ value; a
+     * spike's height ∝ value, the 2.5D variant), `hexbin` and `heat` show density where points crowd.
+     * `projection="globe"` draws an orthographic globe you rotate by dragging, or by moving between
+     * locations with the arrow keys. Boundaries are context only (`geometry`, from the host); an
+     * optional raster basemap comes from the host too (`tiles`, Web Mercator). Zoom with the buttons,
+     * Ctrl + wheel or a pinch; the page keeps its scroll. A click (Enter / Space) reports the location.
+     */
+    interface UdpPbiPointMap {
+        "calc"?: string;
+        /**
+          * @default 'Location'
+         */
+        "categoryLabel": string;
+        /**
+          * @default 360
+         */
+        "chartHeight": number;
+        /**
+          * Topology object drawn as neighbouring context land.
+         */
+        "contextObject"?: string;
+        /**
+          * Column a click filters (reported in `dataPointClick`).
+         */
+        "crossFilterField"?: string;
+        "emptyMessage"?: string;
+        "error"?: string;
+        "exportFileName"?: string;
+        /**
+          * @default ['csv', 'xlsx']
+         */
+        "exportFormats": ExportFormat[];
+        "exportRows"?: TableRow[];
+        /**
+          * @default true
+         */
+        "exportable": boolean;
+        /**
+          * @default true
+         */
+        "focusable": boolean;
+        /**
+          * Format of the values.
+         */
+        "format"?: FormatSpec;
+        /**
+          * `card` (default): the template card; `none`: the map alone, for a host card.
+          * @default 'card'
+         */
+        "frame": VisualFrameMode;
+        /**
+          * Context boundaries: a TopoJSON topology or a GeoJSON FeatureCollection (WGS 84).
+         */
+        "geometry"?: GeometryInput;
+        /**
+          * Topology object drawn as land (default: the first).
+         */
+        "geometryObject"?: string;
+        /**
+          * @default 'Group'
+         */
+        "groupLabel": string;
+        /**
+          * Card title.
+          * @default ''
+         */
+        "heading": string;
+        /**
+          * @default 0
+         */
+        "index": number;
+        "info"?: string;
+        "interactive"?: boolean;
+        /**
+          * Accessible name of the map (default: heading).
+         */
+        "label"?: string;
+        /**
+          * @default false
+         */
+        "loading": boolean;
+        /**
+          * @default 5
+         */
+        "loadingRows": number;
+        /**
+          * @default 'dot'
+         */
+        "mark": PointMark;
+        /**
+          * The located points.
+          * @default []
+         */
+        "points": GeoPoint[];
+        /**
+          * `auto` picks by extent (Mercator → conic → Equal Earth); `globe` is an orthographic sphere.
+          * @default 'auto'
+         */
+        "projection": ProjectionName;
+        /**
+          * The selected location (its raw value or id).
+         */
+        "selectedValue"?: DataPointValue | null;
+        /**
+          * @default false
+         */
+        "stale": boolean;
+        "subheading"?: string;
+        /**
+          * @default true
+         */
+        "tableToggle": boolean;
+        /**
+          * data-testid prefix: `${p}-point-${id}`.
+         */
+        "testIdPrefix"?: string;
+        "theme"?: ThemeName;
+        /**
+          * Raster basemap from the host (Web Mercator; forces a Mercator projection).
+         */
+        "tiles"?: MapTiles;
+        /**
+          * @default 'Value'
+         */
+        "valueLabel": string;
+        /**
+          * Identifies the visual in its events.
+         */
+        "visualId"?: string;
+        /**
+          * Zoom buttons, Ctrl + wheel and pinch.
+          * @default true
+         */
+        "zoomable": boolean;
     }
     /**
      * Compact ranking (Lens `ranking_bars`): name · quiet track with the gradient fill · value, one line
@@ -2619,6 +3218,10 @@ export interface UdpPbiCalendarHeatmapCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLUdpPbiCalendarHeatmapElement;
 }
+export interface UdpPbiChoroplethCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLUdpPbiChoroplethElement;
+}
 export interface UdpPbiColumnChartCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLUdpPbiColumnChartElement;
@@ -2643,6 +3246,10 @@ export interface UdpPbiIbcsVarianceCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLUdpPbiIbcsVarianceElement;
 }
+export interface UdpPbiKpiBulletCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLUdpPbiKpiBulletElement;
+}
 export interface UdpPbiKpiCardCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLUdpPbiKpiCardElement;
@@ -2651,9 +3258,21 @@ export interface UdpPbiKpiHeroCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLUdpPbiKpiHeroElement;
 }
+export interface UdpPbiKpiTrendCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLUdpPbiKpiTrendElement;
+}
+export interface UdpPbiKpiVarianceCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLUdpPbiKpiVarianceElement;
+}
 export interface UdpPbiMatrixCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLUdpPbiMatrixElement;
+}
+export interface UdpPbiPointMapCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLUdpPbiPointMapElement;
 }
 export interface UdpPbiRankingBarsCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -2765,6 +3384,34 @@ declare global {
     var HTMLUdpPbiCalendarHeatmapElement: {
         prototype: HTMLUdpPbiCalendarHeatmapElement;
         new (): HTMLUdpPbiCalendarHeatmapElement;
+    };
+    interface HTMLUdpPbiChoroplethElementEventMap {
+        "dataPointClick": DataPointClickDetail;
+        "exportData": ExportDetail;
+        "focusModeChange": FocusModeDetail;
+        "viewChange": ViewChangeDetail;
+    }
+    /**
+     * Choropleth (FT "spatial"): regions coloured by a rate or a ratio. Never shade raw counts — larger
+     * regions would win by size alone; a count belongs on a point map's bubbles or spikes. Classes are
+     * equal intervals (`quantize`), equal counts (`quantile`) or a continuous 7-step ramp; `diverging`
+     * colours around `colorCenter`, favourable side by `goodWhen`. `shape="tiles"` is an equal-area
+     * cartogram (every region one tile, from `tileLayout`), `projection="globe"` an orthographic globe.
+     * Regions the boundaries do not know are listed under the map, never dropped silently.
+     */
+    interface HTMLUdpPbiChoroplethElement extends Components.UdpPbiChoropleth, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLUdpPbiChoroplethElementEventMap>(type: K, listener: (this: HTMLUdpPbiChoroplethElement, ev: UdpPbiChoroplethCustomEvent<HTMLUdpPbiChoroplethElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLUdpPbiChoroplethElementEventMap>(type: K, listener: (this: HTMLUdpPbiChoroplethElement, ev: UdpPbiChoroplethCustomEvent<HTMLUdpPbiChoroplethElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLUdpPbiChoroplethElement: {
+        prototype: HTMLUdpPbiChoroplethElement;
+        new (): HTMLUdpPbiChoroplethElement;
     };
     interface HTMLUdpPbiColumnChartElementEventMap {
         "dataPointClick": DataPointClickDetail;
@@ -2922,6 +3569,31 @@ declare global {
         prototype: HTMLUdpPbiIbcsVarianceElement;
         new (): HTMLUdpPbiIbcsVarianceElement;
     };
+    interface HTMLUdpPbiKpiBulletElementEventMap {
+        "dataPointClick": DataPointClickDetail;
+        "exportData": ExportDetail;
+        "focusModeChange": FocusModeDetail;
+        "viewChange": ViewChangeDetail;
+    }
+    /**
+     * KPI against a target as a bullet graph (Stephen Few): qualitative bands (poor / fair / good from
+     * `thresholds`), the value as a bar, the target as a tick, an optional forecast marker, and a status
+     * chip saying how far from the target it is. The readable replacement for a gauge.
+     */
+    interface HTMLUdpPbiKpiBulletElement extends Components.UdpPbiKpiBullet, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLUdpPbiKpiBulletElementEventMap>(type: K, listener: (this: HTMLUdpPbiKpiBulletElement, ev: UdpPbiKpiBulletCustomEvent<HTMLUdpPbiKpiBulletElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLUdpPbiKpiBulletElementEventMap>(type: K, listener: (this: HTMLUdpPbiKpiBulletElement, ev: UdpPbiKpiBulletCustomEvent<HTMLUdpPbiKpiBulletElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLUdpPbiKpiBulletElement: {
+        prototype: HTMLUdpPbiKpiBulletElement;
+        new (): HTMLUdpPbiKpiBulletElement;
+    };
     interface HTMLUdpPbiKpiCardElementEventMap {
         "dataPointClick": DataPointClickDetail;
         "exportData": ExportDetail;
@@ -2975,6 +3647,58 @@ declare global {
         prototype: HTMLUdpPbiKpiHeroElement;
         new (): HTMLUdpPbiKpiHeroElement;
     };
+    interface HTMLUdpPbiKpiTrendElementEventMap {
+        "dataPointClick": DataPointClickDetail;
+        "exportData": ExportDetail;
+        "focusModeChange": FocusModeDetail;
+        "viewChange": ViewChangeDetail;
+    }
+    /**
+     * KPI with its recent trend: the number, its delta and a sparkline of the last periods with the
+     * current one marked, the lowest and highest points and an optional target line. Answers "how much,
+     * and which way is it going?". Without `value` the latest period is the headline; without a
+     * comparison the delta is against the previous period. Hovering the line reads any period.
+     */
+    interface HTMLUdpPbiKpiTrendElement extends Components.UdpPbiKpiTrend, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLUdpPbiKpiTrendElementEventMap>(type: K, listener: (this: HTMLUdpPbiKpiTrendElement, ev: UdpPbiKpiTrendCustomEvent<HTMLUdpPbiKpiTrendElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLUdpPbiKpiTrendElementEventMap>(type: K, listener: (this: HTMLUdpPbiKpiTrendElement, ev: UdpPbiKpiTrendCustomEvent<HTMLUdpPbiKpiTrendElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLUdpPbiKpiTrendElement: {
+        prototype: HTMLUdpPbiKpiTrendElement;
+        new (): HTMLUdpPbiKpiTrendElement;
+    };
+    interface HTMLUdpPbiKpiVarianceElementEventMap {
+        "dataPointClick": DataPointClickDetail;
+        "exportData": ExportDetail;
+        "focusModeChange": FocusModeDetail;
+        "viewChange": ViewChangeDetail;
+    }
+    /**
+     * IBCS variance KPI: the actual (AC) against one scenario (PY, PL, FC or BU) in IBCS notation —
+     * the AC bar solid, the scenario bar in its notation (PY grey, PL outlined, FC hatched-dashed,
+     * BU dotted), the absolute variance as a green / red bar and the relative variance as a pin.
+     * Answers "better or worse than plan / last year, and by how much?".
+     */
+    interface HTMLUdpPbiKpiVarianceElement extends Components.UdpPbiKpiVariance, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLUdpPbiKpiVarianceElementEventMap>(type: K, listener: (this: HTMLUdpPbiKpiVarianceElement, ev: UdpPbiKpiVarianceCustomEvent<HTMLUdpPbiKpiVarianceElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLUdpPbiKpiVarianceElementEventMap>(type: K, listener: (this: HTMLUdpPbiKpiVarianceElement, ev: UdpPbiKpiVarianceCustomEvent<HTMLUdpPbiKpiVarianceElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLUdpPbiKpiVarianceElement: {
+        prototype: HTMLUdpPbiKpiVarianceElement;
+        new (): HTMLUdpPbiKpiVarianceElement;
+    };
     interface HTMLUdpPbiMatrixElementEventMap {
         "dataPointClick": DataPointClickDetail;
         "exportData": ExportDetail;
@@ -3002,6 +3726,35 @@ declare global {
     var HTMLUdpPbiMatrixElement: {
         prototype: HTMLUdpPbiMatrixElement;
         new (): HTMLUdpPbiMatrixElement;
+    };
+    interface HTMLUdpPbiPointMapElementEventMap {
+        "dataPointClick": DataPointClickDetail;
+        "exportData": ExportDetail;
+        "focusModeChange": FocusModeDetail;
+        "viewChange": ViewChangeDetail;
+    }
+    /**
+     * Point map (FT "spatial"): locations at their exact coordinates (WGS 84 latitude / longitude).
+     * `dot` places them (colour by group), `bubble` and `spike` size them by value (area ∝ value; a
+     * spike's height ∝ value, the 2.5D variant), `hexbin` and `heat` show density where points crowd.
+     * `projection="globe"` draws an orthographic globe you rotate by dragging, or by moving between
+     * locations with the arrow keys. Boundaries are context only (`geometry`, from the host); an
+     * optional raster basemap comes from the host too (`tiles`, Web Mercator). Zoom with the buttons,
+     * Ctrl + wheel or a pinch; the page keeps its scroll. A click (Enter / Space) reports the location.
+     */
+    interface HTMLUdpPbiPointMapElement extends Components.UdpPbiPointMap, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLUdpPbiPointMapElementEventMap>(type: K, listener: (this: HTMLUdpPbiPointMapElement, ev: UdpPbiPointMapCustomEvent<HTMLUdpPbiPointMapElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLUdpPbiPointMapElementEventMap>(type: K, listener: (this: HTMLUdpPbiPointMapElement, ev: UdpPbiPointMapCustomEvent<HTMLUdpPbiPointMapElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLUdpPbiPointMapElement: {
+        prototype: HTMLUdpPbiPointMapElement;
+        new (): HTMLUdpPbiPointMapElement;
     };
     interface HTMLUdpPbiRankingBarsElementEventMap {
         "dataPointClick": DataPointClickDetail;
@@ -3222,15 +3975,20 @@ declare global {
         "udp-pbi-boxplot": HTMLUdpPbiBoxplotElement;
         "udp-pbi-bullet-bars": HTMLUdpPbiBulletBarsElement;
         "udp-pbi-calendar-heatmap": HTMLUdpPbiCalendarHeatmapElement;
+        "udp-pbi-choropleth": HTMLUdpPbiChoroplethElement;
         "udp-pbi-column-chart": HTMLUdpPbiColumnChartElement;
         "udp-pbi-data-table": HTMLUdpPbiDataTableElement;
         "udp-pbi-diverging-bars": HTMLUdpPbiDivergingBarsElement;
         "udp-pbi-donut": HTMLUdpPbiDonutElement;
         "udp-pbi-dot-plot": HTMLUdpPbiDotPlotElement;
         "udp-pbi-ibcs-variance": HTMLUdpPbiIbcsVarianceElement;
+        "udp-pbi-kpi-bullet": HTMLUdpPbiKpiBulletElement;
         "udp-pbi-kpi-card": HTMLUdpPbiKpiCardElement;
         "udp-pbi-kpi-hero": HTMLUdpPbiKpiHeroElement;
+        "udp-pbi-kpi-trend": HTMLUdpPbiKpiTrendElement;
+        "udp-pbi-kpi-variance": HTMLUdpPbiKpiVarianceElement;
         "udp-pbi-matrix": HTMLUdpPbiMatrixElement;
+        "udp-pbi-point-map": HTMLUdpPbiPointMapElement;
         "udp-pbi-ranking-bars": HTMLUdpPbiRankingBarsElement;
         "udp-pbi-scatter": HTMLUdpPbiScatterElement;
         "udp-pbi-spotlight-bars": HTMLUdpPbiSpotlightBarsElement;
@@ -3591,6 +4349,173 @@ declare namespace LocalJSX {
           * @default 'monday'
          */
         "weekStart"?: 'monday' | 'sunday';
+    }
+    /**
+     * Choropleth (FT "spatial"): regions coloured by a rate or a ratio. Never shade raw counts — larger
+     * regions would win by size alone; a count belongs on a point map's bubbles or spikes. Classes are
+     * equal intervals (`quantize`), equal counts (`quantile`) or a continuous 7-step ramp; `diverging`
+     * colours around `colorCenter`, favourable side by `goodWhen`. `shape="tiles"` is an equal-area
+     * cartogram (every region one tile, from `tileLayout`), `projection="globe"` an orthographic globe.
+     * Regions the boundaries do not know are listed under the map, never dropped silently.
+     */
+    interface UdpPbiChoropleth {
+        "calc"?: string;
+        /**
+          * @default 360
+         */
+        "chartHeight"?: number;
+        /**
+          * Number of classes (3–7).
+          * @default 5
+         */
+        "classCount"?: number;
+        /**
+          * @default 'quantize'
+         */
+        "classes"?: ClassMode;
+        /**
+          * Diverging centre (target, average, zero).
+          * @default 0
+         */
+        "colorCenter"?: number;
+        /**
+          * @default 'sequential'
+         */
+        "colorScale"?: 'sequential' | 'diverging';
+        /**
+          * Topology object drawn as neighbouring context land.
+         */
+        "contextObject"?: string;
+        "crossFilterField"?: string;
+        "emptyMessage"?: string;
+        "error"?: string;
+        "exportFileName"?: string;
+        /**
+          * @default ['csv', 'xlsx']
+         */
+        "exportFormats"?: ExportFormat[];
+        "exportRows"?: TableRow[];
+        /**
+          * @default true
+         */
+        "exportable"?: boolean;
+        /**
+          * Feature property the region keys match (ISO code by default; postal codes and names match too).
+          * @default 'code'
+         */
+        "featureKey"?: string;
+        /**
+          * `data`: frame the regions with values; `all`: every boundary.
+          * @default 'data'
+         */
+        "fit"?: 'data' | 'all';
+        /**
+          * @default true
+         */
+        "focusable"?: boolean;
+        /**
+          * Format of the values.
+         */
+        "format"?: FormatSpec;
+        /**
+          * @default 'card'
+         */
+        "frame"?: VisualFrameMode;
+        /**
+          * The boundaries: a TopoJSON topology or a GeoJSON FeatureCollection (WGS 84).
+         */
+        "geometry"?: GeometryInput;
+        /**
+          * Topology object holding the regions (default: the first).
+         */
+        "geometryObject"?: string;
+        /**
+          * @default 'higher'
+         */
+        "goodWhen"?: 'higher' | 'lower';
+        /**
+          * @default ''
+         */
+        "heading"?: string;
+        /**
+          * @default 0
+         */
+        "index"?: number;
+        "info"?: string;
+        "interactive"?: boolean;
+        "label"?: string;
+        /**
+          * @default 'auto'
+         */
+        "labels"?: 'auto' | 'none';
+        /**
+          * @default false
+         */
+        "loading"?: boolean;
+        /**
+          * @default 5
+         */
+        "loadingRows"?: number;
+        /**
+          * @default 'No data'
+         */
+        "noDataLabel"?: string;
+        "onDataPointClick"?: (event: UdpPbiChoroplethCustomEvent<DataPointClickDetail>) => void;
+        "onExportData"?: (event: UdpPbiChoroplethCustomEvent<ExportDetail>) => void;
+        "onFocusModeChange"?: (event: UdpPbiChoroplethCustomEvent<FocusModeDetail>) => void;
+        "onViewChange"?: (event: UdpPbiChoroplethCustomEvent<ViewChangeDetail>) => void;
+        /**
+          * @default 'auto'
+         */
+        "projection"?: ProjectionName;
+        /**
+          * @default 'Region'
+         */
+        "regionLabel"?: string;
+        /**
+          * One value per region.
+          * @default []
+         */
+        "regions"?: RegionValue[];
+        /**
+          * The selected region (its raw value or key).
+         */
+        "selectedValue"?: DataPointValue | null;
+        /**
+          * `map`: the real shapes; `tiles`: an equal-area tile grid (`tileLayout`).
+          * @default 'map'
+         */
+        "shape"?: 'map' | 'tiles';
+        /**
+          * @default false
+         */
+        "stale"?: boolean;
+        "subheading"?: string;
+        /**
+          * @default true
+         */
+        "tableToggle"?: boolean;
+        /**
+          * data-testid prefix: `${p}-region-${key}`.
+         */
+        "testIdPrefix"?: string;
+        "theme"?: ThemeName;
+        /**
+          * Tile grid: region code → [column, row].
+         */
+        "tileLayout"?: Record<string, [number, number]>;
+        /**
+          * @default 'Value'
+         */
+        "valueLabel"?: string;
+        /**
+          * Identifies the visual in its events.
+         */
+        "visualId"?: string;
+        /**
+          * @default true
+         */
+        "zoomable"?: boolean;
     }
     /**
      * Columns (FT "magnitude", "change over time", "distribution"): vertical bars for periods and ordinal
@@ -4402,6 +5327,98 @@ declare namespace LocalJSX {
         "visualId"?: string;
     }
     /**
+     * KPI against a target as a bullet graph (Stephen Few): qualitative bands (poor / fair / good from
+     * `thresholds`), the value as a bar, the target as a tick, an optional forecast marker, and a status
+     * chip saying how far from the target it is. The readable replacement for a gauge.
+     */
+    interface UdpPbiKpiBullet {
+        "active"?: boolean;
+        "calc"?: string;
+        "caption"?: string;
+        "crossFilterField"?: string;
+        "displayValue"?: string;
+        "error"?: string;
+        "exportFileName"?: string;
+        /**
+          * @default ['csv', 'xlsx']
+         */
+        "exportFormats"?: ExportFormat[];
+        "exportRows"?: TableRow[];
+        /**
+          * @default true
+         */
+        "exportable"?: boolean;
+        /**
+          * @default true
+         */
+        "focusable"?: boolean;
+        /**
+          * A projected value (end of period), drawn as a hollow marker.
+         */
+        "forecast"?: number | null;
+        /**
+          * @default 'Forecast'
+         */
+        "forecastLabel"?: string;
+        /**
+          * Format of the value, the target, the thresholds and the scale.
+         */
+        "format"?: FormatSpec;
+        /**
+          * @default 'higher'
+         */
+        "goodWhen"?: 'higher' | 'lower';
+        /**
+          * The KPI label.
+          * @default ''
+         */
+        "heading"?: string;
+        "icon"?: string;
+        /**
+          * @default 0
+         */
+        "index"?: number;
+        "info"?: string;
+        "interactive"?: boolean;
+        /**
+          * @default false
+         */
+        "loading"?: boolean;
+        /**
+          * Scale end (default: a nice value above everything drawn).
+         */
+        "max"?: number | null;
+        "onDataPointClick"?: (event: UdpPbiKpiBulletCustomEvent<DataPointClickDetail>) => void;
+        "onExportData"?: (event: UdpPbiKpiBulletCustomEvent<ExportDetail>) => void;
+        "onFocusModeChange"?: (event: UdpPbiKpiBulletCustomEvent<FocusModeDetail>) => void;
+        "onViewChange"?: (event: UdpPbiKpiBulletCustomEvent<ViewChangeDetail>) => void;
+        /**
+          * @default false
+         */
+        "stale"?: boolean;
+        /**
+          * Status chip texts (default: "On target" / "Close to target" / "Off target", with the gap).
+          * @default {}
+         */
+        "statusLabels"?: KpiStatusLabels;
+        "target"?: number | null;
+        /**
+          * @default 'Target'
+         */
+        "targetLabel"?: string;
+        "theme"?: ThemeName;
+        /**
+          * Band limits, ascending: two give poor / fair / good (the order flips when lower is better).
+          * @default []
+         */
+        "thresholds"?: number[];
+        "value"?: number | null;
+        /**
+          * Identifies the visual in its events.
+         */
+        "visualId"?: string;
+    }
+    /**
      * KPI card (Lens `kpi_card`): uppercase label, tinted icon mark, the number as the dominant element,
      * a delta / badge / meter. "What it means / how it is calculated" lives one hover (or keyboard focus)
      * away in the curtain (principle 35), never on the card face.
@@ -4632,6 +5649,213 @@ declare namespace LocalJSX {
         "visualId"?: string;
     }
     /**
+     * KPI with its recent trend: the number, its delta and a sparkline of the last periods with the
+     * current one marked, the lowest and highest points and an optional target line. Answers "how much,
+     * and which way is it going?". Without `value` the latest period is the headline; without a
+     * comparison the delta is against the previous period. Hovering the line reads any period.
+     */
+    interface UdpPbiKpiTrend {
+        /**
+          * Toggle state; leave undefined for a plain action.
+         */
+        "active"?: boolean;
+        /**
+          * Curtain: how it is calculated, one line.
+         */
+        "calc"?: string;
+        /**
+          * Quiet words beside the number.
+         */
+        "caption"?: string;
+        "comparisonValue"?: number | null;
+        "crossFilterField"?: string;
+        /**
+          * Explicit delta; otherwise derived from `comparisonValue` (default: the previous period).
+         */
+        "delta"?: KpiDelta;
+        /**
+          * Suffix of the derived delta (default: "vs <previous period>").
+         */
+        "deltaLabel"?: string;
+        /**
+          * Ready text for the number; wins over `value`.
+         */
+        "displayValue"?: string;
+        "error"?: string;
+        "exportFileName"?: string;
+        /**
+          * @default ['csv', 'xlsx']
+         */
+        "exportFormats"?: ExportFormat[];
+        "exportRows"?: TableRow[];
+        /**
+          * @default true
+         */
+        "exportable"?: boolean;
+        /**
+          * @default true
+         */
+        "focusable"?: boolean;
+        /**
+          * Format of the number, the series and the target.
+         */
+        "format"?: FormatSpec;
+        /**
+          * @default 'higher'
+         */
+        "goodWhen"?: 'higher' | 'lower';
+        /**
+          * The KPI label.
+          * @default ''
+         */
+        "heading"?: string;
+        /**
+          * Icon mark by name, or the `icon` slot.
+         */
+        "icon"?: string;
+        /**
+          * @default 0
+         */
+        "index"?: number;
+        /**
+          * Curtain: what the number means, one sentence.
+         */
+        "info"?: string;
+        "interactive"?: boolean;
+        /**
+          * @default false
+         */
+        "loading"?: boolean;
+        "onDataPointClick"?: (event: UdpPbiKpiTrendCustomEvent<DataPointClickDetail>) => void;
+        "onExportData"?: (event: UdpPbiKpiTrendCustomEvent<ExportDetail>) => void;
+        "onFocusModeChange"?: (event: UdpPbiKpiTrendCustomEvent<FocusModeDetail>) => void;
+        "onViewChange"?: (event: UdpPbiKpiTrendCustomEvent<ViewChangeDetail>) => void;
+        /**
+          * What the line covers, e.g. "Last 12 months".
+         */
+        "periodLabel"?: string;
+        /**
+          * The recent periods, oldest first.
+          * @default []
+         */
+        "series"?: KpiPoint[];
+        /**
+          * @default false
+         */
+        "stale"?: boolean;
+        /**
+          * A target drawn as a dashed line.
+         */
+        "target"?: number | null;
+        /**
+          * @default 'Target'
+         */
+        "targetLabel"?: string;
+        "theme"?: ThemeName;
+        /**
+          * The headline number (default: the latest period's value).
+         */
+        "value"?: number | null;
+        /**
+          * Identifies the visual in its events.
+         */
+        "visualId"?: string;
+    }
+    /**
+     * IBCS variance KPI: the actual (AC) against one scenario (PY, PL, FC or BU) in IBCS notation —
+     * the AC bar solid, the scenario bar in its notation (PY grey, PL outlined, FC hatched-dashed,
+     * BU dotted), the absolute variance as a green / red bar and the relative variance as a pin.
+     * Answers "better or worse than plan / last year, and by how much?".
+     */
+    interface UdpPbiKpiVariance {
+        "active"?: boolean;
+        /**
+          * The actual (AC).
+         */
+        "actual"?: number | null;
+        /**
+          * @default 'AC'
+         */
+        "actualLabel"?: string;
+        "calc"?: string;
+        "caption"?: string;
+        /**
+          * The scenario value (prior year, plan, forecast or budget).
+         */
+        "comparison"?: number | null;
+        /**
+          * Name of the scenario row (default: the scenario code).
+         */
+        "comparisonLabel"?: string;
+        "crossFilterField"?: string;
+        /**
+          * Decimals of the relative variance.
+          * @default 1
+         */
+        "decimals"?: number;
+        /**
+          * Ready text for the headline; wins over `actual`.
+         */
+        "displayValue"?: string;
+        "error"?: string;
+        "exportFileName"?: string;
+        /**
+          * @default ['csv', 'xlsx']
+         */
+        "exportFormats"?: ExportFormat[];
+        "exportRows"?: TableRow[];
+        /**
+          * @default true
+         */
+        "exportable"?: boolean;
+        /**
+          * @default true
+         */
+        "focusable"?: boolean;
+        /**
+          * Format of the actual, the comparison and the absolute variance.
+         */
+        "format"?: FormatSpec;
+        /**
+          * Whether a higher actual is favourable (colours the variances).
+          * @default 'higher'
+         */
+        "goodWhen"?: 'higher' | 'lower';
+        /**
+          * The KPI label.
+          * @default ''
+         */
+        "heading"?: string;
+        "icon"?: string;
+        /**
+          * @default 0
+         */
+        "index"?: number;
+        "info"?: string;
+        "interactive"?: boolean;
+        /**
+          * @default false
+         */
+        "loading"?: boolean;
+        "onDataPointClick"?: (event: UdpPbiKpiVarianceCustomEvent<DataPointClickDetail>) => void;
+        "onExportData"?: (event: UdpPbiKpiVarianceCustomEvent<ExportDetail>) => void;
+        "onFocusModeChange"?: (event: UdpPbiKpiVarianceCustomEvent<FocusModeDetail>) => void;
+        "onViewChange"?: (event: UdpPbiKpiVarianceCustomEvent<ViewChangeDetail>) => void;
+        /**
+          * @default 'PY'
+         */
+        "scenario"?: Scenario;
+        /**
+          * @default false
+         */
+        "stale"?: boolean;
+        "theme"?: ThemeName;
+        /**
+          * Identifies the visual in its events.
+         */
+        "visualId"?: string;
+    }
+    /**
      * Matrix (Lens matrix; FT XY heatmap, e.g. the criticality × condition risk matrix): hierarchical
      * rows (1–3 levels, expand / collapse), an optional column dimension and several measures, each
      * optionally heat-mapped with a token ramp (sequential, or diverging by business meaning). Totals
@@ -4779,6 +6003,147 @@ declare namespace LocalJSX {
           * Identifies the visual in its events.
          */
         "visualId"?: string;
+    }
+    /**
+     * Point map (FT "spatial"): locations at their exact coordinates (WGS 84 latitude / longitude).
+     * `dot` places them (colour by group), `bubble` and `spike` size them by value (area ∝ value; a
+     * spike's height ∝ value, the 2.5D variant), `hexbin` and `heat` show density where points crowd.
+     * `projection="globe"` draws an orthographic globe you rotate by dragging, or by moving between
+     * locations with the arrow keys. Boundaries are context only (`geometry`, from the host); an
+     * optional raster basemap comes from the host too (`tiles`, Web Mercator). Zoom with the buttons,
+     * Ctrl + wheel or a pinch; the page keeps its scroll. A click (Enter / Space) reports the location.
+     */
+    interface UdpPbiPointMap {
+        "calc"?: string;
+        /**
+          * @default 'Location'
+         */
+        "categoryLabel"?: string;
+        /**
+          * @default 360
+         */
+        "chartHeight"?: number;
+        /**
+          * Topology object drawn as neighbouring context land.
+         */
+        "contextObject"?: string;
+        /**
+          * Column a click filters (reported in `dataPointClick`).
+         */
+        "crossFilterField"?: string;
+        "emptyMessage"?: string;
+        "error"?: string;
+        "exportFileName"?: string;
+        /**
+          * @default ['csv', 'xlsx']
+         */
+        "exportFormats"?: ExportFormat[];
+        "exportRows"?: TableRow[];
+        /**
+          * @default true
+         */
+        "exportable"?: boolean;
+        /**
+          * @default true
+         */
+        "focusable"?: boolean;
+        /**
+          * Format of the values.
+         */
+        "format"?: FormatSpec;
+        /**
+          * `card` (default): the template card; `none`: the map alone, for a host card.
+          * @default 'card'
+         */
+        "frame"?: VisualFrameMode;
+        /**
+          * Context boundaries: a TopoJSON topology or a GeoJSON FeatureCollection (WGS 84).
+         */
+        "geometry"?: GeometryInput;
+        /**
+          * Topology object drawn as land (default: the first).
+         */
+        "geometryObject"?: string;
+        /**
+          * @default 'Group'
+         */
+        "groupLabel"?: string;
+        /**
+          * Card title.
+          * @default ''
+         */
+        "heading"?: string;
+        /**
+          * @default 0
+         */
+        "index"?: number;
+        "info"?: string;
+        "interactive"?: boolean;
+        /**
+          * Accessible name of the map (default: heading).
+         */
+        "label"?: string;
+        /**
+          * @default false
+         */
+        "loading"?: boolean;
+        /**
+          * @default 5
+         */
+        "loadingRows"?: number;
+        /**
+          * @default 'dot'
+         */
+        "mark"?: PointMark;
+        "onDataPointClick"?: (event: UdpPbiPointMapCustomEvent<DataPointClickDetail>) => void;
+        "onExportData"?: (event: UdpPbiPointMapCustomEvent<ExportDetail>) => void;
+        "onFocusModeChange"?: (event: UdpPbiPointMapCustomEvent<FocusModeDetail>) => void;
+        "onViewChange"?: (event: UdpPbiPointMapCustomEvent<ViewChangeDetail>) => void;
+        /**
+          * The located points.
+          * @default []
+         */
+        "points"?: GeoPoint[];
+        /**
+          * `auto` picks by extent (Mercator → conic → Equal Earth); `globe` is an orthographic sphere.
+          * @default 'auto'
+         */
+        "projection"?: ProjectionName;
+        /**
+          * The selected location (its raw value or id).
+         */
+        "selectedValue"?: DataPointValue | null;
+        /**
+          * @default false
+         */
+        "stale"?: boolean;
+        "subheading"?: string;
+        /**
+          * @default true
+         */
+        "tableToggle"?: boolean;
+        /**
+          * data-testid prefix: `${p}-point-${id}`.
+         */
+        "testIdPrefix"?: string;
+        "theme"?: ThemeName;
+        /**
+          * Raster basemap from the host (Web Mercator; forces a Mercator projection).
+         */
+        "tiles"?: MapTiles;
+        /**
+          * @default 'Value'
+         */
+        "valueLabel"?: string;
+        /**
+          * Identifies the visual in its events.
+         */
+        "visualId"?: string;
+        /**
+          * Zoom buttons, Ctrl + wheel and pinch.
+          * @default true
+         */
+        "zoomable"?: boolean;
     }
     /**
      * Compact ranking (Lens `ranking_bars`): name · quiet track with the gradient fill · value, one line
@@ -5965,6 +7330,47 @@ declare namespace LocalJSX {
         "valueLabel": string;
         "weekStart": 'monday' | 'sunday';
     }
+    interface UdpPbiChoroplethAttributes {
+        "visualId": string;
+        "heading": string;
+        "subheading": string;
+        "label": string;
+        "info": string;
+        "calc": string;
+        "loading": boolean;
+        "error": string;
+        "stale": boolean;
+        "emptyMessage": string;
+        "selectedValue": string;
+        "crossFilterField": string;
+        "interactive": boolean;
+        "exportable": boolean;
+        "exportFileName": string;
+        "focusable": boolean;
+        "tableToggle": boolean;
+        "theme": ThemeName;
+        "frame": VisualFrameMode;
+        "testIdPrefix": string;
+        "index": number;
+        "loadingRows": number;
+        "geometryObject": string;
+        "contextObject": string;
+        "featureKey": string;
+        "colorScale": 'sequential' | 'diverging';
+        "classes": ClassMode;
+        "classCount": number;
+        "goodWhen": 'higher' | 'lower';
+        "colorCenter": number;
+        "shape": 'map' | 'tiles';
+        "projection": ProjectionName;
+        "fit": 'data' | 'all';
+        "labels": 'auto' | 'none';
+        "regionLabel": string;
+        "valueLabel": string;
+        "noDataLabel": string;
+        "zoomable": boolean;
+        "chartHeight": number;
+    }
     interface UdpPbiColumnChartAttributes {
         "visualId": string;
         "heading": string;
@@ -6145,6 +7551,33 @@ declare namespace LocalJSX {
         "decimals": number;
         "chartHeight": number;
     }
+    interface UdpPbiKpiBulletAttributes {
+        "visualId": string;
+        "heading": string;
+        "info": string;
+        "calc": string;
+        "loading": boolean;
+        "error": string;
+        "stale": boolean;
+        "crossFilterField": string;
+        "interactive": boolean;
+        "active": boolean;
+        "exportable": boolean;
+        "exportFileName": string;
+        "focusable": boolean;
+        "theme": ThemeName;
+        "index": number;
+        "value": number | null;
+        "displayValue": string;
+        "caption": string;
+        "icon": string;
+        "target": number | null;
+        "targetLabel": string;
+        "max": number | null;
+        "forecast": number | null;
+        "forecastLabel": string;
+        "goodWhen": 'higher' | 'lower';
+    }
     interface UdpPbiKpiCardAttributes {
         "visualId": string;
         "heading": string;
@@ -6189,6 +7622,60 @@ declare namespace LocalJSX {
         "goodWhen": 'higher' | 'lower';
         "deltaLabel": string;
     }
+    interface UdpPbiKpiTrendAttributes {
+        "visualId": string;
+        "heading": string;
+        "info": string;
+        "calc": string;
+        "loading": boolean;
+        "error": string;
+        "stale": boolean;
+        "crossFilterField": string;
+        "interactive": boolean;
+        "active": boolean;
+        "exportable": boolean;
+        "exportFileName": string;
+        "focusable": boolean;
+        "theme": ThemeName;
+        "index": number;
+        "value": number | null;
+        "displayValue": string;
+        "caption": string;
+        "comparisonValue": number | null;
+        "goodWhen": 'higher' | 'lower';
+        "deltaLabel": string;
+        "icon": string;
+        "target": number | null;
+        "targetLabel": string;
+        "periodLabel": string;
+    }
+    interface UdpPbiKpiVarianceAttributes {
+        "visualId": string;
+        "heading": string;
+        "info": string;
+        "calc": string;
+        "loading": boolean;
+        "error": string;
+        "stale": boolean;
+        "crossFilterField": string;
+        "interactive": boolean;
+        "active": boolean;
+        "exportable": boolean;
+        "exportFileName": string;
+        "focusable": boolean;
+        "theme": ThemeName;
+        "index": number;
+        "actual": number | null;
+        "displayValue": string;
+        "comparison": number | null;
+        "scenario": Scenario;
+        "goodWhen": 'higher' | 'lower';
+        "actualLabel": string;
+        "comparisonLabel": string;
+        "decimals": number;
+        "caption": string;
+        "icon": string;
+    }
     interface UdpPbiMatrixAttributes {
         "visualId": string;
         "heading": string;
@@ -6216,6 +7703,39 @@ declare namespace LocalJSX {
         "columnHeader": string;
         "expandLevel": number;
         "maxHeight": number;
+    }
+    interface UdpPbiPointMapAttributes {
+        "visualId": string;
+        "heading": string;
+        "subheading": string;
+        "label": string;
+        "info": string;
+        "calc": string;
+        "loading": boolean;
+        "error": string;
+        "stale": boolean;
+        "emptyMessage": string;
+        "selectedValue": string;
+        "crossFilterField": string;
+        "interactive": boolean;
+        "exportable": boolean;
+        "exportFileName": string;
+        "focusable": boolean;
+        "tableToggle": boolean;
+        "theme": ThemeName;
+        "frame": VisualFrameMode;
+        "testIdPrefix": string;
+        "index": number;
+        "loadingRows": number;
+        "mark": PointMark;
+        "projection": ProjectionName;
+        "geometryObject": string;
+        "contextObject": string;
+        "categoryLabel": string;
+        "valueLabel": string;
+        "groupLabel": string;
+        "zoomable": boolean;
+        "chartHeight": number;
     }
     interface UdpPbiRankingBarsAttributes {
         "visualId": string;
@@ -6456,15 +7976,20 @@ declare namespace LocalJSX {
         "udp-pbi-boxplot": Omit<UdpPbiBoxplot, keyof UdpPbiBoxplotAttributes> & { [K in keyof UdpPbiBoxplot & keyof UdpPbiBoxplotAttributes]?: UdpPbiBoxplot[K] } & { [K in keyof UdpPbiBoxplot & keyof UdpPbiBoxplotAttributes as `attr:${K}`]?: UdpPbiBoxplotAttributes[K] } & { [K in keyof UdpPbiBoxplot & keyof UdpPbiBoxplotAttributes as `prop:${K}`]?: UdpPbiBoxplot[K] };
         "udp-pbi-bullet-bars": Omit<UdpPbiBulletBars, keyof UdpPbiBulletBarsAttributes> & { [K in keyof UdpPbiBulletBars & keyof UdpPbiBulletBarsAttributes]?: UdpPbiBulletBars[K] } & { [K in keyof UdpPbiBulletBars & keyof UdpPbiBulletBarsAttributes as `attr:${K}`]?: UdpPbiBulletBarsAttributes[K] } & { [K in keyof UdpPbiBulletBars & keyof UdpPbiBulletBarsAttributes as `prop:${K}`]?: UdpPbiBulletBars[K] };
         "udp-pbi-calendar-heatmap": Omit<UdpPbiCalendarHeatmap, keyof UdpPbiCalendarHeatmapAttributes> & { [K in keyof UdpPbiCalendarHeatmap & keyof UdpPbiCalendarHeatmapAttributes]?: UdpPbiCalendarHeatmap[K] } & { [K in keyof UdpPbiCalendarHeatmap & keyof UdpPbiCalendarHeatmapAttributes as `attr:${K}`]?: UdpPbiCalendarHeatmapAttributes[K] } & { [K in keyof UdpPbiCalendarHeatmap & keyof UdpPbiCalendarHeatmapAttributes as `prop:${K}`]?: UdpPbiCalendarHeatmap[K] };
+        "udp-pbi-choropleth": Omit<UdpPbiChoropleth, keyof UdpPbiChoroplethAttributes> & { [K in keyof UdpPbiChoropleth & keyof UdpPbiChoroplethAttributes]?: UdpPbiChoropleth[K] } & { [K in keyof UdpPbiChoropleth & keyof UdpPbiChoroplethAttributes as `attr:${K}`]?: UdpPbiChoroplethAttributes[K] } & { [K in keyof UdpPbiChoropleth & keyof UdpPbiChoroplethAttributes as `prop:${K}`]?: UdpPbiChoropleth[K] };
         "udp-pbi-column-chart": Omit<UdpPbiColumnChart, keyof UdpPbiColumnChartAttributes> & { [K in keyof UdpPbiColumnChart & keyof UdpPbiColumnChartAttributes]?: UdpPbiColumnChart[K] } & { [K in keyof UdpPbiColumnChart & keyof UdpPbiColumnChartAttributes as `attr:${K}`]?: UdpPbiColumnChartAttributes[K] } & { [K in keyof UdpPbiColumnChart & keyof UdpPbiColumnChartAttributes as `prop:${K}`]?: UdpPbiColumnChart[K] };
         "udp-pbi-data-table": Omit<UdpPbiDataTable, keyof UdpPbiDataTableAttributes> & { [K in keyof UdpPbiDataTable & keyof UdpPbiDataTableAttributes]?: UdpPbiDataTable[K] } & { [K in keyof UdpPbiDataTable & keyof UdpPbiDataTableAttributes as `attr:${K}`]?: UdpPbiDataTableAttributes[K] } & { [K in keyof UdpPbiDataTable & keyof UdpPbiDataTableAttributes as `prop:${K}`]?: UdpPbiDataTable[K] };
         "udp-pbi-diverging-bars": Omit<UdpPbiDivergingBars, keyof UdpPbiDivergingBarsAttributes> & { [K in keyof UdpPbiDivergingBars & keyof UdpPbiDivergingBarsAttributes]?: UdpPbiDivergingBars[K] } & { [K in keyof UdpPbiDivergingBars & keyof UdpPbiDivergingBarsAttributes as `attr:${K}`]?: UdpPbiDivergingBarsAttributes[K] } & { [K in keyof UdpPbiDivergingBars & keyof UdpPbiDivergingBarsAttributes as `prop:${K}`]?: UdpPbiDivergingBars[K] };
         "udp-pbi-donut": Omit<UdpPbiDonut, keyof UdpPbiDonutAttributes> & { [K in keyof UdpPbiDonut & keyof UdpPbiDonutAttributes]?: UdpPbiDonut[K] } & { [K in keyof UdpPbiDonut & keyof UdpPbiDonutAttributes as `attr:${K}`]?: UdpPbiDonutAttributes[K] } & { [K in keyof UdpPbiDonut & keyof UdpPbiDonutAttributes as `prop:${K}`]?: UdpPbiDonut[K] };
         "udp-pbi-dot-plot": Omit<UdpPbiDotPlot, keyof UdpPbiDotPlotAttributes> & { [K in keyof UdpPbiDotPlot & keyof UdpPbiDotPlotAttributes]?: UdpPbiDotPlot[K] } & { [K in keyof UdpPbiDotPlot & keyof UdpPbiDotPlotAttributes as `attr:${K}`]?: UdpPbiDotPlotAttributes[K] } & { [K in keyof UdpPbiDotPlot & keyof UdpPbiDotPlotAttributes as `prop:${K}`]?: UdpPbiDotPlot[K] };
         "udp-pbi-ibcs-variance": Omit<UdpPbiIbcsVariance, keyof UdpPbiIbcsVarianceAttributes> & { [K in keyof UdpPbiIbcsVariance & keyof UdpPbiIbcsVarianceAttributes]?: UdpPbiIbcsVariance[K] } & { [K in keyof UdpPbiIbcsVariance & keyof UdpPbiIbcsVarianceAttributes as `attr:${K}`]?: UdpPbiIbcsVarianceAttributes[K] } & { [K in keyof UdpPbiIbcsVariance & keyof UdpPbiIbcsVarianceAttributes as `prop:${K}`]?: UdpPbiIbcsVariance[K] };
+        "udp-pbi-kpi-bullet": Omit<UdpPbiKpiBullet, keyof UdpPbiKpiBulletAttributes> & { [K in keyof UdpPbiKpiBullet & keyof UdpPbiKpiBulletAttributes]?: UdpPbiKpiBullet[K] } & { [K in keyof UdpPbiKpiBullet & keyof UdpPbiKpiBulletAttributes as `attr:${K}`]?: UdpPbiKpiBulletAttributes[K] } & { [K in keyof UdpPbiKpiBullet & keyof UdpPbiKpiBulletAttributes as `prop:${K}`]?: UdpPbiKpiBullet[K] };
         "udp-pbi-kpi-card": Omit<UdpPbiKpiCard, keyof UdpPbiKpiCardAttributes> & { [K in keyof UdpPbiKpiCard & keyof UdpPbiKpiCardAttributes]?: UdpPbiKpiCard[K] } & { [K in keyof UdpPbiKpiCard & keyof UdpPbiKpiCardAttributes as `attr:${K}`]?: UdpPbiKpiCardAttributes[K] } & { [K in keyof UdpPbiKpiCard & keyof UdpPbiKpiCardAttributes as `prop:${K}`]?: UdpPbiKpiCard[K] };
         "udp-pbi-kpi-hero": Omit<UdpPbiKpiHero, keyof UdpPbiKpiHeroAttributes> & { [K in keyof UdpPbiKpiHero & keyof UdpPbiKpiHeroAttributes]?: UdpPbiKpiHero[K] } & { [K in keyof UdpPbiKpiHero & keyof UdpPbiKpiHeroAttributes as `attr:${K}`]?: UdpPbiKpiHeroAttributes[K] } & { [K in keyof UdpPbiKpiHero & keyof UdpPbiKpiHeroAttributes as `prop:${K}`]?: UdpPbiKpiHero[K] };
+        "udp-pbi-kpi-trend": Omit<UdpPbiKpiTrend, keyof UdpPbiKpiTrendAttributes> & { [K in keyof UdpPbiKpiTrend & keyof UdpPbiKpiTrendAttributes]?: UdpPbiKpiTrend[K] } & { [K in keyof UdpPbiKpiTrend & keyof UdpPbiKpiTrendAttributes as `attr:${K}`]?: UdpPbiKpiTrendAttributes[K] } & { [K in keyof UdpPbiKpiTrend & keyof UdpPbiKpiTrendAttributes as `prop:${K}`]?: UdpPbiKpiTrend[K] };
+        "udp-pbi-kpi-variance": Omit<UdpPbiKpiVariance, keyof UdpPbiKpiVarianceAttributes> & { [K in keyof UdpPbiKpiVariance & keyof UdpPbiKpiVarianceAttributes]?: UdpPbiKpiVariance[K] } & { [K in keyof UdpPbiKpiVariance & keyof UdpPbiKpiVarianceAttributes as `attr:${K}`]?: UdpPbiKpiVarianceAttributes[K] } & { [K in keyof UdpPbiKpiVariance & keyof UdpPbiKpiVarianceAttributes as `prop:${K}`]?: UdpPbiKpiVariance[K] };
         "udp-pbi-matrix": Omit<UdpPbiMatrix, keyof UdpPbiMatrixAttributes> & { [K in keyof UdpPbiMatrix & keyof UdpPbiMatrixAttributes]?: UdpPbiMatrix[K] } & { [K in keyof UdpPbiMatrix & keyof UdpPbiMatrixAttributes as `attr:${K}`]?: UdpPbiMatrixAttributes[K] } & { [K in keyof UdpPbiMatrix & keyof UdpPbiMatrixAttributes as `prop:${K}`]?: UdpPbiMatrix[K] };
+        "udp-pbi-point-map": Omit<UdpPbiPointMap, keyof UdpPbiPointMapAttributes> & { [K in keyof UdpPbiPointMap & keyof UdpPbiPointMapAttributes]?: UdpPbiPointMap[K] } & { [K in keyof UdpPbiPointMap & keyof UdpPbiPointMapAttributes as `attr:${K}`]?: UdpPbiPointMapAttributes[K] } & { [K in keyof UdpPbiPointMap & keyof UdpPbiPointMapAttributes as `prop:${K}`]?: UdpPbiPointMap[K] };
         "udp-pbi-ranking-bars": Omit<UdpPbiRankingBars, keyof UdpPbiRankingBarsAttributes> & { [K in keyof UdpPbiRankingBars & keyof UdpPbiRankingBarsAttributes]?: UdpPbiRankingBars[K] } & { [K in keyof UdpPbiRankingBars & keyof UdpPbiRankingBarsAttributes as `attr:${K}`]?: UdpPbiRankingBarsAttributes[K] } & { [K in keyof UdpPbiRankingBars & keyof UdpPbiRankingBarsAttributes as `prop:${K}`]?: UdpPbiRankingBars[K] };
         "udp-pbi-scatter": Omit<UdpPbiScatter, keyof UdpPbiScatterAttributes> & { [K in keyof UdpPbiScatter & keyof UdpPbiScatterAttributes]?: UdpPbiScatter[K] } & { [K in keyof UdpPbiScatter & keyof UdpPbiScatterAttributes as `attr:${K}`]?: UdpPbiScatterAttributes[K] } & { [K in keyof UdpPbiScatter & keyof UdpPbiScatterAttributes as `prop:${K}`]?: UdpPbiScatter[K] };
         "udp-pbi-spotlight-bars": Omit<UdpPbiSpotlightBars, keyof UdpPbiSpotlightBarsAttributes> & { [K in keyof UdpPbiSpotlightBars & keyof UdpPbiSpotlightBarsAttributes]?: UdpPbiSpotlightBars[K] } & { [K in keyof UdpPbiSpotlightBars & keyof UdpPbiSpotlightBarsAttributes as `attr:${K}`]?: UdpPbiSpotlightBarsAttributes[K] } & { [K in keyof UdpPbiSpotlightBars & keyof UdpPbiSpotlightBarsAttributes as `prop:${K}`]?: UdpPbiSpotlightBars[K] };
@@ -6500,6 +8025,15 @@ declare module "@stencil/core" {
              * names the date; a click (Enter / Space) reports it.
              */
             "udp-pbi-calendar-heatmap": LocalJSX.IntrinsicElements["udp-pbi-calendar-heatmap"] & JSXBase.HTMLAttributes<HTMLUdpPbiCalendarHeatmapElement>;
+            /**
+             * Choropleth (FT "spatial"): regions coloured by a rate or a ratio. Never shade raw counts — larger
+             * regions would win by size alone; a count belongs on a point map's bubbles or spikes. Classes are
+             * equal intervals (`quantize`), equal counts (`quantile`) or a continuous 7-step ramp; `diverging`
+             * colours around `colorCenter`, favourable side by `goodWhen`. `shape="tiles"` is an equal-area
+             * cartogram (every region one tile, from `tileLayout`), `projection="globe"` an orthographic globe.
+             * Regions the boundaries do not know are listed under the map, never dropped silently.
+             */
+            "udp-pbi-choropleth": LocalJSX.IntrinsicElements["udp-pbi-choropleth"] & JSXBase.HTMLAttributes<HTMLUdpPbiChoroplethElement>;
             /**
              * Columns (FT "magnitude", "change over time", "distribution"): vertical bars for periods and ordinal
              * bands, single or by series (grouped, stacked, 100 %), or a histogram (no gaps between bins). Bars
@@ -6543,6 +8077,12 @@ declare module "@stencil/core" {
              */
             "udp-pbi-ibcs-variance": LocalJSX.IntrinsicElements["udp-pbi-ibcs-variance"] & JSXBase.HTMLAttributes<HTMLUdpPbiIbcsVarianceElement>;
             /**
+             * KPI against a target as a bullet graph (Stephen Few): qualitative bands (poor / fair / good from
+             * `thresholds`), the value as a bar, the target as a tick, an optional forecast marker, and a status
+             * chip saying how far from the target it is. The readable replacement for a gauge.
+             */
+            "udp-pbi-kpi-bullet": LocalJSX.IntrinsicElements["udp-pbi-kpi-bullet"] & JSXBase.HTMLAttributes<HTMLUdpPbiKpiBulletElement>;
+            /**
              * KPI card (Lens `kpi_card`): uppercase label, tinted icon mark, the number as the dominant element,
              * a delta / badge / meter. "What it means / how it is calculated" lives one hover (or keyboard focus)
              * away in the curtain (principle 35), never on the card face.
@@ -6558,6 +8098,20 @@ declare module "@stencil/core" {
              */
             "udp-pbi-kpi-hero": LocalJSX.IntrinsicElements["udp-pbi-kpi-hero"] & JSXBase.HTMLAttributes<HTMLUdpPbiKpiHeroElement>;
             /**
+             * KPI with its recent trend: the number, its delta and a sparkline of the last periods with the
+             * current one marked, the lowest and highest points and an optional target line. Answers "how much,
+             * and which way is it going?". Without `value` the latest period is the headline; without a
+             * comparison the delta is against the previous period. Hovering the line reads any period.
+             */
+            "udp-pbi-kpi-trend": LocalJSX.IntrinsicElements["udp-pbi-kpi-trend"] & JSXBase.HTMLAttributes<HTMLUdpPbiKpiTrendElement>;
+            /**
+             * IBCS variance KPI: the actual (AC) against one scenario (PY, PL, FC or BU) in IBCS notation —
+             * the AC bar solid, the scenario bar in its notation (PY grey, PL outlined, FC hatched-dashed,
+             * BU dotted), the absolute variance as a green / red bar and the relative variance as a pin.
+             * Answers "better or worse than plan / last year, and by how much?".
+             */
+            "udp-pbi-kpi-variance": LocalJSX.IntrinsicElements["udp-pbi-kpi-variance"] & JSXBase.HTMLAttributes<HTMLUdpPbiKpiVarianceElement>;
+            /**
              * Matrix (Lens matrix; FT XY heatmap, e.g. the criticality × condition risk matrix): hierarchical
              * rows (1–3 levels, expand / collapse), an optional column dimension and several measures, each
              * optionally heat-mapped with a token ramp (sequential, or diverging by business meaning). Totals
@@ -6566,6 +8120,16 @@ declare module "@stencil/core" {
              * reports its row and column (`filters`), on a row header its row.
              */
             "udp-pbi-matrix": LocalJSX.IntrinsicElements["udp-pbi-matrix"] & JSXBase.HTMLAttributes<HTMLUdpPbiMatrixElement>;
+            /**
+             * Point map (FT "spatial"): locations at their exact coordinates (WGS 84 latitude / longitude).
+             * `dot` places them (colour by group), `bubble` and `spike` size them by value (area ∝ value; a
+             * spike's height ∝ value, the 2.5D variant), `hexbin` and `heat` show density where points crowd.
+             * `projection="globe"` draws an orthographic globe you rotate by dragging, or by moving between
+             * locations with the arrow keys. Boundaries are context only (`geometry`, from the host); an
+             * optional raster basemap comes from the host too (`tiles`, Web Mercator). Zoom with the buttons,
+             * Ctrl + wheel or a pinch; the page keeps its scroll. A click (Enter / Space) reports the location.
+             */
+            "udp-pbi-point-map": LocalJSX.IntrinsicElements["udp-pbi-point-map"] & JSXBase.HTMLAttributes<HTMLUdpPbiPointMapElement>;
             /**
              * Compact ranking (Lens `ranking_bars`): name · quiet track with the gradient fill · value, one line
              * per category, sorted high → low. Use it when space is tight; spotlight bars when shares matter.

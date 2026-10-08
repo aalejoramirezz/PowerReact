@@ -30,6 +30,15 @@ const CARDS = [
   'Backlog bridge',
   'Financial position',
   'Condition index by group',
+  'Service sites',
+  'Open requests by site',
+  'Backlog spikes',
+  'Asset density',
+  'Fault hotspots',
+  'Assets in poor condition',
+  'Poor condition, tile map',
+  'Service centres worldwide',
+  'Asset growth by country',
 ];
 /** Already tables: no Table view toggle. */
 const TABLES = ['Asset classes', 'Criticality × condition', 'Portfolio by group and class'];
@@ -100,6 +109,45 @@ for (const theme of ['neoglass', 'nocturne']) {
     await expect(menu).toBeHidden();
   });
 }
+
+test('KPI variants read their numbers; maps zoom, turn and load boundaries from the app itself', async ({ page }) => {
+  const external: string[] = [];
+  page.on('request', (r) => {
+    const url = new URL(r.url());
+    if (url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') external.push(r.url());
+  });
+  await mockApi(page);
+  await page.goto('/gallery');
+
+  // KPI variants: the latest period, the gap to target in points, the IBCS variances
+  await expect(page.getByTestId('kpi-requests-raised')).toHaveText('380');
+  await expect(page.getByTestId('kpi-card-sla-compliance')).toContainText('0.8 pp below target');
+  await expect(page.getByTestId('kpi-card-maintenance-cost')).toContainText('ΔPL%');
+
+  // Zoom with the buttons; the reset appears once zoomed
+  const sites = card(page, 'Service sites');
+  const map = sites.getByRole('img', { name: 'Service sites: 24 locations' });
+  await expect(map).toBeVisible();
+  await sites.getByRole('button', { name: 'Zoom in' }).click();
+  await expect(map).toHaveAttribute('data-zoomed', 'true');
+  await sites.getByRole('button', { name: 'Reset view' }).click();
+  await expect(map).toHaveAttribute('data-zoomed', 'false');
+
+  // A click on a location selects it (the gallery highlights it)
+  await sites.getByTestId('sites-point-nyc').dispatchEvent('click');
+  await expect(sites.getByTestId('sites-point-chi')).toHaveAttribute('data-dimmed', 'true');
+
+  // The globe turns to the location the keyboard moves to, and names it
+  const globe = card(page, 'Service centres worldwide').getByRole('img', { name: /Service centres worldwide/ });
+  await globe.focus();
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  await expect(card(page, 'Service centres worldwide').getByRole('status')).toBeVisible();
+
+  // Boundaries come from /geo on this origin: no map tiles or GeoJSON from other hosts
+  await expect(card(page, 'Assets in poor condition')).toContainText('1 region is not on this map: Victoria (Australia)');
+  expect(external).toEqual([]);
+});
 
 test('exports download the visual as CSV and Excel on the client', async ({ page }) => {
   await mockApi(page);

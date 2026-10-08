@@ -14,7 +14,7 @@ import {
 } from '../../../utils/events';
 import type { FormatSpec } from '../../../utils/formats';
 import { formatNumber, formatPercent, formatSigned } from '../../../utils/layout/format';
-import { ibcsRows, ibcsScales, pctMarker, SCENARIO_STYLE, type IbcsRow, type Scenario } from '../../../utils/layout/ibcs';
+import { ibcsRows, ibcsScales, pctMarker, scenarioStyle, type IbcsRow, type Scenario } from '../../../utils/layout/ibcs';
 import { ibcsTable, ROW_KEY } from '../../../utils/table/builders';
 import type { TableRow } from '../../../utils/table/model';
 import { WidthObserver } from '../../../utils/width-observer';
@@ -43,17 +43,6 @@ function trianglePath(x: number, y: number, dir: 'right' | 'left' | 'up' | 'down
     default:
       return `M${x - s},${y - s / 2} L${x},${y + s} L${x + s},${y - s / 2} Z`;
   }
-}
-
-function scenarioStyle(scenario: Scenario): Record<string, string> {
-  const st = SCENARIO_STYLE[scenario];
-  return {
-    fill: st.fill ? 'var(--pbi-secondary)' : 'transparent',
-    fillOpacity: String(st.fillOpacity),
-    stroke: 'var(--pbi-secondary)',
-    strokeWidth: String(st.strokeWidth),
-    ...(st.dash ? { strokeDasharray: st.dash } : {}),
-  };
 }
 
 /** Legend swatches use the same scenario notation as the bars. */

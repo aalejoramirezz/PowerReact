@@ -7,6 +7,8 @@ import type {
   ChartSeries,
   DataPointValue,
   DotPlotItem,
+  GeoPoint,
+  KpiPoint,
   HeroMetric,
   IbcsItem,
   MatrixColumn,
@@ -14,6 +16,7 @@ import type {
   MatrixNode,
   ScatterPoint,
   TableColumn,
+  RegionValue,
   TableRow,
   TimelineTask,
   TooltipItem,
@@ -131,6 +134,29 @@ export interface TimelineData {
 export interface BoxPlotData {
   items: BoxPlotItem[];
 }
+export interface KpiTrendData {
+  series: KpiPoint[];
+  /** The latest period with a value (the headline). */
+  value: number | null;
+  /** The comparison on that period's row (undefined without `fields.comparison`: the element compares with the previous period). */
+  comparisonValue?: number | null;
+  target: number | null;
+}
+export interface KpiBulletData {
+  value: number | null;
+  target: number | null;
+  forecast: number | null;
+}
+export interface KpiVarianceData {
+  actual: number | null;
+  comparison: number | null;
+}
+export interface PointMapData {
+  points: GeoPoint[];
+}
+export interface ChoroplethData {
+  regions: RegionValue[];
+}
 export interface SlicerOption {
   id: string;
   label: string;
@@ -162,6 +188,11 @@ export interface MappedDataMap {
   UniverusDotPlot: DotPlotData;
   UniverusTimeline: TimelineData;
   UniverusBoxplot: BoxPlotData;
+  UniverusKpiTrend: KpiTrendData;
+  UniverusKpiBullet: KpiBulletData;
+  UniverusKpiVariance: KpiVarianceData;
+  UniverusPointMap: PointMapData;
+  UniverusChoropleth: ChoroplethData;
   UniverusSlicer: SlicerData;
 }
 export type MappedData<C extends ManifestComponentName = ManifestComponentName> = MappedDataMap[C];
@@ -508,6 +539,78 @@ function boxPlotData(rows: DaxRow[], visual: VisualOf<'UniverusBoxplot'>): BoxPl
   };
 }
 
+/** Periods in query order (ORDER BY); the headline is the latest period that has a value. */
+function kpiTrendData(rows: DaxRow[], visual: VisualOf<'UniverusKpiTrend'>): KpiTrendData {
+  const { category, value, comparison, target } = visual.fields;
+  const read = rows.map(reader);
+  const series = read.map((r) => ({ label: categoryLabel(r(category)), value: toNullableNumber(r(value)) }));
+  let last = -1;
+  series.forEach((p, i) => p.value !== null && (last = i));
+  const lastRow = last >= 0 ? read[last] : undefined;
+  return {
+    series,
+    value: last >= 0 ? (series[last]?.value ?? null) : null,
+    ...(comparison ? { comparisonValue: lastRow ? toNullableNumber(lastRow(comparison)) : null } : {}),
+    target: target && lastRow ? toNullableNumber(lastRow(target)) : null,
+  };
+}
+
+const MAX_LAT = 90;
+const MAX_LON = 180;
+
+/**
+ * One point per row with valid WGS 84 coordinates (rows without them are skipped: nothing to
+ * place). Ids stay unique when names repeat; a click still reports the row's own category value.
+ */
+function pointMapData(rows: DaxRow[], visual: VisualOf<'UniverusPointMap'>): PointMapData {
+  const { latitude, longitude, category, value, group, tooltips } = visual.fields;
+  const seen = new Set<string>();
+  return {
+    points: rows.flatMap((row) => {
+      const read = reader(row);
+      const lat = toNullableNumber(read(latitude));
+      const lon = toNullableNumber(read(longitude));
+      if (lat === null || lon === null || Math.abs(lat) > MAX_LAT || Math.abs(lon) > MAX_LON || (lat === 0 && lon === 0)) return [];
+      const c = categoryOf(read(category));
+      let id = c.id;
+      for (let k = 2; seen.has(id); k++) id = `${c.id} (${k})`;
+      seen.add(id);
+      return [
+        {
+          ...c,
+          id,
+          lat,
+          lon,
+          ...(value ? { value: toNullableNumber(read(value)) } : {}),
+          ...(group ? { group: categoryLabel(read(group)) } : {}),
+          ...(tooltips ? { tooltips: tooltipsOf(read, tooltips) } : {}),
+        },
+      ];
+    }),
+  };
+}
+
+/** One region per row: its key as the model returns it (the click reports it back), value and name. */
+function choroplethData(rows: DaxRow[], visual: VisualOf<'UniverusChoropleth'>): ChoroplethData {
+  const { region, value, label, tooltips } = visual.fields;
+  return {
+    regions: rows.flatMap((row) => {
+      const read = reader(row);
+      const key = read(region);
+      if (key === null || key === undefined || key === '') return [];
+      return [
+        {
+          key: String(key),
+          ...(toRaw(key) !== undefined ? { raw: toRaw(key) } : {}),
+          ...(label ? { label: categoryLabel(read(label)) } : {}),
+          value: toNullableNumber(read(value)),
+          ...(tooltips ? { tooltips: tooltipsOf(read, tooltips) } : {}),
+        },
+      ];
+    }),
+  };
+}
+
 function slicerData(rows: DaxRow[], visual: VisualOf<'UniverusSlicer'>): SlicerData {
   const { value, count } = visual.fields;
   return {
@@ -607,6 +710,21 @@ export function mapRows(visual: ManifestVisual, rows: DaxRow[]): MappedData {
       return timelineData(rows, visual);
     case 'UniverusBoxplot':
       return boxPlotData(rows, visual);
+    case 'UniverusKpiTrend':
+      return kpiTrendData(rows, visual);
+    case 'UniverusKpiBullet': {
+      const read = reader(rows[0]);
+      const f = visual.fields;
+      return { value: toNullableNumber(read(f.value)), target: f.target ? toNullableNumber(read(f.target)) : null, forecast: f.forecast ? toNullableNumber(read(f.forecast)) : null };
+    }
+    case 'UniverusKpiVariance': {
+      const read = reader(rows[0]);
+      return { actual: toNullableNumber(read(visual.fields.actual)), comparison: toNullableNumber(read(visual.fields.comparison)) };
+    }
+    case 'UniverusPointMap':
+      return pointMapData(rows, visual);
+    case 'UniverusChoropleth':
+      return choroplethData(rows, visual);
     case 'UniverusSlicer':
       return slicerData(rows, visual);
   }

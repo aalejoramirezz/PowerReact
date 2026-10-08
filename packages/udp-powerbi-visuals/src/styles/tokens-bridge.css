@@ -74,6 +74,13 @@
   --pbi-interaction: var(--u-interaction, var(--colorBrandForeground1));
   --pbi-kpi-pad: var(--u-kpi-pad, var(--spacingHorizontalL));
   --pbi-label: var(--u-label, var(--colorNeutralForeground3));
+  --pbi-map-border: var(--u-map-border, var(--colorNeutralBackground1));
+  --pbi-map-graticule: var(--u-map-graticule, var(--colorNeutralStroke3));
+  --pbi-map-land: var(--u-map-land, var(--colorNeutralBackground4, var(--colorNeutralBackground3)));
+  --pbi-map-nodata: var(--u-map-nodata, var(--colorNeutralBackground2));
+  --pbi-map-outline: var(--u-map-outline, var(--colorNeutralStroke1));
+  --pbi-map-shade: var(--u-map-shade, var(--colorNeutralStroke2));
+  --pbi-map-water: var(--u-map-water, color-mix(in srgb, var(--colorBrandBackground) 6%, var(--colorNeutralBackground2)));
   --pbi-mark-bg: var(--u-mark-bg, var(--colorBrandBackground));
   --pbi-mark-fg: var(--u-mark-fg, var(--colorNeutralForegroundOnBrand));
   --pbi-modal-shadow: var(--u-modal-shadow, var(--shadow64));

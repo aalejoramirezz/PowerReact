@@ -4,6 +4,7 @@ import { errorMessage } from '../../api/http';
 import { useSemanticQuery } from '../../hooks/useSemanticQuery';
 import { appliedFilters, sampleRows, selectionOf, selectionOn, slicerValuesOf, type CrossFilter } from '../../lib/manifest/crossFilters';
 import { injectCrossFilters } from '../../lib/manifest/daxInjection';
+import { useGeoAsset } from '../../lib/geo/useGeoAsset';
 import { mapRows } from '../../lib/manifest/mapRows';
 import type { Manifest, ManifestVisual as ManifestVisualSpec } from '../../lib/manifest/schema';
 import { selectCrossFilters, useFilterStore } from '../../store/filters';
@@ -41,8 +42,14 @@ function useVisualContext(
   onDataPointClick: VisualContext['onDataPointClick']
 ): VisualContext {
   const setSlicer = useFilterStore((s) => s.setSlicerFilter);
+  // Maps draw boundaries from the app's /geo folder; other visuals leave the query disabled
+  const geoSet = visual.component === 'UniverusPointMap' || visual.component === 'UniverusChoropleth' ? visual.props.geo?.set : undefined;
+  const geo = useGeoAsset(geoSet);
   return {
     index,
+    geo: geo.data,
+    geoLoading: Boolean(geoSet) && geo.isPending,
+    geoError: geo.error ? errorMessage(geo.error) : undefined,
     selectedValue: selectionOf(visual, filters),
     selectionOn: (field) => selectionOn(filters, field),
     onDataPointClick,

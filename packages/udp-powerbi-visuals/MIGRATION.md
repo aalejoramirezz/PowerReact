@@ -20,7 +20,9 @@ so the move is mostly a copy. Nothing here changes the UDP repository until that
    follow UDP naming. `styleUrls` paths are relative and keep working.
 2. **Dependencies** in `udp-stencil-component-library/package.json`: `d3-scale`, `d3-shape`,
    `d3-array` (quantiles, extents), `d3-hierarchy` (treemap) and `d3-time` (calendar weeks), with their
-   `@types/*`. All are small ES modules with no DOM access, safe in Stencil's hydrate build. Icons use `lucide`. Either add it, or swap the few icons in
+   `@types/*`. The maps add `d3-geo`, `topojson-client`, `d3-zoom` (with `d3-selection` and
+   `d3-transition`), `d3-hexbin` and `d3-contour` (all ISC / BSD). All are small ES modules, safe in
+   Stencil's hydrate build (the zoom controller attaches only in the browser). Icons use `lucide`. Either add it, or swap the few icons in
    `src/utils/icons.ts` for the UDP icon registry (`src/icons/icon-registry.json`). The CSV / XLSX
    export uses SheetJS through a dynamic import, calling only `utils.aoa_to_sheet`, `utils.book_new`,
    `utils.book_append_sheet` and `write`; all four exist in the `xlsx` 0.18.5 UDP already ships.
@@ -52,11 +54,24 @@ so the move is mostly a copy. Nothing here changes the UDP repository until that
 8. **Changeset** for `@univerus/udp-stencil-component-library` and the enterprise library (UDP's
    `generate-changeset` skill), plus a `charts/guidance.md` section listing the new elements.
 
+## Maps in UDP
+
+- **Thematic, not operational.** `udp-map` (OpenLayers + Azure Maps) stays UDP's GIS for viewing and
+  editing assets. `udp-pbi-point-map` and `udp-pbi-choropleth` are report visuals: one question per
+  card, cross-filtering like every other visual.
+- **Boundaries**: copy `public/geo` (Natural Earth, public domain) to the app's static assets, or serve
+  the client's own boundaries (QGIS → TopoJSON, WGS 84); the page or widget loads them and passes
+  `geometry`. Coordinates in a projected system (Easting / Northing) are converted by the host with the
+  `proj4` UDP already ships before they reach the element.
+- **Tiles** (optional): `tiles={{ url, attribution }}` with a Web Mercator template; in UDP the Azure Maps
+  raster template and `ConfigService.config.AZURE_MAP_SUBSCRIPTION_KEY`, as `udp-map` does.
+
 ## Not included yet
 
-- **Sankey** (flows between stages): deferred until a report has flow data (source → target → value);
-  the waterfall covers the level-to-level bridges the current pages need.
-- **Maps**: deferred by decision; they need a basemap and tiling policy agreed with UDP first.
+- **Sankey and flow maps** (flows between stages or places): deferred until a report has flow data
+  (source → target → value); the waterfall covers the level-to-level bridges the current pages need.
+- **Extruded (3D) choropleths and 3D hexbin columns**: left out on purpose; the globe and spikes are
+  the 3D the contract allows (lengths stay comparable).
 
 ## A documented deviation: `frame="card"`
 

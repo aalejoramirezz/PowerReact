@@ -14,13 +14,14 @@ The UI follows the **Univerus design system** ported from the sibling repo Unive
 
 ```
 packages/udp-powerbi-visuals/   Stencil web components (npm workspace), UDP layout, Shadow DOM, styled only with var(--pbi-*) · README.md · MIGRATION.md
-  src/components/kpi/           udp-pbi-kpi-card · udp-pbi-kpi-hero
+  src/components/kpi/           udp-pbi-kpi-card · udp-pbi-kpi-hero · kpi-trend · kpi-bullet · kpi-variance
   src/components/charts/        udp-pbi-spotlight-bars · ranking-bars · bullet-bars · column-chart · diverging-bars · ibcs-variance ·
                                 stacked-bars · donut · trend-chart · scatter · waterfall · treemap · calendar-heatmap ·
-                                dot-plot · timeline · boxplot
+                                dot-plot · timeline · boxplot · point-map · choropleth
   src/components/tables/        udp-pbi-data-table · udp-pbi-matrix   (each folder: .tsx · .css · readme.md generated; src/components.d.ts generated, committed)
   src/functional/               frame.tsx (template card or frame="none"; toolbar Export · Table · Focus · ⓘ curtain, focus <dialog>) ·
-                                chart-kit.tsx (grid, reference lines, legend, tooltip) · states · icon · meter
+                                kpi-shell.tsx (KPI card shell) · chart-kit.tsx (grid, reference lines, legend, tooltip) ·
+                                map-kit.tsx (base layers, tiles, zoom / globe, map legends) · states · icon · meter
   src/styles/                   tokens-bridge.css (--pbi-<role> = var(--u-<role>, Fluent token)) · motion.css · surfaces.css (both shared with the app) · shadow.css · charts.css
   src/utils/                    layout/* (chart math, tested) · palette.ts · roving.ts · series-chart.ts · formats.ts · table/* · export/{csv,xlsx} · events.ts · icons.ts
   build output (ignored)        components/ (custom elements) · hydrate/ (SSR, tests) · docs/components.json · dist/types
@@ -43,7 +44,8 @@ src/
   components/visuals/           the semantic-model page (KPIs, group distribution, class table, DAX inspector)
   components/{briefing,chat,embed,layout}/
   pages/                        Gallery.tsx (/gallery) · ManifestPreview.tsx (/manifest-preview)
-public/manifests/               index.json · sample-manifest.json · condition-works.json · delivery-lifecycle.json · manifest.schema.json (generated)
+public/manifests/               index.json · sample-manifest.json · condition-works.json · delivery-lifecycle.json · locations-performance.json · manifest.schema.json (generated)
+public/geo/                     boundary sets for the maps (Natural Earth, public domain; built by scripts/build-geo.mjs) · index.json · README.md
 e2e/                            Playwright specs + in-browser fake DAX engine (support/mockApi.ts)
 .agents/skills/                 canonical agent skills (see §5)
 ```

@@ -1,6 +1,9 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { cx } from './cx';
 
+/** The panel's width (w-[320px]). */
+const PANEL_WIDTH = 320;
+
 interface PopoverProps {
   /** Accessible name of the trigger and the panel. */
   label: string;
@@ -20,6 +23,8 @@ interface PopoverProps {
  */
 export const Popover: React.FC<PopoverProps> = ({ label, trigger, triggerClassName, title, children, className }) => {
   const [open, setOpen] = useState(false);
+  /** The panel opens towards the side with room: leftwards from the trigger's right edge by default. */
+  const [align, setAlign] = useState<'left' | 'right'>('right');
   const panelId = useId();
   const triggerId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -67,7 +72,15 @@ export const Popover: React.FC<PopoverProps> = ({ label, trigger, triggerClassNa
         aria-expanded={open}
         aria-controls={panelId}
         aria-haspopup="dialog"
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          // Near the left edge of the page area (e.g. a wrapped toolbar beside the sidebar) there is no
+          // room to open leftwards: open rightwards instead
+          const trigger = triggerRef.current;
+          const rect = trigger?.getBoundingClientRect();
+          const leftEdge = (trigger?.closest('main')?.getBoundingClientRect().left ?? 0) + 16;
+          if (!open) setAlign(rect && rect.right - PANEL_WIDTH < leftEdge ? 'left' : 'right');
+          setOpen(!open);
+        }}
       >
         {trigger}
       </button>
@@ -78,10 +91,11 @@ export const Popover: React.FC<PopoverProps> = ({ label, trigger, triggerClassNa
           role="dialog"
           aria-label={label}
           className={cx(
-            'u-anim-pop absolute right-0 top-full z-30 mt-2 w-[320px] max-w-[calc(100vw-32px)] max-sm:inset-x-4 max-sm:w-auto rounded-xl border border-u-panel-border bg-u-panel-solid p-4 text-left text-u-text',
+            'u-anim-pop absolute top-full z-30 mt-2 w-[320px] max-w-[calc(100vw-32px)] max-sm:inset-x-4 max-sm:w-auto rounded-xl border border-u-panel-border bg-u-panel-solid p-4 text-left text-u-text',
+            align === 'right' ? 'right-0' : 'left-0',
             className
           )}
-          style={{ boxShadow: 'var(--u-panel-shadow)', transformOrigin: 'top right' }}
+          style={{ boxShadow: 'var(--u-panel-shadow)', transformOrigin: align === 'right' ? 'top right' : 'top left' }}
         >
           {children(close)}
         </div>

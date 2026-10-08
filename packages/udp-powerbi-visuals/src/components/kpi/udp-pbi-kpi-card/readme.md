@@ -65,7 +65,6 @@ when the KPI is interactive), on touch screens an ⓘ that toggles the same curt
 | ---------- | ----------- |
 | `"aside"`  |             |
 | `"footer"` |             |
-| `"icon"`   |             |
 
 
 ## Dependencies

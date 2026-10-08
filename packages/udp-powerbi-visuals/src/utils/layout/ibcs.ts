@@ -15,6 +15,18 @@ export const SCENARIO_STYLE: Record<Scenario, { fill: boolean; fillOpacity: numb
   BU: { fill: false, fillOpacity: 0, strokeWidth: 1.5, dash: '1.5 2' }, // budget: dotted outline
 };
 
+/** Inline SVG style of a comparison bar in IBCS notation (the AC bar is solid `--pbi-ac`). */
+export function scenarioStyle(scenario: Scenario): Record<string, string> {
+  const st = SCENARIO_STYLE[scenario];
+  return {
+    fill: st.fill ? 'var(--pbi-secondary)' : 'transparent',
+    fillOpacity: String(st.fillOpacity),
+    stroke: 'var(--pbi-secondary)',
+    strokeWidth: String(st.strokeWidth),
+    ...(st.dash ? { strokeDasharray: st.dash } : {}),
+  };
+}
+
 export interface IbcsDatum {
   id: string;
   label: string;

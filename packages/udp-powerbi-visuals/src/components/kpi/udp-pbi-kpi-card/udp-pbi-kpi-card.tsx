@@ -1,6 +1,6 @@
 import { Component, Element, Event, h, Host, Prop, State, type EventEmitter, type VNode } from '@stencil/core';
-import { ActionMenu, Curtain, exportItems, FocusDialog, INITIAL_FRAME, openFocus, type FrameState, type MenuItem } from '../../../functional/frame';
-import { Icon } from '../../../functional/icon';
+import { INITIAL_FRAME, type FrameState } from '../../../functional/frame';
+import { derivedDelta, KpiDeltaText, KpiFocus, KpiShell, KpiTop, kpiValueText, type KpiDelta } from '../../../functional/kpi-shell';
 import { MiniMeter } from '../../../functional/meter';
 import { slug } from '../../../utils/data';
 import type {
@@ -12,14 +12,7 @@ import type {
   ViewChangeDetail,
 } from '../../../utils/events';
 import { formatValue, type FormatSpec } from '../../../utils/formats';
-import { isKpiIconName, KPI_ICONS, UI_ICONS } from '../../../utils/icons';
 import type { ChipTone, TableModel, TableRow } from '../../../utils/table/model';
-
-export interface KpiDelta {
-  text: string;
-  /** Colour follows business meaning (favourable / unfavourable), never the sign alone. */
-  favourable: boolean;
-}
 
 export interface KpiBadge {
   text: string;
@@ -50,7 +43,7 @@ const PCT1: FormatSpec = { style: 'percent', decimals: 1 };
  */
 @Component({
   tag: 'udp-pbi-kpi-card',
-  styleUrls: ['../../../styles/tokens-bridge.css', '../../../styles/motion.css', '../../../styles/shadow.css', '../../../styles/surfaces.css', 'udp-pbi-kpi-card.css'],
+  styleUrls: ['../../../styles/tokens-bridge.css', '../../../styles/motion.css', '../../../styles/shadow.css', '../../../styles/surfaces.css', '../../../styles/kpi.css', 'udp-pbi-kpi-card.css'],
   shadow: true,
 })
 export class UdpPbiKpiCard {
@@ -118,25 +111,8 @@ export class UdpPbiKpiCard {
   @Event({ composed: true }) focusModeChange!: EventEmitter<FocusModeDetail>;
   @Event({ composed: true }) viewChange!: EventEmitter<ViewChangeDetail>;
 
-  private get valueText(): string {
-    if (this.displayValue !== undefined && this.displayValue !== null) return this.displayValue;
-    if (this.value === null || this.value === undefined) return this.loading && !this.error ? '…' : '—';
-    return formatValue(this.value, this.format);
-  }
-
   private get deltaInfo(): KpiDelta | null {
-    if (this.delta) return this.delta;
-    const v = this.value;
-    const c = this.comparisonValue;
-    if (v === null || v === undefined || c === null || c === undefined || c === 0) return null;
-    const change = (v - c) / Math.abs(c);
-    const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
-    const favourable = this.goodWhen === 'higher' ? change >= 0 : change <= 0;
-    return { text: `${arrow} ${formatValue(Math.abs(change), PCT1)}${this.deltaLabel ? ` ${this.deltaLabel}` : ''}`, favourable };
-  }
-
-  private get isInteractive(): boolean {
-    return this.interactive ?? (this.active !== undefined || Boolean(this.crossFilterField));
+    return this.delta ?? derivedDelta(this.value, this.comparisonValue, this.goodWhen, this.deltaLabel);
   }
 
   private model = (): TableModel => ({
@@ -150,25 +126,10 @@ export class UdpPbiKpiCard {
     rows: [{ metric: this.heading, value: this.value ?? this.displayValue ?? null, comparison: this.comparisonValue ?? null }],
   });
 
-  private onActivate = () => {
-    this.dataPointClick.emit({
-      visualId: this.visualId ?? null,
-      field: this.crossFilterField ?? null,
-      value: this.visualId ?? this.heading,
-      label: this.heading,
-    });
-  };
-
   private renderAside(inFocus = false): VNode[] {
-    const delta = this.deltaInfo;
     const out: VNode[] = [];
-    if (delta) {
-      out.push(
-        <span class="kpi-delta" data-favourable={String(delta.favourable)}>
-          {delta.text}
-        </span>
-      );
-    }
+    const delta = this.deltaInfo;
+    if (delta) out.push(<KpiDeltaText delta={delta} />);
     if (this.badge) {
       out.push(
         <span class="u-chip u-num" data-tone={this.badge.tone}>
@@ -202,108 +163,31 @@ export class UdpPbiKpiCard {
       return <udp-pbi-data-table frame="none" label={`${this.heading} (table)`} columns={m.columns} rows={m.rows} paginated={false} />;
     }
     return (
-      <div class="kpi-focus">
-        <p class="kpi-focus__label">{this.heading}</p>
-        <p class="kpi-focus__value">{this.valueText}</p>
+      <KpiFocus heading={this.heading} info={this.info} calc={this.calc}>
+        <p class="kpi-focus__value">{kpiValueText(this)}</p>
         <div class="kpi-focus__row">{this.renderAside(true)}</div>
         {this.renderMeter()}
-        {this.info && <p class="kpi-focus__info">{this.info}</p>}
-        {this.calc && (
-          <p class="kpi-focus__calc">
-            <b aria-hidden="true">ƒ</b>
-            {this.calc}
-          </p>
-        )}
-      </div>
+      </KpiFocus>
     );
   };
 
   render() {
     const id = slug(this.heading);
-    const hasCurtain = Boolean(this.info || this.calc);
-    const interactive = this.isInteractive;
-    const iconNode = isKpiIconName(this.icon) ? KPI_ICONS[this.icon] : null;
-    const items: MenuItem[] = [
-      ...(this.exportable ? exportItems(this, this.model) : []),
-      ...(this.focusable ? [{ key: 'focus', label: 'Focus view', icon: UI_ICONS.focus, run: () => openFocus(this) }] : []),
-    ];
-
-    const content = [
-      <div key="top" class="kpi-top">
-        <span class="kpi-label">{this.heading}</span>
-        <slot name="icon">
-          {iconNode && (
-            <span class="kpi-mark" aria-hidden="true">
-              <Icon node={iconNode} size={16} strokeWidth={1.8} />
-            </span>
-          )}
-        </slot>
-      </div>,
-      <div key="main" class="kpi-main" data-stale={String(this.stale)}>
-        <span class="kpi-value" data-testid={`kpi-${id}`} title={this.error}>
-          {this.valueText}
-        </span>
-        <span class="kpi-aside">
-          <slot name="aside">{this.renderAside()}</slot>
-        </span>
-      </div>,
-      this.renderMeter(),
-      <slot key="footer" name="footer" />,
-    ];
-
     return (
       <Host data-theme={this.theme}>
-        <div
-          class={{
-            'u-card': true,
-            'u-curtain-host': true,
-            kpi: true,
-            'kpi--curtain': hasCurtain,
-            'kpi--actions': items.length > 0,
-            'u-card--interactive': interactive,
-            'u-card--active': this.active === true,
-          }}
-          style={{ '--i': String(this.index) }}
-          data-testid={`kpi-card-${id}`}
-        >
-          {interactive ? (
-            <button
-              type="button"
-              class="kpi-body"
-              aria-pressed={this.active === undefined ? undefined : String(this.active)}
-              aria-describedby={hasCurtain ? 'curtain' : undefined}
-              onClick={this.onActivate}
-            >
-              {content}
-            </button>
-          ) : (
-            // Focusable so keyboard users can reveal the curtain too
-            <div class="kpi-body" tabIndex={hasCurtain ? 0 : undefined} aria-describedby={hasCurtain ? 'curtain' : undefined}>
-              {content}
-            </div>
-          )}
-
-          {hasCurtain && (
-            <button
-              type="button"
-              class="u-icon-btn kpi-info"
-              aria-expanded={String(this.touchOpen)}
-              aria-controls="curtain"
-              aria-label={this.touchOpen ? `Hide what ${this.heading} means` : `What ${this.heading} means`}
-              onClick={() => (this.touchOpen = !this.touchOpen)}
-            >
-              <Icon node={UI_ICONS.info} size={16} />
-            </button>
-          )}
-          {hasCurtain && <Curtain info={this.info} calc={this.calc} open={this.touchOpen} onClose={() => (this.touchOpen = false)} padding="var(--pbi-kpi-pad)" />}
-
-          {items.length > 0 && (
-            <div class="kpi-actions">
-              <ActionMenu c={this} menuId="kpi-menu" label={`More options for ${this.heading}`} icon={UI_ICONS.more} items={items} />
-            </div>
-          )}
-          {this.focusable && <FocusDialog c={this} toggle render={this.renderFocus} />}
-        </div>
+        <KpiShell c={this} model={this.model} renderFocus={this.renderFocus} onTouch={(open) => (this.touchOpen = open)}>
+          <KpiTop heading={this.heading} icon={this.icon} />
+          <div class="kpi-main" data-stale={String(this.stale)}>
+            <span class="kpi-value" data-testid={`kpi-${id}`} title={this.error}>
+              {kpiValueText(this)}
+            </span>
+            <span class="kpi-aside">
+              <slot name="aside">{this.renderAside()}</slot>
+            </span>
+          </div>
+          {this.renderMeter()}
+          <slot name="footer" />
+        </KpiShell>
       </Host>
     );
   }

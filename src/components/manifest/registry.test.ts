@@ -26,7 +26,8 @@ describe('manifest component registry', () => {
     const element = byTag.get(elementTag(name));
     expect(element, `<${elementTag(name)}> missing from docs/components.json`).toBeDefined();
     const props = new Set(element?.props.map((p) => p.name));
-    const isKpi = name === 'UniverusKpiCard' || name === 'UniverusKpiHero';
+    // KPI elements are cards by design: no subtitle, table view or frame="none"
+    const isKpi = name.startsWith('UniverusKpi');
     for (const prop of [...COMMON_PROPS, ...(isKpi ? [] : CHART_PROPS)]) expect(props.has(prop), `${name}.${prop}`).toBe(true);
     expect(element?.events.map((e) => e.event).sort()).toEqual([...EVENTS].sort());
   });

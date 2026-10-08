@@ -89,13 +89,13 @@ function evaluateManifest(query: string, group?: string, className?: string): Re
 }
 
 /**
- * The vocabulary manifests (condition-works.json, delivery-lifecycle.json) are answered from their own
+ * The vocabulary manifests (condition-works, delivery-lifecycle, locations-performance) are answered from their own
  * sample rows: the visual is recognised by its table expression inside the (possibly injected) query,
  * and every TREATAS in the query narrows the rows through the app's Sample-mode logic. Report-filter
  * option queries get the column's sample values (Community, which no sample carries, a short list).
  * Returns null for any other query.
  */
-const VOCABULARY_VISUALS = ['condition-works.json', 'delivery-lifecycle.json'].flatMap((file) => {
+const VOCABULARY_VISUALS = ['condition-works.json', 'delivery-lifecycle.json', 'locations-performance.json'].flatMap((file) => {
   const result = validateManifest(JSON.parse(readFileSync(`public/manifests/${file}`, 'utf8')));
   if (!result.ok) throw new Error(`${file} is invalid`);
   return result.manifest.visuals;

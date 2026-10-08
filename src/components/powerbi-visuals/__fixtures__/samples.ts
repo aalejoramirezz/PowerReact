@@ -8,6 +8,9 @@ import type {
   BulletItem,
   CalendarDay,
   DotPlotItem,
+  GeoPoint,
+  KpiPoint,
+  RegionValue,
   TimelineTask,
   TreemapNode,
   WaterfallStep,
@@ -342,4 +345,143 @@ export const FINANCIAL_BRIDGE: WaterfallStep[] = [
   { id: 'disposals', label: 'Disposals', value: -2.7e6 },
   { id: 'depreciation', label: 'Depreciation', value: -14.9e6 },
   { id: 'closing', label: 'Closing book value', value: 422.5e6, kind: 'end' },
+];
+
+/* ─────────────── KPI variants ─────────────── */
+
+const monthly = (values: number[]): KpiPoint[] => MONTHS.map((label, i) => ({ label, value: values[i] ?? null }));
+
+/** Work requests raised per month: rising through the year. */
+export const REQUESTS_RAISED_TREND = monthly([268, 281, 240, 302, 296, 315, 334, 322, 351, 347, 362, 380]);
+
+/** Open backlog at each month end: falling towards its target of 300. */
+export const BACKLOG_TREND = monthly([355, 349, 362, 341, 333, 338, 327, 319, 324, 316, 309, 312]);
+
+/* ─────────────── Spatial (public city coordinates; values are illustrative) ─────────────── */
+
+const site = (id: string, label: string, lat: number, lon: number, value: number, group: string): GeoPoint => ({ id, label, lat, lon, value, group });
+
+/** Service sites across North America: open work requests per site, by network. */
+export const SERVICE_SITES: GeoPoint[] = [
+  site('van', 'Vancouver', 49.2827, -123.1207, 172, 'Water'),
+  site('vic', 'Victoria', 48.4284, -123.3656, 64, 'Water'),
+  site('sea', 'Seattle', 47.6062, -122.3321, 118, 'Water'),
+  site('pdx', 'Portland', 45.5152, -122.6784, 76, 'Roads'),
+  site('cal', 'Calgary', 51.0447, -114.0719, 98, 'Roads'),
+  site('edm', 'Edmonton', 53.5461, -113.4938, 54, 'Facilities'),
+  site('den', 'Denver', 39.7392, -104.9903, 87, 'Roads'),
+  site('wpg', 'Winnipeg', 49.8951, -97.1384, 41, 'Water'),
+  site('msp', 'Minneapolis', 44.9778, -93.265, 66, 'Facilities'),
+  site('chi', 'Chicago', 41.8781, -87.6298, 141, 'Water'),
+  site('tor', 'Toronto', 43.6532, -79.3832, 156, 'Facilities'),
+  site('ott', 'Ottawa', 45.4215, -75.6972, 48, 'Facilities'),
+  site('mtl', 'Montréal', 45.5017, -73.5673, 103, 'Water'),
+  site('nyc', 'New York', 40.7128, -74.006, 189, 'Water'),
+  site('bos', 'Boston', 42.3601, -71.0589, 72, 'Roads'),
+  site('hfx', 'Halifax', 44.6488, -63.5752, 29, 'Facilities'),
+  site('dc', 'Washington', 38.9072, -77.0369, 84, 'Roads'),
+  site('atl', 'Atlanta', 33.749, -84.388, 92, 'Roads'),
+  site('mia', 'Miami', 25.7617, -80.1918, 77, 'Water'),
+  site('hou', 'Houston', 29.7604, -95.3698, 131, 'Facilities'),
+  site('dal', 'Dallas', 32.7767, -96.797, 109, 'Roads'),
+  site('phx', 'Phoenix', 33.4484, -112.074, 95, 'Water'),
+  site('la', 'Los Angeles', 34.0522, -118.2437, 164, 'Water'),
+  site('sf', 'San Francisco', 37.7749, -122.4194, 121, 'Facilities'),
+];
+
+/** A deterministic pseudo-random sequence (fixtures stay identical between runs). */
+function seeded(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+const rand = seeded(7);
+const gauss = () => Math.sqrt(-2 * Math.log(Math.max(1e-9, rand()))) * Math.cos(2 * Math.PI * rand());
+
+/** Asset locations clustered around one metro area (for density marks). */
+export const ASSET_LOCATIONS: GeoPoint[] = (
+  [
+    [49.2827, -123.1207, 0.018, 180],
+    [49.2488, -122.9805, 0.022, 140],
+    [49.1913, -122.849, 0.03, 160],
+    [49.1666, -123.1336, 0.02, 90],
+    [49.3165, -123.0688, 0.016, 70],
+  ] as const
+).flatMap(([lat, lon, spread, n], c) =>
+  Array.from({ length: n }, (_, i) => ({
+    id: `a${c}-${i}`,
+    label: `Asset ${c + 1}-${String(i + 1).padStart(3, '0')}`,
+    lat: lat + gauss() * spread,
+    lon: lon + gauss() * spread * 1.5,
+    value: 1 + Math.floor(rand() * 5),
+  }))
+);
+
+const region = (key: string, label: string, value: number): RegionValue => ({ key, label, value });
+
+/** Share of assets in poor condition by state / province (one region outside the boundaries, listed in a note). */
+export const POOR_CONDITION_BY_REGION: RegionValue[] = [
+  region('US-NY', 'New York', 0.18),
+  region('US-NJ', 'New Jersey', 0.16),
+  region('US-PA', 'Pennsylvania', 0.21),
+  region('US-MA', 'Massachusetts', 0.12),
+  region('US-FL', 'Florida', 0.09),
+  region('US-GA', 'Georgia', 0.14),
+  region('US-TX', 'Texas', 0.11),
+  region('US-CA', 'California', 0.16),
+  region('US-WA', 'Washington', 0.1),
+  region('US-OR', 'Oregon', 0.13),
+  region('US-IL', 'Illinois', 0.22),
+  region('US-OH', 'Ohio', 0.24),
+  region('US-MI', 'Michigan', 0.26),
+  region('US-CO', 'Colorado', 0.08),
+  region('US-AZ', 'Arizona', 0.07),
+  region('US-MN', 'Minnesota', 0.15),
+  region('CA-BC', 'British Columbia', 0.09),
+  region('CA-AB', 'Alberta', 0.12),
+  region('CA-SK', 'Saskatchewan', 0.11),
+  region('CA-MB', 'Manitoba', 0.14),
+  region('CA-ON', 'Ontario', 0.17),
+  region('CA-QC', 'Quebec', 0.2),
+  region('CA-NS', 'Nova Scotia', 0.15),
+  region('AU-VIC', 'Victoria (Australia)', 0.06),
+];
+
+/** Service centres worldwide: active contracts per centre. */
+export const SERVICE_CENTRES: GeoPoint[] = [
+  site('yvr', 'Vancouver', 49.2827, -123.1207, 42, 'Americas'),
+  site('yyz', 'Toronto', 43.6532, -79.3832, 55, 'Americas'),
+  site('nyc', 'New York', 40.7128, -74.006, 61, 'Americas'),
+  site('hou', 'Houston', 29.7604, -95.3698, 33, 'Americas'),
+  site('mex', 'Mexico City', 19.4326, -99.1332, 27, 'Americas'),
+  site('sao', 'São Paulo', -23.5505, -46.6333, 38, 'Americas'),
+  site('lon', 'London', 51.5072, -0.1276, 58, 'EMEA'),
+  site('mad', 'Madrid', 40.4168, -3.7038, 24, 'EMEA'),
+  site('jnb', 'Johannesburg', -26.2041, 28.0473, 19, 'EMEA'),
+  site('dxb', 'Dubai', 25.2048, 55.2708, 31, 'EMEA'),
+  site('bom', 'Mumbai', 19.076, 72.8777, 36, 'APAC'),
+  site('sin', 'Singapore', 1.3521, 103.8198, 44, 'APAC'),
+  site('tyo', 'Tokyo', 35.6762, 139.6503, 47, 'APAC'),
+  site('syd', 'Sydney', -33.8688, 151.2093, 52, 'APAC'),
+  site('mel', 'Melbourne', -37.8136, 144.9631, 39, 'APAC'),
+  site('akl', 'Auckland', -36.8509, 174.7645, 21, 'APAC'),
+];
+
+/** Year-on-year change of the asset base by country (ISO 3166-1 alpha-3). */
+export const ASSET_GROWTH_BY_COUNTRY: RegionValue[] = [
+  region('CAN', 'Canada', 0.04),
+  region('USA', 'United States', 0.06),
+  region('MEX', 'Mexico', -0.02),
+  region('BRA', 'Brazil', 0.03),
+  region('GBR', 'United Kingdom', -0.01),
+  region('ESP', 'Spain', 0.02),
+  region('ZAF', 'South Africa', -0.03),
+  region('ARE', 'United Arab Emirates', 0.08),
+  region('IND', 'India', 0.11),
+  region('IDN', 'Indonesia', 0.05),
+  region('JPN', 'Japan', -0.02),
+  region('AUS', 'Australia', 0.07),
+  region('NZL', 'New Zealand', 0.01),
 ];

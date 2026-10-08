@@ -1,21 +1,27 @@
 import type { CSSProperties, ReactElement } from 'react';
 import type { DataPointClickDetail, DataPointValue, ExportFormat } from '@powerreact/udp-powerbi-visuals';
 import type { DaxRow } from '../../lib/dax/types';
+import type { GeoAsset } from '../../lib/geo/geoAssets';
 import { keyLabel, type MappedData, type MappedDataMap } from '../../lib/manifest/mapRows';
 import type { ManifestComponentName, ManifestVisual } from '../../lib/manifest/schema';
 import {
   UdpPbiBoxplot,
   UdpPbiBulletBars,
   UdpPbiCalendarHeatmap,
+  UdpPbiChoropleth,
   UdpPbiColumnChart,
   UdpPbiDataTable,
   UdpPbiDivergingBars,
   UdpPbiDonut,
   UdpPbiDotPlot,
   UdpPbiIbcsVariance,
+  UdpPbiKpiBullet,
   UdpPbiKpiCard,
   UdpPbiKpiHero,
+  UdpPbiKpiTrend,
+  UdpPbiKpiVariance,
   UdpPbiMatrix,
+  UdpPbiPointMap,
   UdpPbiRankingBars,
   UdpPbiScatter,
   UdpPbiSpotlightBars,
@@ -55,6 +61,11 @@ export const REGISTRY = {
   UniverusDotPlot: UdpPbiDotPlot,
   UniverusTimeline: UdpPbiTimeline,
   UniverusBoxplot: UdpPbiBoxplot,
+  UniverusKpiTrend: UdpPbiKpiTrend,
+  UniverusKpiBullet: UdpPbiKpiBullet,
+  UniverusKpiVariance: UdpPbiKpiVariance,
+  UniverusPointMap: UdpPbiPointMap,
+  UniverusChoropleth: UdpPbiChoropleth,
   // A control of the container (not a udp-powerbi-visuals element): in UDP, UdpDropdown / UdpTablist
   UniverusSlicer: ManifestSlicer,
 } satisfies Record<ManifestComponentName, unknown>;
@@ -77,6 +88,28 @@ export interface VisualContext {
   /** Slicers: the current selection on their column, and how to replace it. */
   slicerValues: DataPointValue[];
   onSlicerChange: (values: DataPointValue[], labels: string[]) => void;
+  /** Maps: the boundary set named by `props.geo`, loaded from /geo. */
+  geo?: GeoAsset;
+  geoLoading?: boolean;
+  geoError?: string;
+}
+
+/**
+ * The host's raster basemap for `basemap: "tiles"` (UDP: its Azure Maps key). Unset by default:
+ * maps draw the vector boundaries, free and offline.
+ */
+const HOST_TILES = import.meta.env.VITE_MAP_TILE_URL
+  ? { url: String(import.meta.env.VITE_MAP_TILE_URL), attribution: String(import.meta.env.VITE_MAP_TILE_ATTRIBUTION ?? '') }
+  : undefined;
+
+/** Boundary props of a map from the resolved set (the manifest's object / key override the set's). */
+function geoProps(ctx: VisualContext, geo: { object?: string; key?: string } | undefined) {
+  const asset = ctx.geo;
+  return {
+    geometry: asset?.geometry,
+    geometryObject: geo?.object ?? asset?.object,
+    contextObject: asset?.context,
+  };
 }
 
 /** Props every element takes: presentation from the manifest, state from the query, placement on the grid. */
@@ -111,7 +144,7 @@ function commonProps(visual: ElementVisual, state: VisualState, index: number) {
 }
 
 /** Charts and tables add the subtitle, the empty message and cross-filtering. */
-function chartProps(visual: Exclude<ElementVisual, { component: 'UniverusKpiCard' | 'UniverusKpiHero' }>, state: VisualState, ctx: VisualContext) {
+function chartProps(visual: Exclude<ElementVisual, { component: 'UniverusKpiCard' | 'UniverusKpiHero' | 'UniverusKpiTrend' | 'UniverusKpiBullet' | 'UniverusKpiVariance' }>, state: VisualState, ctx: VisualContext) {
   return {
     ...commonProps(visual, state, ctx.index),
     subheading: visual.props.subtitle,
@@ -460,6 +493,116 @@ export function renderVisual(visual: ManifestVisual, state: VisualState, ctx: Vi
           showMean={p.showMean}
           zero={p.zero}
           categoryLabel={p.categoryLabel ?? keyLabel(visual.fields.category)}
+        />
+      );
+    }
+    case 'UniverusKpiTrend': {
+      const d = dataOf(state, visual.component);
+      const p = visual.props;
+      return (
+        <UdpPbiKpiTrend
+          {...commonProps(visual, state, ctx.index)}
+          series={d?.series ?? []}
+          value={d?.value}
+          comparisonValue={d?.comparisonValue}
+          target={d?.target}
+          goodWhen={p.goodWhen}
+          deltaLabel={p.deltaLabel}
+          targetLabel={p.targetLabel}
+          periodLabel={p.periodLabel}
+          icon={p.icon}
+          caption={p.caption}
+        />
+      );
+    }
+    case 'UniverusKpiBullet': {
+      const d = dataOf(state, visual.component);
+      const p = visual.props;
+      return (
+        <UdpPbiKpiBullet
+          {...commonProps(visual, state, ctx.index)}
+          value={d?.value}
+          target={d?.target}
+          forecast={d?.forecast}
+          thresholds={p.thresholds}
+          max={p.max}
+          goodWhen={p.goodWhen}
+          targetLabel={p.targetLabel}
+          forecastLabel={p.forecastLabel}
+          statusLabels={p.statusLabels ?? {}}
+          icon={p.icon}
+          caption={p.caption}
+        />
+      );
+    }
+    case 'UniverusKpiVariance': {
+      const d = dataOf(state, visual.component);
+      const p = visual.props;
+      return (
+        <UdpPbiKpiVariance
+          {...commonProps(visual, state, ctx.index)}
+          actual={d?.actual}
+          comparison={d?.comparison}
+          scenario={p.scenario}
+          goodWhen={p.goodWhen}
+          actualLabel={p.actualLabel}
+          comparisonLabel={p.comparisonLabel}
+          decimals={p.decimals}
+          icon={p.icon}
+          caption={p.caption}
+        />
+      );
+    }
+    case 'UniverusPointMap': {
+      const p = visual.props;
+      const f = visual.fields;
+      const base = chartProps(visual, state, ctx);
+      return (
+        <UdpPbiPointMap
+          {...base}
+          {...geoProps(ctx, p.geo)}
+          loading={base.loading || Boolean(ctx.geoLoading)}
+          error={base.error ?? ctx.geoError}
+          tableToggle={p.tableView}
+          points={dataOf(state, visual.component)?.points ?? []}
+          mark={p.mark}
+          projection={p.projection}
+          tiles={p.basemap === 'tiles' ? HOST_TILES : undefined}
+          categoryLabel={p.categoryLabel ?? keyLabel(f.category)}
+          valueLabel={p.valueLabel ?? (f.value ? keyLabel(f.value) : 'Value')}
+          groupLabel={p.groupLabel ?? (f.group ? keyLabel(f.group) : 'Group')}
+          zoomable={p.zoomable}
+          chartHeight={p.chartHeight}
+        />
+      );
+    }
+    case 'UniverusChoropleth': {
+      const p = visual.props;
+      const f = visual.fields;
+      const base = chartProps(visual, state, ctx);
+      return (
+        <UdpPbiChoropleth
+          {...base}
+          {...geoProps(ctx, p.geo)}
+          loading={base.loading || Boolean(ctx.geoLoading)}
+          error={base.error ?? ctx.geoError}
+          tableToggle={p.tableView}
+          regions={dataOf(state, visual.component)?.regions ?? []}
+          featureKey={p.geo.key ?? ctx.geo?.key ?? 'code'}
+          tileLayout={ctx.geo?.tileLayout}
+          colorScale={p.colorScale}
+          classes={p.classes}
+          classCount={p.classCount}
+          goodWhen={p.goodWhen}
+          colorCenter={p.colorCenter}
+          shape={p.shape}
+          projection={p.projection}
+          fit={p.fit}
+          labels={p.labels}
+          regionLabel={p.regionLabel ?? keyLabel(f.region)}
+          valueLabel={p.valueLabel ?? keyLabel(f.value)}
+          zoomable={p.zoomable}
+          chartHeight={p.chartHeight}
         />
       );
     }

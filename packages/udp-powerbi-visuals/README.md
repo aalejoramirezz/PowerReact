@@ -18,6 +18,9 @@ The Univerus Power BI visuals as **presentational Stencil web components**, laid
 | :--- | :--- | :--- |
 | `udp-pbi-kpi-card` | KPI | How much? Value, delta by business meaning, badge, meter. |
 | `udp-pbi-kpi-hero` | KPI | One headline metric with up to four supporting figures. |
+| `udp-pbi-kpi-trend` | KPI · Change | How much, and which way is it going? Number, delta and a sparkline of the recent periods (min / max, target line). |
+| `udp-pbi-kpi-bullet` | KPI · Magnitude | How far from target? A bullet graph: qualitative bands, value bar, target tick, forecast marker, status chip. The replacement for gauges. |
+| `udp-pbi-kpi-variance` | KPI · Deviation | Better or worse than PY / PL / FC / BU? AC, the scenario, ΔAbs and Δ% in IBCS notation. |
 | `udp-pbi-spotlight-bars` | Ranking | Which leads? Label above a slim bar, share of total. |
 | `udp-pbi-ranking-bars` | Ranking | Which leads, compact and long lists; a slim bar or a lollipop (`mark`). |
 | `udp-pbi-dot-plot` | Ranking · Change | Two values per category: dumbbell (before → after, plan → actual) or slope. |
@@ -36,6 +39,8 @@ The Univerus Power BI visuals as **presentational Stencil web components**, laid
 | `udp-pbi-scatter` | Correlation | How two measures relate; bubble size; quadrants. |
 | `udp-pbi-matrix` | Correlation · Exact values | Pivot with expandable rows and heatmap; totals from the engine. |
 | `udp-pbi-data-table` | Exact values | Which rows: sortable, paginated, chips and meters. |
+| `udp-pbi-point-map` | Spatial | Where exactly? Locations at their WGS 84 coordinates: dots, bubbles, spikes (2.5D), hexagonal bins, density contours; flat or on a globe. |
+| `udp-pbi-choropleth` | Spatial | How does a rate vary by region? Classed or continuous fills, diverging around a centre, an equal-area tile map, or a globe. |
 
 Each component's props, events and slots are in its `readme.md`, generated from the source on every
 build (`src/components/<family>/<tag>/readme.md`); `docs/components.json` holds the same as JSON.
@@ -69,17 +74,32 @@ active platform theme apply. No colour literal exists in the package (`noRawColo
 `--u-*` directly. When an element needs a new role, add it to `tokens.css` (both themes), then to the
 bridge with its Fluent fallback.
 
+## Maps
+
+- **Boundaries come from the host**: `geometry` takes a TopoJSON topology (with `geometryObject` /
+  `contextObject`) or a GeoJSON FeatureCollection in WGS 84. The element never fetches; PowerReact
+  serves public-domain Natural Earth sets from its own `/geo` folder (`public/geo`, built by
+  `scripts/build-geo.mjs`). Regions match by ISO 3166 code, postal code or name; rows the boundaries
+  do not know are listed under the map, never dropped silently.
+- **Projections**: `auto` (Mercator for a city or region, conformal conic for a continent, Equal
+  Earth for the world), or `mercator`, `conic`, `equal-earth`, `globe` (orthographic: drag to turn,
+  the arrow keys walk the locations and turn the globe to them; never spins by itself).
+- **Basemap**: vector by default (free, offline, themed by `--pbi-map-*`). A host may pass `tiles`
+  (`{url, attribution}`, Web Mercator `{z}/{x}/{y}`): in UDP, its Azure Maps key.
+- **Zoom**: the buttons, Ctrl + wheel or a pinch; the page keeps its scroll, and dragging pans only
+  once zoomed in.
+
 ## Layout
 
 ```
 src/
   components/
-    kpi/      udp-pbi-kpi-card, udp-pbi-kpi-hero
-    charts/   udp-pbi-column-chart, udp-pbi-stacked-bars, udp-pbi-scatter, udp-pbi-waterfall, udp-pbi-treemap, …
+    kpi/      udp-pbi-kpi-card, udp-pbi-kpi-hero, udp-pbi-kpi-trend, udp-pbi-kpi-bullet, udp-pbi-kpi-variance
+    charts/   udp-pbi-column-chart, udp-pbi-stacked-bars, udp-pbi-scatter, udp-pbi-waterfall, udp-pbi-treemap, udp-pbi-point-map, udp-pbi-choropleth, …
     tables/   udp-pbi-data-table, udp-pbi-matrix
-  functional/ frame.tsx (card, toolbar, curtain, focus dialog), chart-kit.tsx (grid, reference lines, legend, tooltip), states, icons
-  utils/      layout math (series, scales, matrix, scatter, bars, donut, ibcs, trend, waterfall, treemap, calendar, timeline, dot plot, boxplot) with unit tests, palette, roving keyboard model, formats, export (CSV / XLSX), table model
-  styles/     tokens-bridge.css, motion.css, shadow.css, surfaces.css, charts.css
+  functional/ frame.tsx (card, toolbar, curtain, focus dialog), kpi-shell.tsx (the KPI cards' shared shell), chart-kit.tsx (grid, reference lines, legend, tooltip), map-kit.tsx (base layers, tiles, zoom / globe controllers, map legends), states, icons
+  utils/      layout math (series, scales, matrix, scatter, bars, donut, ibcs, trend, waterfall, treemap, calendar, timeline, dot plot, boxplot, geo, kpi) with unit tests, palette, roving keyboard model, formats, export (CSV / XLSX), table model
+  styles/     tokens-bridge.css, motion.css, shadow.css, surfaces.css, charts.css, kpi.css, maps.css
 ```
 
 Build outputs (`npm run elements:build` from the repository root): `components/` (custom elements,

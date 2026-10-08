@@ -1,0 +1,59 @@
+/* IBCS rows: label · bar · value. AC solid, the scenario in its notation, variances green / red */
+.kv-box {
+  margin-top: 12px;
+  transition: opacity 0.2s ease-out;
+}
+.kv-box[data-stale='true'] {
+  opacity: 0.5;
+}
+.kv {
+  display: grid;
+  gap: 6px;
+  animation: u-fade 0.6s var(--pbi-ease) calc(var(--i, 0) * 80ms + 280ms) both;
+}
+.kv-row {
+  display: grid;
+  grid-template-columns: 3.4em minmax(40px, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+}
+.kv-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 10.5px/1.2 var(--pbi-font-body);
+  color: var(--pbi-label);
+}
+.kv-bar {
+  display: block;
+  overflow: visible;
+}
+.kv-ac {
+  fill: var(--pbi-ac);
+}
+.kv-axis {
+  stroke: var(--pbi-title);
+  stroke-width: 1px;
+}
+.kv-stem {
+  stroke: var(--pbi-title);
+  stroke-width: 1px;
+}
+.kv-value {
+  min-width: 4.5em;
+  text-align: right;
+  white-space: nowrap;
+  font: 600 11.5px/1.2 var(--pbi-font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--pbi-title);
+}
+.kv--large {
+  max-width: 560px;
+  gap: 10px;
+}
+.kv--large .kv-label {
+  font-size: 12px;
+}
+.kv--large .kv-value {
+  font-size: 14px;
+}

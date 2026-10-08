@@ -123,6 +123,27 @@ describe.each([
   });
 });
 
+/** Place names and values drawn straight on a map (land, water, regions without data). */
+const MAP_PAIRS: Array<[string, string]> = [
+  ['text', 'map-land'],
+  ['text', 'map-water'],
+  ['text', 'map-nodata'],
+];
+
+describe.each([
+  ['neoglass', NEOGLASS],
+  ['nocturne', NOCTURNE],
+] as const)('%s map surfaces', (_name, theme) => {
+  it.each(MAP_PAIRS)('%s on %s reaches 4.5:1', (fg, bg) => {
+    expect(contrast(theme, fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('water and regions without data stay closer to the card than the ramp (data always reads as data)', () => {
+    const fromCard = (role: string) => contrast(theme, role, 'card-solid');
+    for (const role of ['map-water', 'map-nodata']) expect(fromCard(role)).toBeLessThan(fromCard('seq-3'));
+  });
+});
+
 /** Labels drawn on heatmap / treemap cells: every step of both ramps carries its own text role. */
 const RAMP_PAIRS: Array<[string, string]> = [1, 2, 3, 4, 5, 6, 7].flatMap((k) => [
   [`seq-text-${k}`, `seq-${k}`] as [string, string],

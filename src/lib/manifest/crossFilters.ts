@@ -178,7 +178,26 @@ function aggregation(visual: ManifestVisual): Aggregation | null {
       return merge({ groupBy: [category], sum: [from, to] }, ...(tooltips ?? []).map((t) => ratio(t.field, isPercent(t.format))));
     }
     case 'UniverusTimeline':
+    case 'UniverusPointMap':
       return null;
+    case 'UniverusChoropleth': {
+      // Rates and ratios: averaged per region (an approximation; Live is the truth)
+      const { region, label, value, tooltips } = visual.fields;
+      return merge({ groupBy: [region, ...(label ? [label] : [])], mean: [value] }, ...(tooltips ?? []).map((t) => ratio(t.field, isPercent(t.format))));
+    }
+    case 'UniverusKpiTrend': {
+      const pct = isPercent(visual.props.format);
+      const f = visual.fields;
+      return merge({ groupBy: [f.category] }, ratio(f.value, pct), ratio(f.comparison, pct), ratio(f.target, pct));
+    }
+    case 'UniverusKpiBullet': {
+      const pct = isPercent(visual.props.format);
+      return merge(ratio(visual.fields.value, pct), ratio(visual.fields.target, pct), ratio(visual.fields.forecast, pct));
+    }
+    case 'UniverusKpiVariance': {
+      const pct = isPercent(visual.props.format);
+      return merge(ratio(visual.fields.actual, pct), ratio(visual.fields.comparison, pct));
+    }
     case 'UniverusBoxplot': {
       // Raw observations stay one per row; engine statistics are averaged per category
       const f = visual.fields;
