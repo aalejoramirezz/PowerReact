@@ -8,6 +8,7 @@ import { UnityAssetsHeader } from './components/layout/UnityAssetsHeader';
 import { UnityAssetsSidebar } from './components/layout/UnityAssetsSidebar';
 import { SemanticModelVisuals } from './components/visuals/SemanticModelVisuals';
 import { Gallery } from './pages/Gallery';
+import { ManifestPreview } from './pages/ManifestPreview';
 import { ROUTES, viewFromPath, type ViewId } from './routes';
 import type { HealthStatus } from './types';
 
@@ -62,6 +63,7 @@ export function App() {
             <Route path={`${ROUTES.visuals}/*`} element={null} />
             <Route path={`${ROUTES.report}/*`} element={null} />
             <Route path={`${ROUTES.gallery}/*`} element={null} />
+            <Route path={`${ROUTES.manifestPreview}/*`} element={null} />
             <Route path="*" element={<Navigate to={ROUTES.report} replace />} />
           </Routes>
 
@@ -79,6 +81,11 @@ export function App() {
             {activeView === 'gallery' && (
               <div className={paneClass(true)}>
                 <Gallery />
+              </div>
+            )}
+            {visitedViews.has('manifestPreview') && (
+              <div className={paneClass(activeView === 'manifestPreview')}>
+                <ManifestPreview />
               </div>
             )}
           </div>

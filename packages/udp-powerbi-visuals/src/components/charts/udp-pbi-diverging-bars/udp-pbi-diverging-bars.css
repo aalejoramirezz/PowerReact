@@ -1,0 +1,57 @@
+.db-grid {
+  display: grid;
+  grid-template-columns: minmax(72px, 26%) 1fr 1fr 64px;
+  align-items: center;
+  column-gap: 10px;
+}
+.db-head {
+  margin-bottom: 6px;
+  font: 600 10px/1 var(--pbi-font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pbi-subtitle);
+}
+.db-head__neg {
+  text-align: left;
+}
+.db-head__pos {
+  text-align: right;
+}
+.db-row {
+  height: 28px;
+  padding: 0 4px;
+  border-radius: 6px;
+}
+.db-row .u-bar-label {
+  font-size: 12px;
+}
+.db-side {
+  display: flex;
+  height: 8px;
+  background: var(--pbi-track);
+}
+.db-side--neg {
+  justify-content: flex-end;
+  border-radius: 999px 0 0 999px;
+}
+.db-side--pos {
+  border-radius: 0 999px 999px 0;
+}
+.db-bar {
+  display: block;
+  height: 100%;
+  animation: u-grow 0.9s var(--pbi-ease) calc(var(--k, 0) * 50ms + 300ms) both;
+}
+.db-bar--neg {
+  border-radius: 999px 0 0 999px;
+  background: var(--pbi-secondary);
+  transform-origin: right;
+}
+.db-bar--pos {
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, var(--pbi-bar-1), var(--pbi-bar-2));
+  transform-origin: left;
+}
+.db-row .u-bar-value {
+  font-size: 12.5px;
+}

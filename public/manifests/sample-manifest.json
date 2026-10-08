@@ -1,0 +1,686 @@
+{
+  "$schema": "./manifest.schema.json",
+  "schemaVersion": 1,
+  "id": "asset-portfolio",
+  "title": "Asset Portfolio (manifest)",
+  "eyebrow": "Asset Management · manifest",
+  "description": "The asset register as a declarative manifest: four KPIs, a hero, a spotlight, a donut, a ranking and a table, cross-filtering each other.",
+  "theme": "auto",
+  "dataSource": {
+    "workspaceId": "ef45c53d-42d4-48c6-be79-380b8d890c80",
+    "semanticModelId": "0db033d0-4f4e-4d72-a280-007d6f17e2ec"
+  },
+  "layout": {
+    "columns": 12,
+    "rowMinHeight": 120
+  },
+  "visuals": [
+    {
+      "id": "kpi-total",
+      "component": "UniverusKpiCard",
+      "grid": {
+        "colSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE ROW(\"Total Assets\", [Asset Count (All States)])"
+      },
+      "fields": {
+        "value": "[Total Assets]"
+      },
+      "props": {
+        "title": "Total Assets",
+        "icon": "database",
+        "caption": "in scope",
+        "info": "Assets in the register across all asset states, for the current cross-filters.",
+        "calc": "[Asset Count (All States)]"
+      },
+      "sample": [
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Water_Pipes",
+          "[Total Assets]": 1979
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Sanitary_Pipes",
+          "[Total Assets]": 2100
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Stormwater_Pipes",
+          "[Total Assets]": 1372
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Hydrants",
+          "[Total Assets]": 1549
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Valves",
+          "[Total Assets]": 1000
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Buildings",
+          "[Total Assets]": 1200
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Transport",
+          "asset_class[Asset_Class]": "Bridges",
+          "[Total Assets]": 500
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "rd_line",
+          "asset_class[Asset_Class]": "Roads",
+          "[Total Assets]": 300
+        }
+      ]
+    },
+    {
+      "id": "kpi-assessed",
+      "component": "UniverusKpiCard",
+      "grid": {
+        "colSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE ROW(\"Assessed\", [Assets Assessed For Condition], \"Assessed Share\", DIVIDE([Assets Assessed For Condition], [Asset Count (All States)]))"
+      },
+      "fields": {
+        "value": "[Assessed]",
+        "meter": "[Assessed Share]"
+      },
+      "props": {
+        "title": "Condition Assessed",
+        "icon": "check-circle",
+        "meterDetail": "of assets",
+        "info": "Assets that have received at least one physical condition assessment (Condition_Index > 0).",
+        "calc": "[Assets Assessed For Condition] ÷ [Asset Count (All States)]"
+      },
+      "sample": [
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Water_Pipes",
+          "[Assessed]": 1840,
+          "[Assessed Share]": 0.9298
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Sanitary_Pipes",
+          "[Assessed]": 1500,
+          "[Assessed Share]": 0.7143
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Stormwater_Pipes",
+          "[Assessed]": 900,
+          "[Assessed Share]": 0.656
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Hydrants",
+          "[Assessed]": 1200,
+          "[Assessed Share]": 0.7747
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Valves",
+          "[Assessed]": 400,
+          "[Assessed Share]": 0.4
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Buildings",
+          "[Assessed]": 1000,
+          "[Assessed Share]": 0.8333
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Transport",
+          "asset_class[Asset_Class]": "Bridges",
+          "[Assessed]": 450,
+          "[Assessed Share]": 0.9
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "rd_line",
+          "asset_class[Asset_Class]": "Roads",
+          "[Assessed]": 100,
+          "[Assessed Share]": 0.3333
+        }
+      ]
+    },
+    {
+      "id": "kpi-renewal",
+      "component": "UniverusKpiCard",
+      "grid": {
+        "colSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE ROW(\"Due For Renewal\", [Assets Due For Renewal], \"Due Share\", DIVIDE([Assets Due For Renewal], [Asset Count (All States)]))"
+      },
+      "fields": {
+        "value": "[Due For Renewal]",
+        "meter": "[Due Share]"
+      },
+      "props": {
+        "title": "Due For Renewal",
+        "icon": "alert-triangle",
+        "meterDetail": "of assets",
+        "goodWhen": "lower",
+        "info": "Assets whose reportable renewal date is on or before today and have a valid base life (> 2 years).",
+        "calc": "[Assets Due For Renewal] ÷ [Asset Count (All States)]"
+      },
+      "sample": [
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Water_Pipes",
+          "[Due For Renewal]": 637,
+          "[Due Share]": 0.3219
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Sanitary_Pipes",
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Stormwater_Pipes",
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Hydrants",
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Valves",
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Buildings",
+          "[Due For Renewal]": 50,
+          "[Due Share]": 0.0417
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Transport",
+          "asset_class[Asset_Class]": "Bridges",
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "rd_line",
+          "asset_class[Asset_Class]": "Roads",
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        }
+      ]
+    },
+    {
+      "id": "kpi-base-life",
+      "component": "UniverusKpiCard",
+      "grid": {
+        "colSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE ROW(\"Avg Base Life\", [Avg Base Life (Years)])"
+      },
+      "fields": {
+        "value": "[Avg Base Life]"
+      },
+      "props": {
+        "title": "Avg Base Life",
+        "icon": "calendar",
+        "caption": "Years",
+        "format": {
+          "style": "decimal",
+          "decimals": 1
+        },
+        "info": "Average base (useful) life of the assets in scope, in years.",
+        "calc": "[Avg Base Life (Years)]"
+      },
+      "sample": [
+        {
+          "[Avg Base Life]": 42.3
+        }
+      ]
+    },
+    {
+      "id": "condition-coverage",
+      "component": "UniverusKpiHero",
+      "grid": {
+        "colSpan": 7
+      },
+      "query": {
+        "dax": "EVALUATE\nROW(\n  \"Assessed Share\", DIVIDE([Assets Assessed For Condition], [Asset Count (All States)]),\n  \"Total Assets\", [Asset Count (All States)],\n  \"Assessed\", [Assets Assessed For Condition],\n  \"Due For Renewal\", [Assets Due For Renewal],\n  \"Due Share\", DIVIDE([Assets Due For Renewal], [Asset Count (All States)])\n)"
+      },
+      "fields": {
+        "value": "[Assessed Share]",
+        "meter": "[Due Share]",
+        "metrics": [
+          {
+            "label": "Assets in scope",
+            "field": "[Total Assets]"
+          },
+          {
+            "label": "Condition assessed",
+            "field": "[Assessed]"
+          },
+          {
+            "label": "Due for renewal",
+            "field": "[Due For Renewal]"
+          }
+        ]
+      },
+      "props": {
+        "title": "Condition coverage",
+        "format": {
+          "style": "percent",
+          "decimals": 1
+        },
+        "meterLabel": "Due for renewal",
+        "info": "Share of the assets in scope with at least one condition assessment; the meter shows the share due for renewal.",
+        "calc": "Assessed ÷ assets · due for renewal ÷ assets ([Asset Count (All States)])"
+      },
+      "sample": [
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Water_Pipes",
+          "[Assessed Share]": 0.9298,
+          "[Total Assets]": 1979,
+          "[Assessed]": 1840,
+          "[Due For Renewal]": 637,
+          "[Due Share]": 0.3219
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Sanitary_Pipes",
+          "[Assessed Share]": 0.7143,
+          "[Total Assets]": 2100,
+          "[Assessed]": 1500,
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Stormwater_Pipes",
+          "[Assessed Share]": 0.656,
+          "[Total Assets]": 1372,
+          "[Assessed]": 900,
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Hydrants",
+          "[Assessed Share]": 0.7747,
+          "[Total Assets]": 1549,
+          "[Assessed]": 1200,
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Valves",
+          "[Assessed Share]": 0.4,
+          "[Total Assets]": 1000,
+          "[Assessed]": 400,
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Buildings",
+          "[Assessed Share]": 0.8333,
+          "[Total Assets]": 1200,
+          "[Assessed]": 1000,
+          "[Due For Renewal]": 50,
+          "[Due Share]": 0.0417
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Transport",
+          "asset_class[Asset_Class]": "Bridges",
+          "[Assessed Share]": 0.9,
+          "[Total Assets]": 500,
+          "[Assessed]": 450,
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "rd_line",
+          "asset_class[Asset_Class]": "Roads",
+          "[Assessed Share]": 0.3333,
+          "[Total Assets]": 300,
+          "[Assessed]": 100,
+          "[Due For Renewal]": 0,
+          "[Due Share]": 0.0
+        }
+      ]
+    },
+    {
+      "id": "groups",
+      "component": "UniverusSpotlightBars",
+      "grid": {
+        "colSpan": 5
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS('asset_class_group'[Asset_Class_Group], \"Group Assets\", [Asset Count (All States)])\nORDER BY [Group Assets] DESC"
+      },
+      "fields": {
+        "category": "'asset_class_group'[Asset_Class_Group]",
+        "value": "[Group Assets]"
+      },
+      "crossFilter": {
+        "field": "'asset_class_group'[Asset_Class_Group]"
+      },
+      "props": {
+        "title": "Assets by group",
+        "subtitle": "Asset count and share of the register",
+        "secondary": "share-paren",
+        "selectedBadge": "Cross-Filtered",
+        "info": "Assets per asset class group. Click a group to cross-filter the other visuals; it stays highlighted here.",
+        "calc": "[Asset Count (All States)] by 'asset_class_group'[Asset_Class_Group]"
+      },
+      "sample": [
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Water_Pipes",
+          "[Group Assets]": 1979
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Sanitary_Pipes",
+          "[Group Assets]": 2100
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Stormwater_Pipes",
+          "[Group Assets]": 1372
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Hydrants",
+          "[Group Assets]": 1549
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Valves",
+          "[Group Assets]": 1000
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Buildings",
+          "[Group Assets]": 1200
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Transport",
+          "asset_class[Asset_Class]": "Bridges",
+          "[Group Assets]": 500
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "rd_line",
+          "asset_class[Asset_Class]": "Roads",
+          "[Group Assets]": 300
+        }
+      ]
+    },
+    {
+      "id": "assessed-by-group",
+      "component": "UniverusDonut",
+      "grid": {
+        "colSpan": 5
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS('asset_class_group'[Asset_Class_Group], \"Group Assessed\", [Assets Assessed For Condition])"
+      },
+      "fields": {
+        "category": "'asset_class_group'[Asset_Class_Group]",
+        "value": "[Group Assessed]"
+      },
+      "crossFilter": {
+        "field": "'asset_class_group'[Asset_Class_Group]"
+      },
+      "props": {
+        "title": "Condition assessments by group",
+        "subtitle": "How the assessed assets split",
+        "centerLabel": "assessed",
+        "info": "Assets with a condition assessment, split by asset class group (a real total, five parts).",
+        "calc": "[Assets Assessed For Condition] by 'asset_class_group'[Asset_Class_Group]"
+      },
+      "sample": [
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Water_Pipes",
+          "[Group Assessed]": 1840
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Sanitary_Pipes",
+          "[Group Assessed]": 1500
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Stormwater_Pipes",
+          "[Group Assessed]": 900
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Hydrants",
+          "[Group Assessed]": 1200
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Valves",
+          "[Group Assessed]": 400
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Buildings",
+          "[Group Assessed]": 1000
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Transport",
+          "asset_class[Asset_Class]": "Bridges",
+          "[Group Assessed]": 450
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "rd_line",
+          "asset_class[Asset_Class]": "Roads",
+          "[Group Assessed]": 100
+        }
+      ]
+    },
+    {
+      "id": "top-classes",
+      "component": "UniverusRankingBars",
+      "grid": {
+        "colSpan": 7
+      },
+      "query": {
+        "dax": "EVALUATE\nTOPN(\n  10,\n  SUMMARIZECOLUMNS('asset_class'[Asset_Class], \"Class Assets\", [Asset Count (All States)]),\n  [Class Assets], DESC\n)"
+      },
+      "fields": {
+        "category": "'asset_class'[Asset_Class]",
+        "value": "[Class Assets]"
+      },
+      "crossFilter": {
+        "field": "'asset_class'[Asset_Class]"
+      },
+      "props": {
+        "title": "Top asset classes",
+        "subtitle": "Inventory, top 10 in scope",
+        "topN": 10,
+        "info": "The ten asset classes with the most assets for the current filters. Click a class to cross-filter.",
+        "calc": "TOPN(10, [Asset Count (All States)] by 'asset_class'[Asset_Class])"
+      },
+      "sample": [
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Water_Pipes",
+          "[Class Assets]": 1979
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Sanitary_Pipes",
+          "[Class Assets]": 2100
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Stormwater_Pipes",
+          "[Class Assets]": 1372
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Hydrants",
+          "[Class Assets]": 1549
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Valves",
+          "[Class Assets]": 1000
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Buildings",
+          "[Class Assets]": 1200
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Transport",
+          "asset_class[Asset_Class]": "Bridges",
+          "[Class Assets]": 500
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "rd_line",
+          "asset_class[Asset_Class]": "Roads",
+          "[Class Assets]": 300
+        }
+      ]
+    },
+    {
+      "id": "classes",
+      "component": "UniverusDataTable",
+      "grid": {
+        "colSpan": 12
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS(\n  'asset_class'[Asset_Class],\n  'asset_class_group'[Asset_Class_Group],\n  \"Assets\", [Asset Count (All States)],\n  \"Assessed\", [Assets Assessed For Condition],\n  \"Assessed Share\", DIVIDE([Assets Assessed For Condition], [Asset Count (All States)]),\n  \"Due For Renewal\", [Assets Due For Renewal]\n)\nORDER BY [Assets] DESC"
+      },
+      "fields": {
+        "columns": [
+          {
+            "field": "'asset_class'[Asset_Class]",
+            "label": "Asset Class"
+          },
+          {
+            "field": "'asset_class_group'[Asset_Class_Group]",
+            "label": "Group"
+          },
+          {
+            "field": "[Assets]",
+            "label": "Inventory",
+            "kind": "number"
+          },
+          {
+            "field": "[Assessed]",
+            "label": "Condition Assessed",
+            "kind": "meter",
+            "ratioField": "[Assessed Share]"
+          },
+          {
+            "field": "[Due For Renewal]",
+            "label": "Renewals",
+            "kind": "status",
+            "suffix": "due",
+            "tone": "warn",
+            "emptyLabel": "None due"
+          }
+        ],
+        "rowKey": "'asset_class'[Asset_Class]"
+      },
+      "crossFilter": {
+        "field": "'asset_class'[Asset_Class]"
+      },
+      "props": {
+        "title": "Asset classes",
+        "subtitle": "Inventory, condition and renewals by class",
+        "export": {
+          "source": "query",
+          "fileName": "asset-classes"
+        },
+        "emptyMessage": "No asset classes match the current cross-filters.",
+        "info": "Every asset class in scope. Click a row to cross-filter; the export carries the raw query rows.",
+        "calc": "SUMMARIZECOLUMNS('asset_class'[Asset_Class], …) ORDER BY [Assets] DESC"
+      },
+      "sample": [
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Water_Pipes",
+          "[Assets]": 1979,
+          "[Assessed]": 1840,
+          "[Assessed Share]": 0.9298,
+          "[Due For Renewal]": 637
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Sanitary_Pipes",
+          "[Assets]": 2100,
+          "[Assessed]": 1500,
+          "[Assessed Share]": 0.7143,
+          "[Due For Renewal]": 0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Stormwater_Pipes",
+          "[Assets]": 1372,
+          "[Assessed]": 900,
+          "[Assessed Share]": 0.656,
+          "[Due For Renewal]": 0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Hydrants",
+          "[Assets]": 1549,
+          "[Assessed]": 1200,
+          "[Assessed Share]": 0.7747,
+          "[Due For Renewal]": 0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Valves",
+          "[Assets]": 1000,
+          "[Assessed]": 400,
+          "[Assessed Share]": 0.4,
+          "[Due For Renewal]": 0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Buildings",
+          "[Assets]": 1200,
+          "[Assessed]": 1000,
+          "[Assessed Share]": 0.8333,
+          "[Due For Renewal]": 50
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Transport",
+          "asset_class[Asset_Class]": "Bridges",
+          "[Assets]": 500,
+          "[Assessed]": 450,
+          "[Assessed Share]": 0.9,
+          "[Due For Renewal]": 0
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "rd_line",
+          "asset_class[Asset_Class]": "Roads",
+          "[Assets]": 300,
+          "[Assessed]": 100,
+          "[Assessed Share]": 0.3333,
+          "[Due For Renewal]": 0
+        }
+      ]
+    }
+  ]
+}

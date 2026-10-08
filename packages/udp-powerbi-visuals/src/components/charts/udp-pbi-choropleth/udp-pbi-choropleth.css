@@ -1,0 +1,49 @@
+/* Regions carry the ramp; borders are drawn once on top; the hovered / selected region gets an outline */
+.cp-regions {
+  animation: u-fade 0.6s var(--pbi-ease) 0.15s both;
+}
+.cp-region {
+  stroke: none;
+}
+.cp-region.map-mark {
+  transition: opacity 150ms ease-out;
+}
+.cp-region[data-dimmed='true'],
+.cp-tile[data-dimmed='true'] {
+  opacity: 0.45;
+}
+.cp-outline {
+  fill: none;
+  stroke: var(--pbi-interaction);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.cp-label {
+  font: 600 10px var(--pbi-font-body);
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+.cp-tile {
+  transition: opacity 150ms ease-out;
+}
+.cp-tile rect {
+  stroke: var(--pbi-card-solid);
+  stroke-width: 1px;
+}
+.cp-tile.u-mark-active rect {
+  stroke: var(--pbi-interaction);
+  stroke-width: 2px;
+}
+.cp-tile-code {
+  font: 600 11px var(--pbi-font-body);
+  pointer-events: none;
+}
+.cp-tile-value {
+  font: 600 9.5px var(--pbi-font-display);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.cp-note {
+  margin-top: 6px;
+}

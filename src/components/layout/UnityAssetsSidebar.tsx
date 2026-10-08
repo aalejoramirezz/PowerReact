@@ -18,6 +18,7 @@ import {
   Headphones,
   HeartHandshake,
   Palette,
+  FileJson,
   X,
   type LucideIcon,
 } from 'lucide-react';
@@ -38,6 +39,7 @@ const MENU_ITEMS: MenuItem[] = [
   { label: 'Asset Management', icon: Package, to: ROUTES.visuals, badge: 'React DAX' },
   { label: 'Report', icon: BarChart2, to: ROUTES.report, badge: 'Embed' },
   { label: 'Design Gallery', icon: Palette, to: ROUTES.gallery, badge: 'UI' },
+  { label: 'Manifest Preview', icon: FileJson, to: ROUTES.manifestPreview, badge: 'JSON' },
   { label: 'Asset Routing', icon: Compass },
   { label: 'Compliance', icon: ClipboardCheck },
   { label: 'Crew Routing', icon: Users },
@@ -132,7 +134,8 @@ export const UnityAssetsSidebar: React.FC<UnityAssetsSidebarProps> = ({ mobileOp
       <aside
         id="app-sidebar"
         aria-label="Modules"
-        inert={isDrawer && !mobileOpen ? true : undefined}
+        // React 18 passes `inert` through as a plain attribute (src/types/react-inert.d.ts)
+        {...(isDrawer && !mobileOpen ? { inert: '' } : {})}
         className={cx(
           'flex shrink-0 select-none flex-col border-r border-u-sidebar-border bg-u-sidebar-bg',
           // < lg: off-canvas drawer

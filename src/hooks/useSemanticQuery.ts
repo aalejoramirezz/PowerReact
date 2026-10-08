@@ -16,10 +16,16 @@ export const DAX_QUERY_KEY = ['dax'] as const;
 /** The semantic model refreshes far less often than this; Refresh invalidates explicitly. */
 const DAX_STALE_TIME = 5 * 60_000;
 
+/** A semantic model other than the BFF's default (manifests name their own data source). */
+export interface DaxTarget {
+  workspaceId: string;
+  datasetId: string;
+}
+
 /** Runs DAX through the BFF and records it in the inspector log. */
-export async function executeDax(title: string, dax: string, signal?: AbortSignal): Promise<DaxRow[]> {
+export async function executeDax(title: string, dax: string, signal?: AbortSignal, target?: DaxTarget): Promise<DaxRow[]> {
   const startedAt = performance.now();
-  const data = await postJson<DaxQueryResponse>('/api/powerbi/query', { query: dax }, signal);
+  const data = await postJson<DaxQueryResponse>('/api/powerbi/query', { query: dax, ...target }, signal);
   const rows = Array.isArray(data.rows) ? data.rows : [];
 
   useDaxLogStore.getState().record({
@@ -38,16 +44,18 @@ export interface SemanticQuerySpec<T> {
   title: string;
   dax: string;
   parse: (rows: DaxRow[]) => T;
+  /** Default: the dataset configured in the BFF. */
+  target?: DaxTarget;
 }
 
 /**
- * The DAX text is the cache key, so every filter combination gets its own entry and a
- * late response can never overwrite a newer one. The AbortSignal cancels superseded calls.
+ * The DAX text (with its dataset) is the cache key, so every filter combination gets its own entry
+ * and a late response can never overwrite a newer one. The AbortSignal cancels superseded calls.
  */
-export function semanticQueryOptions<T>({ kind, title, dax, parse }: SemanticQuerySpec<T>) {
+export function semanticQueryOptions<T>({ kind, title, dax, parse, target }: SemanticQuerySpec<T>) {
   return queryOptions({
-    queryKey: [...DAX_QUERY_KEY, kind, dax] as const,
-    queryFn: async ({ signal }) => parse(await executeDax(title, dax, signal)),
+    queryKey: [...DAX_QUERY_KEY, kind, target?.datasetId ?? 'default', dax] as const,
+    queryFn: async ({ signal }) => parse(await executeDax(title, dax, signal, target)),
     staleTime: DAX_STALE_TIME,
   });
 }

@@ -1,0 +1,187 @@
+/* The grid scrolls inside the card (both ways); the header rows and the first column stay put */
+.mx-scroll {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  border-radius: 8px;
+}
+.mx {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+/* A pivot shares the width equally between its value columns */
+.mx--pivot {
+  table-layout: fixed;
+}
+.mx--pivot th,
+.mx--pivot td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mx th,
+.mx td {
+  white-space: nowrap;
+}
+.mx tbody tr:nth-child(even) {
+  background: none;
+}
+.mx thead th {
+  z-index: 2;
+}
+.mx thead tr:nth-child(2) th {
+  top: 34px;
+}
+.mx .mx-corner {
+  padding-left: 12px;
+  left: 0;
+  z-index: 3;
+  min-width: 140px;
+}
+/* Pivot headers wrap to two lines rather than clip ("Very good") */
+.mx--pivot thead th {
+  height: auto;
+  min-height: 34px;
+  padding: 8px 6px;
+  letter-spacing: 0.03em;
+  white-space: normal;
+  line-height: 1.25;
+  vertical-align: bottom;
+}
+.mx--pivot thead tr:nth-child(2) th {
+  top: 30px;
+}
+/* Left-aligned so it stays in view when a narrow card scrolls the grid */
+.mx .mx-group {
+  text-align: left;
+  border-left: 1px solid var(--pbi-row-line);
+}
+.mx .mx-colhead {
+  text-align: right;
+}
+.mx .mx-colhead[data-selected='true'] {
+  color: var(--pbi-title);
+  box-shadow: inset 0 -2px 0 var(--pbi-interaction);
+}
+
+/* Row headers, indented per level; they stick (opaque) only while the grid scrolls sideways */
+.mx tbody th {
+  position: static;
+  top: auto;
+  height: 40px;
+  padding: 0 12px 0 calc(8px + var(--depth, 0) * 18px);
+  background: none;
+  border-bottom: 1px solid var(--pbi-row-line);
+  font: 500 12.5px/1.3 var(--pbi-font-body);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--pbi-td-text);
+}
+.mx-scroll[data-overflow='true'] .mx tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--pbi-card-solid);
+}
+.mx-scroll:not([data-overflow='true']) .mx .mx-corner {
+  position: sticky;
+  left: auto;
+}
+.mx-rowhead__inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 260px;
+}
+.mx-rowhead__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mx tr[data-parent='true'] th,
+.mx tr[data-parent='true'] td {
+  font-weight: 600;
+  color: var(--pbi-title);
+}
+.mx-toggle,
+.mx-toggle-space {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+.mx-toggle {
+  border-radius: 6px;
+  color: var(--pbi-label);
+  cursor: pointer;
+  transition-property: background-color, color;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+.mx-toggle svg {
+  transition: none;
+}
+.mx tr[aria-expanded='true'] .mx-toggle svg {
+  rotate: 90deg;
+}
+@media (hover: hover) and (pointer: fine) {
+  .mx-toggle:hover {
+    background: var(--pbi-row-hover);
+    color: var(--pbi-title);
+  }
+}
+
+/* Value cells: right-aligned figures; heat cells are tiles separated by the card colour */
+.mx-cell {
+  text-align: right;
+  font-weight: 600;
+  color: var(--pbi-td-text);
+}
+.mx-cell[data-heat='true'] {
+  box-shadow: inset 0 0 0 1px var(--pbi-card-solid);
+}
+.mx-cell--total,
+.mx-grand th,
+.mx-grand td {
+  background: var(--pbi-th-bg);
+  font-weight: 700;
+  color: var(--pbi-title);
+}
+.mx .mx-grand th {
+  background: var(--pbi-th-bg);
+  font-weight: 700;
+  color: var(--pbi-title);
+}
+.mx-cell[data-selected='true']:not([data-heat]) {
+  background: var(--pbi-row-selected);
+}
+.mx tr[aria-selected='true'] th {
+  background: var(--pbi-row-selected);
+}
+.mx-scroll[data-overflow='true'] .mx tr[aria-selected='true'] th {
+  background: linear-gradient(var(--pbi-row-selected), var(--pbi-row-selected)), var(--pbi-card-solid);
+}
+.mx tr[aria-selected='true'] th {
+  box-shadow: inset 3px 0 0 var(--pbi-interaction);
+}
+.mx tr[aria-selected='true'] td:not([data-heat]) {
+  background: var(--pbi-row-selected);
+}
+.mx tr[aria-selected='true'] td[data-selected='true'] {
+  box-shadow: inset 0 0 0 2px var(--pbi-interaction);
+}
+
+/* One tab stop; the focused cell carries the ring */
+.mx [data-cell]:focus {
+  outline: none;
+}
+.mx [data-cell]:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--pbi-focus);
+}
+@media (hover: hover) and (pointer: fine) {
+  .mx[data-interactive='true'] td:hover,
+  .mx[data-interactive='true'] tbody th:hover {
+    cursor: pointer;
+    box-shadow: inset 0 0 0 2px var(--pbi-interaction);
+  }
+}

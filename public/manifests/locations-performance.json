@@ -1,0 +1,592 @@
+{
+  "$schema": "./manifest.schema.json",
+  "schemaVersion": 1,
+  "id": "locations-performance",
+  "title": "Locations & Performance (manifest)",
+  "eyebrow": "Asset Management · manifest",
+  "description": "KPI variants (trend, bullet against target, IBCS variance) and maps: work requests at their exact coordinates, communities on a globe, assessment coverage by state / province as a choropleth and a tile map. Sample rows are illustrative.",
+  "theme": "auto",
+  "dataSource": {
+    "workspaceId": "ef45c53d-42d4-48c6-be79-380b8d890c80",
+    "semanticModelId": "0db033d0-4f4e-4d72-a280-007d6f17e2ec"
+  },
+  "layout": {
+    "columns": 12,
+    "rowMinHeight": 120
+  },
+  "visuals": [
+    {
+      "id": "raised-trend",
+      "component": "UniverusKpiTrend",
+      "grid": {
+        "colSpan": 4
+      },
+      "query": {
+        "dax": "EVALUATE\nFILTER(\n  SUMMARIZECOLUMNS(\n    'Date'[Year Month],\n    FILTER(ALL('Date'[Date]), 'Date'[Date] >= EDATE(DATE(YEAR(TODAY()), MONTH(TODAY()), 1), -12) && 'Date'[Date] < DATE(YEAR(TODAY()), MONTH(TODAY()), 1)),\n    \"Raised\", [WRs Raised],\n    \"Month Start\", MIN('Date'[Date])\n  ),\n  NOT ISBLANK([Raised])\n)\nORDER BY [Month Start]"
+      },
+      "fields": {
+        "category": "'Date'[Year Month]",
+        "value": "[Raised]"
+      },
+      "props": {
+        "title": "Work requests raised",
+        "icon": "trending-up",
+        "goodWhen": "lower",
+        "periodLabel": "Last 12 full months",
+        "info": "Work requests raised each month over the last twelve complete months; the headline is the latest month, the delta compares it with the month before.",
+        "calc": "[WRs Raised] by month",
+        "format": {
+          "style": "integer"
+        }
+      },
+      "sample": [
+        {
+          "Date[Year Month]": "Oct 2025",
+          "[Raised]": 21,
+          "[Month Start]": "2025-10-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "Nov 2025",
+          "[Raised]": 26,
+          "[Month Start]": "2025-11-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "Dec 2025",
+          "[Raised]": 18,
+          "[Month Start]": "2025-12-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "Jan 2026",
+          "[Raised]": 30,
+          "[Month Start]": "2026-01-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "Feb 2026",
+          "[Raised]": 43,
+          "[Month Start]": "2026-02-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "Mar 2026",
+          "[Raised]": 37,
+          "[Month Start]": "2026-03-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "Apr 2026",
+          "[Raised]": 52,
+          "[Month Start]": "2026-04-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "May 2026",
+          "[Raised]": 41,
+          "[Month Start]": "2026-05-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "Jun 2026",
+          "[Raised]": 38,
+          "[Month Start]": "2026-06-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "Jul 2026",
+          "[Raised]": 45,
+          "[Month Start]": "2026-07-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "Aug 2026",
+          "[Raised]": 55,
+          "[Month Start]": "2026-08-01T00:00:00"
+        },
+        {
+          "Date[Year Month]": "Sep 2026",
+          "[Raised]": 49,
+          "[Month Start]": "2026-09-01T00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "coverage",
+      "component": "UniverusKpiBullet",
+      "grid": {
+        "colSpan": 4
+      },
+      "query": {
+        "dax": "EVALUATE\nROW(\"Coverage\", [Condition Coverage %], \"Target\", 0.8)"
+      },
+      "fields": {
+        "value": "[Coverage]",
+        "target": "[Target]"
+      },
+      "props": {
+        "title": "Condition assessment coverage",
+        "icon": "clipboard-check",
+        "thresholds": [
+          0.5,
+          0.7
+        ],
+        "info": "Share of assets with a condition assessment, against the 80 % target. Bands: below 50 % poor, 50–70 % fair, above 70 % good.",
+        "calc": "[Condition Coverage %] vs 80 %",
+        "format": {
+          "style": "percent",
+          "decimals": 1
+        }
+      },
+      "sample": [
+        {
+          "[Coverage]": 0.62,
+          "[Target]": 0.8
+        }
+      ]
+    },
+    {
+      "id": "renewal-vs-budget",
+      "component": "UniverusKpiVariance",
+      "grid": {
+        "colSpan": 4
+      },
+      "query": {
+        "dax": "EVALUATE\nROW(\"Liability\", [Renewal Liability 10Y], \"Budget\", [Renewal Budget 10Y])"
+      },
+      "fields": {
+        "actual": "[Liability]",
+        "comparison": "[Budget]"
+      },
+      "props": {
+        "title": "Renewal liability vs budget",
+        "icon": "dollar",
+        "scenario": "BU",
+        "actualLabel": "FC",
+        "comparisonLabel": "Budget",
+        "goodWhen": "lower",
+        "caption": "next 10 years",
+        "info": "Forecast renewal liability over the next ten years against the renewal budget for the same years, in IBCS notation: forecast solid, budget dotted, variances green when favourable.",
+        "calc": "[Renewal Liability 10Y] vs [Renewal Budget 10Y]",
+        "format": {
+          "style": "compact",
+          "decimals": 1
+        }
+      },
+      "sample": [
+        {
+          "[Liability]": 1620000,
+          "[Budget]": 2900000
+        }
+      ]
+    },
+    {
+      "id": "request-map",
+      "component": "UniverusPointMap",
+      "grid": {
+        "colSpan": 7
+      },
+      "query": {
+        "dax": "EVALUATE\nFILTER(\n  SUMMARIZECOLUMNS(\n    'work_request'[WR_Number],\n    'work_request'[Latitude],\n    'work_request'[Longitude],\n    'work_request'[Service_Type],\n    \"Days Open\", MAX('work_request'[Days_Open])\n  ),\n  NOT ISBLANK('work_request'[Latitude]) && 'work_request'[Latitude] <> 0\n)\nORDER BY [Days Open] DESC"
+      },
+      "fields": {
+        "latitude": "'work_request'[Latitude]",
+        "longitude": "'work_request'[Longitude]",
+        "category": "'work_request'[WR_Number]",
+        "value": "[Days Open]",
+        "group": "'work_request'[Service_Type]"
+      },
+      "crossFilter": {
+        "field": "'work_request'[WR_Number]"
+      },
+      "props": {
+        "title": "Work requests on the map",
+        "subtitle": "Exact coordinates · bubble area = days open · click to filter",
+        "info": "Work requests with a location, at their latitude and longitude. Bubble area shows how long each has been open; colour shows the service type. Requests without coordinates are not shown.",
+        "calc": "work_request[Latitude], [Longitude]; MAX([Days_Open])",
+        "mark": "bubble",
+        "geo": {
+          "set": "north-america"
+        },
+        "categoryLabel": "Work request",
+        "valueLabel": "Days open",
+        "groupLabel": "Service type",
+        "format": {
+          "style": "integer"
+        },
+        "export": {
+          "fileName": "work-requests-map"
+        }
+      },
+      "sample": [
+        {
+          "work_request[WR_Number]": "1000",
+          "work_request[Latitude]": 49.21884,
+          "work_request[Longitude]": -123.15592,
+          "work_request[Service_Type]": "Water",
+          "[Days Open]": 47
+        },
+        {
+          "work_request[WR_Number]": "1001",
+          "work_request[Latitude]": 49.19901,
+          "work_request[Longitude]": -123.0462,
+          "work_request[Service_Type]": "Wastewater",
+          "[Days Open]": 107
+        },
+        {
+          "work_request[WR_Number]": "1002",
+          "work_request[Latitude]": 49.20022,
+          "work_request[Longitude]": -123.04557,
+          "work_request[Service_Type]": "Roads",
+          "[Days Open]": 17
+        },
+        {
+          "work_request[WR_Number]": "1003",
+          "work_request[Latitude]": 49.21565,
+          "work_request[Longitude]": -123.02807,
+          "work_request[Service_Type]": "Facilities",
+          "[Days Open]": 37
+        },
+        {
+          "work_request[WR_Number]": "1004",
+          "work_request[Latitude]": 49.23312,
+          "work_request[Longitude]": -123.13622,
+          "work_request[Service_Type]": "Water",
+          "[Days Open]": 67
+        },
+        {
+          "work_request[WR_Number]": "1005",
+          "work_request[Latitude]": 49.26702,
+          "work_request[Longitude]": -123.12689,
+          "work_request[Service_Type]": "Wastewater",
+          "[Days Open]": 62
+        },
+        {
+          "work_request[WR_Number]": "1006",
+          "work_request[Latitude]": 49.27021,
+          "work_request[Longitude]": -123.12518,
+          "work_request[Service_Type]": "Roads",
+          "[Days Open]": 20
+        },
+        {
+          "work_request[WR_Number]": "1007",
+          "work_request[Latitude]": 49.27794,
+          "work_request[Longitude]": -123.03178,
+          "work_request[Service_Type]": "Facilities",
+          "[Days Open]": 9
+        },
+        {
+          "work_request[WR_Number]": "1008",
+          "work_request[Latitude]": 49.22646,
+          "work_request[Longitude]": -123.19366,
+          "work_request[Service_Type]": "Water",
+          "[Days Open]": 74
+        },
+        {
+          "work_request[WR_Number]": "1009",
+          "work_request[Latitude]": 49.19601,
+          "work_request[Longitude]": -123.13463,
+          "work_request[Service_Type]": "Wastewater",
+          "[Days Open]": 116
+        },
+        {
+          "work_request[WR_Number]": "1010",
+          "work_request[Latitude]": 49.28681,
+          "work_request[Longitude]": -123.04288,
+          "work_request[Service_Type]": "Roads",
+          "[Days Open]": 121
+        },
+        {
+          "work_request[WR_Number]": "1011",
+          "work_request[Latitude]": 49.19566,
+          "work_request[Longitude]": -123.13442,
+          "work_request[Service_Type]": "Facilities",
+          "[Days Open]": 98
+        },
+        {
+          "work_request[WR_Number]": "1012",
+          "work_request[Latitude]": 49.19382,
+          "work_request[Longitude]": -123.17141,
+          "work_request[Service_Type]": "Water",
+          "[Days Open]": 108
+        },
+        {
+          "work_request[WR_Number]": "1013",
+          "work_request[Latitude]": 49.21119,
+          "work_request[Longitude]": -123.15431,
+          "work_request[Service_Type]": "Wastewater",
+          "[Days Open]": 110
+        },
+        {
+          "work_request[WR_Number]": "1014",
+          "work_request[Latitude]": 49.2801,
+          "work_request[Longitude]": -122.99051,
+          "work_request[Service_Type]": "Roads",
+          "[Days Open]": 92
+        },
+        {
+          "work_request[WR_Number]": "1015",
+          "work_request[Latitude]": 49.20856,
+          "work_request[Longitude]": -123.10948,
+          "work_request[Service_Type]": "Facilities",
+          "[Days Open]": 76
+        },
+        {
+          "work_request[WR_Number]": "1016",
+          "work_request[Latitude]": 49.25849,
+          "work_request[Longitude]": -123.12182,
+          "work_request[Service_Type]": "Water",
+          "[Days Open]": 35
+        },
+        {
+          "work_request[WR_Number]": "1017",
+          "work_request[Latitude]": 49.26409,
+          "work_request[Longitude]": -123.11113,
+          "work_request[Service_Type]": "Wastewater",
+          "[Days Open]": 11
+        },
+        {
+          "work_request[WR_Number]": "1018",
+          "work_request[Latitude]": 49.28107,
+          "work_request[Longitude]": -123.19066,
+          "work_request[Service_Type]": "Roads",
+          "[Days Open]": 9
+        },
+        {
+          "work_request[WR_Number]": "1019",
+          "work_request[Latitude]": 49.27305,
+          "work_request[Longitude]": -123.12485,
+          "work_request[Service_Type]": "Facilities",
+          "[Days Open]": 75
+        },
+        {
+          "work_request[WR_Number]": "1020",
+          "work_request[Latitude]": 49.22356,
+          "work_request[Longitude]": -122.9763,
+          "work_request[Service_Type]": "Water",
+          "[Days Open]": 22
+        },
+        {
+          "work_request[WR_Number]": "1021",
+          "work_request[Latitude]": 49.20973,
+          "work_request[Longitude]": -123.21492,
+          "work_request[Service_Type]": "Wastewater",
+          "[Days Open]": 67
+        },
+        {
+          "work_request[WR_Number]": "1022",
+          "work_request[Latitude]": 49.22338,
+          "work_request[Longitude]": -123.14401,
+          "work_request[Service_Type]": "Roads",
+          "[Days Open]": 93
+        },
+        {
+          "work_request[WR_Number]": "1023",
+          "work_request[Latitude]": 49.25142,
+          "work_request[Longitude]": -123.17438,
+          "work_request[Service_Type]": "Facilities",
+          "[Days Open]": 70
+        }
+      ]
+    },
+    {
+      "id": "communities",
+      "component": "UniverusPointMap",
+      "grid": {
+        "colSpan": 5
+      },
+      "query": {
+        "dax": "EVALUATE\nFILTER(\n  ADDCOLUMNS(\n    SUMMARIZECOLUMNS('asset_register'[Community], \"Assets\", [Asset Count]),\n    \"Lat\", SWITCH('asset_register'[Community], \"Manhasset-Lakeville Water District\", 40.7943, \"City of Jacksonville\", 30.3322, \"Gibsons\", 49.4006, \"Falls Creek\", -36.865, \"Mt Buller\", -37.145, \"Lake Mountain\", -37.495, BLANK()),\n    \"Lon\", SWITCH('asset_register'[Community], \"Manhasset-Lakeville Water District\", -73.6996, \"City of Jacksonville\", -81.6557, \"Gibsons\", -123.5054, \"Falls Creek\", 147.28, \"Mt Buller\", 146.438, \"Lake Mountain\", 145.879, BLANK())\n  ),\n  NOT ISBLANK([Lat])\n)\nORDER BY [Assets] DESC"
+      },
+      "fields": {
+        "latitude": "[Lat]",
+        "longitude": "[Lon]",
+        "category": "'asset_register'[Community]",
+        "value": "[Assets]"
+      },
+      "crossFilter": {
+        "field": "'asset_register'[Community]"
+      },
+      "props": {
+        "title": "Assets by community",
+        "subtitle": "Globe · spike height = assets · click a spike to filter",
+        "info": "Each spike stands on a community, its height the number of assets there. Drag the globe, or move between communities with the arrow keys; a click filters the page to that community.",
+        "calc": "[Asset Count] by Community, placed by its coordinates",
+        "mark": "spike",
+        "projection": "globe",
+        "geo": {
+          "set": "world"
+        },
+        "categoryLabel": "Community",
+        "valueLabel": "Assets",
+        "format": {
+          "style": "integer"
+        },
+        "chartHeight": 380,
+        "export": {
+          "fileName": "assets-by-community"
+        }
+      },
+      "sample": [
+        {
+          "asset_register[Community]": "Harbour District",
+          "[Lat]": 40.71,
+          "[Lon]": -74.01,
+          "[Assets]": 3820
+        },
+        {
+          "asset_register[Community]": "North Shore",
+          "[Lat]": 49.32,
+          "[Lon]": -123.07,
+          "[Assets]": 1450
+        },
+        {
+          "asset_register[Community]": "Lakeside",
+          "[Lat]": 30.33,
+          "[Lon]": -81.66,
+          "[Assets]": 640
+        },
+        {
+          "asset_register[Community]": "Alpine Village",
+          "[Lat]": -36.87,
+          "[Lon]": 147.28,
+          "[Assets]": 210
+        }
+      ]
+    },
+    {
+      "id": "coverage-map",
+      "component": "UniverusChoropleth",
+      "grid": {
+        "colSpan": 7
+      },
+      "query": {
+        "dax": "EVALUATE\nVAR ByCommunity =\n  ADDCOLUMNS(\n    SUMMARIZECOLUMNS('asset_register'[Community], \"Assessed\", [Assessed Assets] + 0, \"Assets\", [Asset Count]),\n    \"Code\", SWITCH('asset_register'[Community], \"Manhasset-Lakeville Water District\", \"US-NY\", \"City of Jacksonville\", \"US-FL\", \"Gibsons\", \"CA-BC\", \"Falls Creek\", \"AU-VIC\", \"Mt Buller\", \"AU-VIC\", \"Lake Mountain\", \"AU-VIC\", BLANK())\n  )\nRETURN\n  ADDCOLUMNS(\n    GROUPBY(FILTER(ByCommunity, NOT ISBLANK([Code])), [Code], \"Assessed Assets\", SUMX(CURRENTGROUP(), [Assessed]), \"Region Assets\", SUMX(CURRENTGROUP(), [Assets])),\n    \"Coverage\", DIVIDE([Assessed Assets], [Region Assets]),\n    \"Region\", SWITCH([Code], \"US-NY\", \"New York\", \"US-FL\", \"Florida\", \"CA-BC\", \"British Columbia\", \"AU-VIC\", \"Victoria (Australia)\", [Code])\n  )\nORDER BY [Coverage] DESC"
+      },
+      "fields": {
+        "region": "[Code]",
+        "value": "[Coverage]",
+        "label": "[Region]",
+        "tooltips": [
+          {
+            "field": "[Region Assets]",
+            "label": "Assets",
+            "format": {
+              "style": "integer"
+            }
+          }
+        ]
+      },
+      "props": {
+        "title": "Assessment coverage by state / province",
+        "subtitle": "Choropleth · share of assets with a condition assessment",
+        "info": "Share of each region’s assets that have a condition assessment (a rate, so large regions do not win by size). Communities are placed in their state or province; regions outside North America are listed under the map.",
+        "calc": "Σ[Assessed Assets] ÷ Σ[Asset Count] by region",
+        "geo": {
+          "set": "north-america"
+        },
+        "classes": "quantize",
+        "classCount": 4,
+        "regionLabel": "State / province",
+        "valueLabel": "Coverage",
+        "format": {
+          "style": "percent",
+          "decimals": 0
+        },
+        "export": {
+          "fileName": "coverage-by-region"
+        }
+      },
+      "sample": [
+        {
+          "[Code]": "US-NY",
+          "[Region]": "New York",
+          "[Coverage]": 0.42,
+          "[Region Assets]": 1760
+        },
+        {
+          "[Code]": "US-FL",
+          "[Region]": "Florida",
+          "[Coverage]": 0.18,
+          "[Region Assets]": 1040
+        },
+        {
+          "[Code]": "CA-BC",
+          "[Region]": "British Columbia",
+          "[Coverage]": 0.86,
+          "[Region Assets]": 3080
+        },
+        {
+          "[Code]": "US-WA",
+          "[Region]": "Washington",
+          "[Coverage]": 0.64,
+          "[Region Assets]": 2420
+        },
+        {
+          "[Code]": "CA-ON",
+          "[Region]": "Ontario",
+          "[Coverage]": 0.55,
+          "[Region Assets]": 2150
+        },
+        {
+          "[Code]": "AU-VIC",
+          "[Region]": "Victoria (Australia)",
+          "[Coverage]": 0.91,
+          "[Region Assets]": 3230
+        }
+      ]
+    },
+    {
+      "id": "coverage-tiles",
+      "component": "UniverusChoropleth",
+      "grid": {
+        "colSpan": 5
+      },
+      "query": {
+        "dax": "EVALUATE\nVAR ByCommunity =\n  ADDCOLUMNS(\n    SUMMARIZECOLUMNS('asset_register'[Community], \"Assessed\", [Assessed Assets] + 0, \"Assets\", [Asset Count]),\n    \"Code\", SWITCH('asset_register'[Community], \"Manhasset-Lakeville Water District\", \"US-NY\", \"City of Jacksonville\", \"US-FL\", \"Gibsons\", \"CA-BC\", \"Falls Creek\", \"AU-VIC\", \"Mt Buller\", \"AU-VIC\", \"Lake Mountain\", \"AU-VIC\", BLANK())\n  )\nRETURN\n  ADDCOLUMNS(\n    GROUPBY(FILTER(ByCommunity, NOT ISBLANK([Code])), [Code], \"Assessed Assets\", SUMX(CURRENTGROUP(), [Assessed]), \"Region Assets\", SUMX(CURRENTGROUP(), [Assets])),\n    \"Tile Coverage\", DIVIDE([Assessed Assets], [Region Assets])\n  )\nORDER BY [Tile Coverage] DESC"
+      },
+      "fields": {
+        "region": "[Code]",
+        "value": "[Tile Coverage]"
+      },
+      "props": {
+        "title": "Coverage, tile map",
+        "subtitle": "Equal-area cartogram · every region one tile",
+        "info": "The same coverage on a tile grid: every state and province is one tile, so small regions are as visible as large ones.",
+        "calc": "Σ[Assessed Assets] ÷ Σ[Asset Count] by region",
+        "geo": {
+          "set": "north-america"
+        },
+        "shape": "tiles",
+        "classes": "quantize",
+        "classCount": 4,
+        "regionLabel": "State / province",
+        "valueLabel": "Coverage",
+        "format": {
+          "style": "percent",
+          "decimals": 0
+        },
+        "export": {
+          "fileName": "coverage-tiles"
+        }
+      },
+      "sample": [
+        {
+          "[Code]": "US-NY",
+          "[Tile Coverage]": 0.42
+        },
+        {
+          "[Code]": "US-FL",
+          "[Tile Coverage]": 0.18
+        },
+        {
+          "[Code]": "CA-BC",
+          "[Tile Coverage]": 0.86
+        },
+        {
+          "[Code]": "US-WA",
+          "[Tile Coverage]": 0.64
+        },
+        {
+          "[Code]": "CA-ON",
+          "[Tile Coverage]": 0.55
+        },
+        {
+          "[Code]": "AU-VIC",
+          "[Tile Coverage]": 0.91
+        }
+      ]
+    }
+  ]
+}

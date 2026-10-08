@@ -1,0 +1,24 @@
+{
+  "sets": [
+    {
+      "id": "world",
+      "label": "World countries",
+      "file": "world-110m.topo.json",
+      "object": "countries",
+      "key": "code",
+      "keyDescription": "ISO 3166-1 alpha-3 (USA, CAN, AUS)",
+      "attribution": "Natural Earth (public domain)"
+    },
+    {
+      "id": "north-america",
+      "label": "US states and Canadian provinces",
+      "file": "na-admin1.topo.json",
+      "object": "regions",
+      "context": "context",
+      "key": "code",
+      "keyDescription": "ISO 3166-2 (US-NY, CA-BC); \"postal\" (NY, BC) and \"name\" also match",
+      "tiles": "na-tiles.json",
+      "attribution": "Natural Earth (public domain)"
+    }
+  ]
+}

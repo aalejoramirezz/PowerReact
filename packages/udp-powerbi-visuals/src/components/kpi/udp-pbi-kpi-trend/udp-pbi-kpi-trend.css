@@ -1,0 +1,63 @@
+/* The trend under the number: a quiet area, the line, the latest period marked */
+.kt-box {
+  margin-top: 12px;
+  transition: opacity 0.2s ease-out;
+}
+.kt-box[data-stale='true'] {
+  opacity: 0.5;
+}
+.kt-spark {
+  animation: u-fade 0.7s var(--pbi-ease) calc(var(--i, 0) * 80ms + 300ms) both;
+}
+.kt-svg {
+  display: block;
+  overflow: visible;
+}
+.kt-area {
+  fill: var(--pbi-seq-2);
+  opacity: 0.7;
+}
+.kt-line {
+  fill: none;
+  stroke: var(--pbi-primary);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.kt-target {
+  stroke: var(--pbi-secondary);
+  stroke-width: 1.25px;
+  stroke-dasharray: 4 3;
+}
+.kt-extreme {
+  fill: var(--pbi-card-solid);
+  stroke: var(--pbi-secondary);
+  stroke-width: 1.5px;
+}
+.kt-last {
+  fill: var(--pbi-ac);
+  stroke: var(--pbi-card-solid);
+  stroke-width: 1.5px;
+}
+.kt-hover {
+  fill: var(--pbi-interaction);
+}
+.kt-cursor {
+  stroke: var(--pbi-grid);
+  stroke-width: 1px;
+}
+.kt-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  font: 500 11px/1.2 var(--pbi-font-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--pbi-label);
+}
+.kt-foot span:first-child {
+  color: var(--pbi-text-soft);
+}
+.kt-focus-spark {
+  max-width: 560px;
+}

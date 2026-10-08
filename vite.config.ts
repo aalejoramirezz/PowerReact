@@ -5,6 +5,11 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // The Univerus web components are a workspace package rebuilt by `stencil --watch` in dev:
+  // never pre-bundle them, or Vite would keep serving a stale copy
+  optimizeDeps: {
+    exclude: ['@powerreact/udp-powerbi-visuals'],
+  },
   server: {
     port: 3000,
     proxy: {

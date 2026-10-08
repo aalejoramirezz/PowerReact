@@ -1,0 +1,59 @@
+.tl {
+  width: 100%;
+}
+.tl-plot {
+  position: relative;
+  width: 100%;
+}
+.tl-item {
+  animation: u-fade 0.5s var(--pbi-ease) 0.2s both;
+}
+.tl-grid {
+  stroke: var(--pbi-grid);
+  stroke-width: 1px;
+  stroke-dasharray: var(--pbi-grid-dash);
+}
+.tl-axis {
+  font: 500 10.5px var(--pbi-font-body);
+  fill: var(--pbi-axis);
+}
+.tl-lane {
+  font: 600 11.5px var(--pbi-font-body);
+  fill: var(--pbi-text-soft);
+}
+.tl-lane-rule {
+  stroke: var(--pbi-row-line);
+  stroke-width: 1px;
+}
+.tl-label {
+  font: 500 11px var(--pbi-font-body);
+  fill: var(--pbi-text);
+}
+.tl-label--active {
+  font-weight: 600;
+  fill: var(--pbi-title);
+}
+/* An open-ended item fades out where it has no end */
+.tl-bar--open {
+  opacity: 0.55;
+}
+.tl-bar.u-mark-active {
+  stroke: var(--pbi-interaction);
+  stroke-width: 2px;
+}
+.tl-today line {
+  stroke: var(--pbi-title);
+  stroke-width: 1.2px;
+  stroke-dasharray: 4 3;
+}
+.tl-today text {
+  font: 600 10px var(--pbi-font-body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  fill: var(--pbi-title);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tl-item[data-interactive='true'] {
+    cursor: pointer;
+  }
+}

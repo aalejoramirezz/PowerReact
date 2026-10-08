@@ -1,0 +1,133 @@
+/* Bullet graph: meaning in the bands (tints of the status roles), the value as a solid bar, the target as a tick */
+.kb-box {
+  margin-top: 14px;
+  transition: opacity 0.2s ease-out;
+}
+.kb-box[data-stale='true'] {
+  opacity: 0.5;
+}
+.kb {
+  animation: u-fade 0.6s var(--pbi-ease) calc(var(--i, 0) * 80ms + 280ms) both;
+}
+.kb-track {
+  position: relative;
+  height: 22px;
+  overflow: visible;
+  border-radius: 4px;
+  background: var(--pbi-track);
+}
+/* The bands share the track's rounded ends; the target tick may overhang the track */
+.kb-bands {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.kb-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+.kb-band[data-quality='poor'] {
+  background: color-mix(in srgb, var(--pbi-bad) 16%, transparent);
+}
+.kb-band[data-quality='fair'] {
+  background: color-mix(in srgb, var(--pbi-warn) 18%, transparent);
+}
+.kb-band[data-quality='good'] {
+  background: color-mix(in srgb, var(--pbi-ok) 16%, transparent);
+}
+.kb-bar {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  height: 8px;
+  border-radius: 0 3px 3px 0;
+  background: var(--pbi-ac);
+  transform-origin: left center;
+  animation: u-grow 1.1s var(--pbi-ease) calc(var(--i, 0) * 80ms + 350ms) both;
+}
+.kb-target {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 28px;
+  margin-left: -1.5px;
+  border-radius: 1.5px;
+  background: var(--pbi-title);
+}
+.kb-forecast {
+  position: absolute;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border: 2px solid var(--pbi-ac);
+  border-radius: 50%;
+  background: var(--pbi-card-solid);
+}
+.kb-scale {
+  position: relative;
+  height: 14px;
+  margin-top: 5px;
+  font: 500 10px/1 var(--pbi-font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--pbi-axis);
+}
+.kb-scale span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.kb-scale span:first-child {
+  transform: none;
+}
+.kb-scale span:last-child {
+  transform: translateX(-100%);
+}
+.kb-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font: 500 11px/1.2 var(--pbi-font-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--pbi-label);
+}
+.kb-legend__target {
+  width: 3px;
+  height: 11px;
+  border-radius: 1.5px;
+  background: var(--pbi-title);
+}
+.kb-legend__forecast {
+  width: 8px;
+  height: 8px;
+  margin-left: 8px;
+  border: 2px solid var(--pbi-ac);
+  border-radius: 50%;
+}
+.kb-status {
+  white-space: nowrap;
+}
+.kb--large .kb-track {
+  height: 30px;
+}
+.kb--large .kb-bar {
+  top: 9px;
+  height: 12px;
+}
+.kb--large .kb-target {
+  height: 36px;
+}
+.kb--large .kb-forecast {
+  top: 9px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+}
+.kb--large {
+  max-width: 560px;
+}

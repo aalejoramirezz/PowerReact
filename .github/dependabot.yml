@@ -5,6 +5,18 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    # The app is pinned to React 18 (and React Router 7, the last line that supports it)
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-router"
+        update-types: ["version-update:semver-major"]
     groups:
       react:
         patterns: ["react", "react-dom", "@types/react", "@types/react-dom", "react-router", "react-markdown", "remark-gfm"]
@@ -13,7 +25,7 @@ updates:
       server:
         patterns: ["express", "@types/express", "cors", "@types/cors", "dotenv", "axios"]
       tooling:
-        patterns: ["vite", "@vitejs/*", "vitest", "typescript", "tsx", "oxlint", "tailwindcss", "@tailwindcss/*", "@playwright/test", "supertest", "@types/supertest", "concurrently", "@types/node"]
+        patterns: ["vite", "@vitejs/*", "vitest", "typescript", "tsx", "oxlint", "tailwindcss", "@tailwindcss/*", "@playwright/test", "supertest", "@types/supertest", "concurrently", "@types/node", "@stencil/*"]
 
   - package-ecosystem: github-actions
     directory: /

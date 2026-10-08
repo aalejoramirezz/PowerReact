@@ -1,18 +1,16 @@
 import React, { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useShallow } from 'zustand/react/shallow';
-import { AlertTriangle, Calendar, CheckCircle2, Database, Headphones, RotateCw } from 'lucide-react';
+import { AlertTriangle, Headphones, RotateCw } from 'lucide-react';
 import { errorMessage } from '../../api/http';
 import { loadDashboard, useDashboardData } from '../../hooks/useDashboardData';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { DAX_QUERY_KEY } from '../../hooks/useSemanticQuery';
-import type { KpiData } from '../../lib/dax/types';
 import { selectFilters, useFilterStore, type FocusTarget } from '../../store/filters';
 import { VoiceBriefingOrb } from '../briefing/VoiceBriefingOrb';
 import { ReportTemplate } from '../template/ReportTemplate';
-import { KpiCard } from '../ui/KpiCard';
-import { MiniMeter, StatusChip } from '../ui/primitives';
 import { Sheet } from '../ui/Sheet';
+import { UdpPbiKpiCard } from '../powerbi-visuals';
 import { ClassTable } from './ClassTable';
 import { DaxInspector } from './DaxInspector';
 import { FilterBar } from './FilterBar';
@@ -64,7 +62,14 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
     [queryClient]
   );
 
-  const kpiValue = (format: (k: KpiData) => string) => (kpis.data ? format(kpis.data) : kpis.isError ? '—' : '…');
+  // Shared by the four KPI cards: '…' until the first answer, '—' on error, dimmed while refetching
+  const kpiState = {
+    loading: kpis.isPending,
+    error: kpis.error ? errorMessage(kpis.error) : undefined,
+    stale: kpis.isPlaceholderData,
+    exportable: false,
+    focusable: false,
+  };
   const pctAssessed = kpis.data?.pctAssessed ?? 0;
   const pctDue = kpis.data && kpis.data.totalAssets > 0 ? kpis.data.dueForRenewal / kpis.data.totalAssets : 0;
   const scopeSuffix = filters.className ? 'in selected class' : filters.group ? 'in group' : 'in register';
@@ -128,74 +133,69 @@ export const SemanticModelVisuals: React.FC<SemanticModelVisualsProps> = ({ acti
           </div>
         )}
 
-        {/* 1. KPIs: how much (click to focus the class table); 2×2 on phones and tablets */}
+        {/* 1. KPIs: how much (click to focus the class table); 2×2 on phones and tablets.
+            They are filter toggles here, so the ⋯ menu (export, focus view) is off: one tab stop per card. */}
         <div className="grid grid-cols-2 gap-(--u-gap) @4xl:grid-cols-4" data-testid="kpi-grid">
           {/* A plain action: "all" is the resting state, so it never shows a selection ring */}
-          <KpiCard
+          <UdpPbiKpiCard
+            {...kpiState}
             index={0}
-            label="Total Assets"
-            icon={Database}
-            value={kpiValue((k) => k.totalAssets.toLocaleString())}
-            aside={<span className="text-[11px] font-medium text-u-label">{scopeSuffix}</span>}
-            stale={kpis.isPlaceholderData}
-            onClick={() => actions.setKpiFocus('all')}
+            visualId="kpi-total"
+            heading="Total Assets"
+            icon="database"
+            value={kpis.data?.totalAssets}
+            caption={scopeSuffix}
+            interactive
+            onDataPointClick={() => actions.setKpiFocus('all')}
             title="Click to reset KPI focus to All Assets"
             info={KPI_DEFINITIONS.totalAssets.info}
             calc={KPI_DEFINITIONS.totalAssets.calc}
           />
 
-          <KpiCard
+          <UdpPbiKpiCard
+            {...kpiState}
             index={1}
-            label="Condition Assessed"
-            icon={CheckCircle2}
-            value={kpiValue((k) => k.totalAssessed.toLocaleString())}
-            footer={
-              <span className="mt-3 flex items-center gap-2.5">
-                <MiniMeter value={pctAssessed} className="min-w-6 flex-1" />
-                <span className="u-num shrink-0 text-[11px] font-medium text-u-label">
-                  {kpis.data ? `${(pctAssessed * 100).toFixed(1)}%` : '…'}
-                  <span className="hidden @md:inline"> of assets</span>
-                </span>
-              </span>
-            }
+            visualId="kpi-assessed"
+            heading="Condition Assessed"
+            icon="check-circle"
+            value={kpis.data?.totalAssessed}
+            meter={{ value: pctAssessed, detail: 'of assets' }}
             active={filters.kpiFocus === 'assessed'}
-            stale={kpis.isPlaceholderData}
-            onClick={() => actions.toggleKpiFocus('assessed')}
+            onDataPointClick={() => actions.toggleKpiFocus('assessed')}
             title="Click to cross-filter classes with condition assessments"
             info={KPI_DEFINITIONS.assessed.info}
             calc={KPI_DEFINITIONS.assessed.calc}
           />
 
-          <KpiCard
+          <UdpPbiKpiCard
+            {...kpiState}
             index={2}
-            label="Due For Renewal"
-            icon={AlertTriangle}
-            value={kpiValue((k) => k.dueForRenewal.toLocaleString())}
-            aside={
-              kpis.data &&
-              (kpis.data.dueForRenewal > 0 ? (
-                <StatusChip tone="warn" className="u-num">
-                  {(pctDue * 100).toFixed(1)}%<span className="hidden @md:inline"> of assets</span>
-                </StatusChip>
-              ) : (
-                <StatusChip tone="ok">None due</StatusChip>
-              ))
+            visualId="kpi-renewal"
+            heading="Due For Renewal"
+            icon="alert-triangle"
+            value={kpis.data?.dueForRenewal}
+            badge={
+              kpis.data
+                ? kpis.data.dueForRenewal > 0
+                  ? { text: `${(pctDue * 100).toFixed(1)}%`, detail: 'of assets', tone: 'warn' }
+                  : { text: 'None due', tone: 'ok' }
+                : undefined
             }
             active={filters.kpiFocus === 'renewal'}
-            stale={kpis.isPlaceholderData}
-            onClick={() => actions.toggleKpiFocus('renewal')}
+            onDataPointClick={() => actions.toggleKpiFocus('renewal')}
             title="Click to cross-filter classes due for renewal"
             info={KPI_DEFINITIONS.renewal.info}
             calc={KPI_DEFINITIONS.renewal.calc}
           />
 
-          <KpiCard
+          <UdpPbiKpiCard
+            {...kpiState}
             index={3}
-            label="Avg Base Life"
-            icon={Calendar}
-            value={kpiValue((k) => `${k.avgBaseLife}`)}
-            aside={<span className="text-[11px] font-medium text-u-label">Years</span>}
-            stale={kpis.isPlaceholderData}
+            visualId="kpi-base-life"
+            heading="Avg Base Life"
+            icon="calendar"
+            displayValue={kpis.data ? `${kpis.data.avgBaseLife}` : undefined}
+            caption="Years"
             info={KPI_DEFINITIONS.baseLife.info}
             calc={KPI_DEFINITIONS.baseLife.calc}
           />

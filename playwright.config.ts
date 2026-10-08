@@ -15,10 +15,10 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  // The production bundle served by `vite preview`: what ships, and no on-demand dev transforms
+  // The production bundle served by `vite preview` (web components built first): what ships, and no on-demand dev transforms
   // that make parallel cold loads slow. Every /api call is mocked in the browser (e2e/support/mockApi.ts).
   webServer: {
-    command: `npx vite build --logLevel warn && npx vite preview --port ${PORT} --strictPort`,
+    command: `npm run elements:build && npx vite build --logLevel warn && npx vite preview --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

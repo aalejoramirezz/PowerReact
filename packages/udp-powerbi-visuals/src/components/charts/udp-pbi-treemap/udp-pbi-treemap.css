@@ -1,0 +1,42 @@
+.tm {
+  position: relative;
+  width: 100%;
+}
+/* Tiles fade in once; tile edges in the card colour keep neighbours apart */
+.tm-tile {
+  animation: u-fade 0.5s var(--pbi-ease) both;
+}
+.tm-tile rect {
+  stroke: var(--pbi-card-solid);
+  stroke-width: 1px;
+}
+.tm-tile rect.u-mark-active {
+  stroke: var(--pbi-interaction);
+  stroke-width: 2px;
+}
+.tm-group__bg {
+  fill: var(--pbi-track);
+}
+.tm-group__label {
+  font: 600 11px var(--pbi-font-body);
+  fill: var(--pbi-title);
+}
+.tm-label {
+  font: 600 11.5px var(--pbi-font-body);
+  pointer-events: none;
+}
+.tm-value {
+  font: 600 11px var(--pbi-font-display);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.tm-label[data-dimmed='true'],
+.tm-value[data-dimmed='true'],
+.tm-group__label[data-dimmed='true'] {
+  opacity: 0.35;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tm-clickable {
+    cursor: pointer;
+  }
+}

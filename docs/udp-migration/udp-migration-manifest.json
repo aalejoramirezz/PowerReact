@@ -1,0 +1,766 @@
+{
+  "spec": "udp-migration/manifest-visuals",
+  "title": "UDP Migration Spec: Manifest Visuals",
+  "subtitle": "Exactly what moves from PowerReact into the UDP monorepo to support the visual library, the gallery and the manifest reader",
+  "version": "1.0",
+  "date": "2026-10-08",
+  "sourceRepo": "PowerReact (branch PBI-React-Implementation)",
+  "targetRepo": "udp-monorepo-development (pnpm workspace)",
+  "companion": "Manifest Visuals: Architecture and UDP Integration (team document)",
+  "machineReadable": "docs/udp-migration/udp-migration-manifest.json",
+  "variables": {
+    "$PKG": {
+      "path": "packages/udp-powerbi-visuals/src",
+      "repo": "PowerReact",
+      "what": "The visual library source"
+    },
+    "$APP": {
+      "path": "src",
+      "repo": "PowerReact",
+      "what": "The PowerReact app source"
+    },
+    "$STENCIL": {
+      "path": "packages/udp-stencil-component-library/src/components/powerbi-visuals",
+      "repo": "UDP",
+      "what": "New folder; mirrors $PKG one level down"
+    },
+    "$STENCIL_PKG": {
+      "path": "packages/udp-stencil-component-library",
+      "repo": "UDP",
+      "what": "UDP Stencil library root (@univerus/udp-stencil-component-library)"
+    },
+    "$WRAP_PKG": {
+      "path": "packages/udp-react-stencil-component-library",
+      "repo": "UDP",
+      "what": "Generated React wrappers (@univerus/udp-react-stencil-component-library)"
+    },
+    "$ENT": {
+      "path": "packages/udp-react-enterprise-component-library/src",
+      "repo": "UDP",
+      "what": "Enterprise React library source (@univerus/udp-react-enterprise-component-library)"
+    },
+    "$MANIFEST": {
+      "path": "packages/udp-react-enterprise-component-library/src/manifest",
+      "repo": "UDP",
+      "what": "New folder for the manifest engine and reader"
+    },
+    "$STATIC": {
+      "path": "public",
+      "repo": "UDP app",
+      "what": "The host app’s static assets folder (served from the app origin)"
+    }
+  },
+  "actions": {
+    "COPY": "Copy byte for byte. Change only the import paths the item lists.",
+    "EXTRACT": "Copy only the named symbols into the new file; leave the rest of the source behind.",
+    "ADAPT": "Port the file; replace only the imports and components the item lists. Keep logic, names and tests.",
+    "NEW": "Create in UDP following the pattern given; nothing equivalent exists in PowerReact.",
+    "REGENERATE": "Do not copy: the UDP build produces it.",
+    "REPLACE": "Do not move: use the named UDP component or service instead.",
+    "REFERENCE": "Do not move: use it as the specification for code the UDP team writes elsewhere.",
+    "EXCLUDE": "Never move."
+  },
+  "items": [
+    {
+      "id": "V01",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "COPY",
+      "source": "$PKG/components/kpi/udp-pbi-*/",
+      "destination": "$STENCIL/components/kpi/",
+      "files": 15,
+      "notes": "5 components: kpi-card, kpi-hero, kpi-trend, kpi-bullet, kpi-variance (tsx, css, readme.md each). Keep the mirrored layout: relative imports `../../../styles|utils|functional` must resolve to $STENCIL."
+    },
+    {
+      "id": "V02",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "COPY",
+      "source": "$PKG/components/charts/udp-pbi-*/",
+      "destination": "$STENCIL/components/charts/",
+      "files": 54,
+      "notes": "18 components: boxplot, bullet-bars, calendar-heatmap, choropleth, column-chart, diverging-bars, donut, dot-plot, ibcs-variance, point-map, ranking-bars, scatter, spotlight-bars, stacked-bars, timeline, treemap, trend-chart, waterfall."
+    },
+    {
+      "id": "V03",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "COPY",
+      "source": "$PKG/components/tables/udp-pbi-*/",
+      "destination": "$STENCIL/components/tables/",
+      "files": 6,
+      "notes": "2 components: data-table, matrix."
+    },
+    {
+      "id": "V04",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "COPY",
+      "source": "$PKG/functional/*.tsx",
+      "destination": "$STENCIL/functional/",
+      "files": 7,
+      "notes": "chart-kit, frame, icon, kpi-shell, map-kit, meter, states."
+    },
+    {
+      "id": "V05",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "COPY",
+      "source": "$PKG/utils/** (non-test)",
+      "destination": "$STENCIL/utils/",
+      "files": 30,
+      "notes": "Root (data, events, formats, icons, palette, roving, series-chart, width-observer), export/ (csv, download, xlsx), layout/ (17 modules incl. geo, kpi), table/ (builders, model)."
+    },
+    {
+      "id": "V06",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "COPY",
+      "source": "$PKG/styles/*.css",
+      "destination": "$STENCIL/styles/",
+      "files": 7,
+      "notes": "tokens-bridge, motion, shadow, surfaces, charts, kpi, maps. tokens-bridge.css stays the only file that reads `--u-*`."
+    },
+    {
+      "id": "V07",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "ADAPT",
+      "source": "$PKG/utils/**/*.test.ts",
+      "destination": "$STENCIL/utils/ (same folders)",
+      "files": 8,
+      "notes": "Vitest → Stencil Jest (`stencil test --spec`): drop `import … from 'vitest'` (globals). vocabulary-e.test.ts reads `public/geo/*.json`: point it at the copy made in A01 (or a test fixture)."
+    },
+    {
+      "id": "V08",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "REGENERATE",
+      "source": "$PKG/components.d.ts",
+      "destination": "$STENCIL_PKG/src/components.d.ts",
+      "files": 1,
+      "notes": "UDP’s Stencil build writes its own; do not copy."
+    },
+    {
+      "id": "V09",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "ADAPT",
+      "source": "$PKG/index.ts",
+      "destination": "$STENCIL_PKG public type entry",
+      "files": 1,
+      "notes": "Add its type re-exports (events, formats, table model, KpiIconName, VisualFrameMode, BarMeta) to the library’s public types."
+    },
+    {
+      "id": "V10",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "ADAPT",
+      "source": "packages/udp-powerbi-visuals/package.json",
+      "destination": "$STENCIL_PKG/package.json",
+      "files": 1,
+      "notes": "Merge dependencies per section 9. Keep UDP’s xlsx 0.18.5 (do not add the 0.20 tarball)."
+    },
+    {
+      "id": "V11",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "ADAPT",
+      "source": "$PKG/utils/icons.ts",
+      "destination": "$STENCIL/utils/icons.ts",
+      "files": 1,
+      "notes": "Uses `lucide` (38 icons). Either add `lucide` (section 9) or map each icon to UDP’s icon registry; keep the exported names (KPI_ICONS, UI_ICONS, KpiIconName) — the manifest schema lists the KPI icon names."
+    },
+    {
+      "id": "V12",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "COPY",
+      "source": "$APP/components/powerbi-visuals/__fixtures__/samples.ts",
+      "destination": "$STENCIL/__fixtures__/samples.ts",
+      "files": 1,
+      "notes": "Sample data (illustrative, no client data). Rewrite the type import `@powerreact/udp-powerbi-visuals` → relative imports of the same types."
+    },
+    {
+      "id": "V13",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "NEW",
+      "source": "$APP/pages/Gallery.tsx (reference for content)",
+      "destination": "$STENCIL/stories/<family>.stories.ts",
+      "files": 11,
+      "notes": "Replaces the Gallery page: one Storybook file per family (KPI, Ranking, Magnitude, Change over time, Deviation, Part-to-whole, Flow, Distribution, Correlation, Spatial, Exact values) using V12 data; a toolbar toggle for UDP dark (`body.dark-theme`) and the Univerus look (A05)."
+    },
+    {
+      "id": "V14",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "ADAPT",
+      "source": "$APP/components/powerbi-visuals/elements.ssr.test.ts",
+      "destination": "$STENCIL/__tests__/elements.spec.tsx",
+      "files": 1,
+      "notes": "Server-render smoke tests (full, empty, frame=\"none\") for all 25 components; port to Stencil `newSpecPage` or keep the hydrate renderer."
+    },
+    {
+      "id": "V15",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "ADAPT",
+      "source": "$APP/theme/tokensBridge.test.ts + package part of $APP/theme/noRawColors.test.ts",
+      "destination": "$STENCIL/__tests__/tokens.spec.ts",
+      "files": 2,
+      "notes": "Guards: every `--pbi-*` read exists in the bridge with a Fluent fallback; no `var(--u-` outside tokens-bridge.css; no hex / rgb / hsl literals in $STENCIL."
+    },
+    {
+      "id": "V16",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "ADAPT",
+      "source": "packages/udp-powerbi-visuals/README.md, MIGRATION.md",
+      "destination": "packages/udp-react-enterprise-component-library/docs/charts/powerbi-visuals.md",
+      "files": 2,
+      "notes": "Component table, contract, token bridge, maps, the documented `frame=\"card\"` deviation."
+    },
+    {
+      "id": "R01",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "REGENERATE",
+      "source": "$APP/components/powerbi-visuals/generated/components.ts",
+      "destination": "$WRAP_PKG",
+      "files": 1,
+      "notes": "Built by UDP’s React output target (React bundle). Never copy PowerReact’s generated file."
+    },
+    {
+      "id": "R02",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "NEW",
+      "source": "—",
+      "destination": "$ENT/UI/powerbi-visuals/UdpPbi<Name>.tsx + index.ts",
+      "files": 26,
+      "notes": "One thin wrapper per component (25) + barrel, the pattern of UDP’s chart wrappers; export the barrel from $ENT/index.ts."
+    },
+    {
+      "id": "R03",
+      "phase": 1,
+      "workstream": "W1",
+      "action": "ADAPT",
+      "source": "$APP/components/powerbi-visuals/index.ts",
+      "destination": "$ENT/UI/powerbi-visuals/index.ts",
+      "files": 1,
+      "notes": "Public type re-exports used by the manifest code (DataPointClickDetail, DataPointValue, GeoPoint, RegionValue, KpiPoint, …), now from the UDP wrapper package."
+    },
+    {
+      "id": "M01",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "COPY",
+      "source": "$APP/lib/manifest/schema.ts",
+      "destination": "$MANIFEST/lib/schema.ts",
+      "files": 1,
+      "notes": "Zod 4 schema: 26 components, `schemaVersion: 1`, strict objects."
+    },
+    {
+      "id": "M02",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "COPY",
+      "source": "$APP/lib/manifest/jsonSchema.ts",
+      "destination": "$MANIFEST/lib/jsonSchema.ts",
+      "files": 1,
+      "notes": "Set MANIFEST_SCHEMA_FILE to the UDP location of the published JSON Schema (A04)."
+    },
+    {
+      "id": "M03",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "COPY",
+      "source": "$APP/lib/manifest/daxInjection.ts",
+      "destination": "$MANIFEST/lib/daxInjection.ts",
+      "files": 1,
+      "notes": "Import `../dax/daxBuilder` → `./dax` (M07). The only place filters enter a query."
+    },
+    {
+      "id": "M04",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "COPY",
+      "source": "$APP/lib/manifest/mapRows.ts",
+      "destination": "$MANIFEST/lib/mapRows.ts",
+      "files": 1,
+      "notes": "Imports: `@powerreact/udp-powerbi-visuals` (types) → `@univerus/udp-react-stencil-component-library`; `../dax/parse`, `../dax/types` → `./dax`."
+    },
+    {
+      "id": "M05",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "COPY",
+      "source": "$APP/lib/manifest/crossFilters.ts",
+      "destination": "$MANIFEST/lib/crossFilters.ts",
+      "files": 1,
+      "notes": "Same import rewrites as M04. Holds Sample mode and which filters each visual obeys."
+    },
+    {
+      "id": "M06",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "ADAPT",
+      "source": "$APP/lib/manifest/*.test.ts + $APP/components/manifest/registry.test.ts",
+      "destination": "$MANIFEST/__tests__/",
+      "files": 7,
+      "notes": "Needs a unit-test runner in the enterprise library (decision D1). Bundled manifests (A03) as fixtures."
+    },
+    {
+      "id": "M07",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "EXTRACT",
+      "source": "$APP/lib/dax/daxBuilder.ts, parse.ts, types.ts",
+      "destination": "$MANIFEST/lib/dax.ts",
+      "files": 1,
+      "notes": "Only: daxString, DaxLiteralValue, daxLiteral, treatAs, call (daxBuilder); toNumber, toLabel (parse); DaxRow (types) — with their test cases. Not the asset-page builders, GROUP_COLUMN or CLASS_COLUMN."
+    },
+    {
+      "id": "M08",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "EXTRACT",
+      "source": "$APP/store/filters.ts",
+      "destination": "$MANIFEST/store/manifestFilters.ts",
+      "files": 1,
+      "notes": "Only the cross-filter slice: state `crossFilters`, actions toggleCrossFilter, setSlicerFilter, clearCrossFilter, clearDashboard, selector selectCrossFilters. Not DashboardFilters, focus or resetAll. Zustand ≥ 4.4 (useShallow)."
+    },
+    {
+      "id": "M09",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "ADAPT",
+      "source": "$APP/hooks/useSemanticQuery.ts",
+      "destination": "$MANIFEST/hooks/useSemanticQuery.ts",
+      "files": 1,
+      "notes": "POST `/api/powerbi/query` → UDP API endpoint C1 through UDP’s axios and auth. Drop useDaxLogStore (PowerReact DAX inspector). Keep the query key `[\"dax\", kind, datasetId, dax]`, keepPreviousData and the abort signal."
+    },
+    {
+      "id": "M10",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "ADAPT",
+      "source": "$APP/lib/geo/geoAssets.ts, useGeoAsset.ts",
+      "destination": "$MANIFEST/geo/",
+      "files": 2,
+      "notes": "getJson → UDP axios; `/geo/` base → where A01 is served. Keep staleTime and gcTime Infinity."
+    },
+    {
+      "id": "M11",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "ADAPT",
+      "source": "$APP/components/manifest/registry.tsx",
+      "destination": "$MANIFEST/components/registry.tsx",
+      "files": 1,
+      "notes": "Wrappers from `../../UI/powerbi-visuals` (R02); ChartCard (slicer frame) → UdpFluentCard; `import.meta.env.VITE_MAP_TILE_*` → ConfigService (C4). Keep `REGISTRY satisfies Record<ManifestComponentName, unknown>`."
+    },
+    {
+      "id": "M12",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "ADAPT",
+      "source": "$APP/components/manifest/ManifestVisual.tsx",
+      "destination": "$MANIFEST/components/ManifestVisual.tsx",
+      "files": 1,
+      "notes": "Imports → M04, M05, M08, M09, M10; errorMessage → UDP error helper. Live and Sample stay separate components (hooks never change order)."
+    },
+    {
+      "id": "M13",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "ADAPT",
+      "source": "$APP/components/manifest/ManifestDashboard.tsx + manifest.css",
+      "destination": "$MANIFEST/components/",
+      "files": 2,
+      "notes": "ReportTemplate → UDP page layout; RemovableChip → UDP chip; 4 Tailwind class lists → UDP styling. The data area must set `container-type: inline-size` (grid and elements respond to it). `var(--u-gap)` → `var(--u-gap, var(--spacingHorizontalL))`."
+    },
+    {
+      "id": "M14",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "ADAPT",
+      "source": "$APP/components/manifest/ManifestFilterBar.tsx",
+      "destination": "$MANIFEST/components/ManifestFilterBar.tsx",
+      "files": 1,
+      "notes": "Imports as M12; 1 Tailwind class list."
+    },
+    {
+      "id": "M15",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "REPLACE",
+      "source": "$APP/components/manifest/ManifestSlicer.tsx",
+      "destination": "$MANIFEST/components/ManifestSlicer.tsx",
+      "files": 1,
+      "notes": "Re-implement on UdpTablist (≤ 6 short options) and UdpDropdown (multi-select with search), same props: label, options, selected, mode, multiple, allLabel, onChange, loading, error, testId."
+    },
+    {
+      "id": "M16",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "NEW",
+      "source": "—",
+      "destination": "$ENT/udp/pages/UdpManifestReportPage/",
+      "files": 2,
+      "notes": "Loads a manifest by id (C2), validates it, renders ManifestDashboard. Register `UdpManifestReportPage: () => import('../UdpManifestReportPage')` in UdpPagesLoaders."
+    },
+    {
+      "id": "M17",
+      "phase": 4,
+      "workstream": "W2",
+      "action": "NEW",
+      "source": "—",
+      "destination": "$ENT/UI/widgets/library/ManifestVisualWidget/",
+      "files": 2,
+      "notes": "Widget module: `default`, `layout` (w, h ranges), `params` { manifestId, visualId }; renders one manifest visual on a dashboard. Register in UdpPagesLoaders."
+    },
+    {
+      "id": "M18",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "ADAPT",
+      "source": "$APP/pages/ManifestPreview.tsx",
+      "destination": "$ENT/udp/pages/UdpManifestPreviewPage/",
+      "files": 2,
+      "notes": "Admin tool: upload (≤ 2 MB), validate, Live / Sample. Replace ReportTemplate, Card, Tabs, ErrorNote, LoadingState, useThemeStore, getJson and lucide-react icons with UDP equivalents (20 Tailwind class lists)."
+    },
+    {
+      "id": "M19",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "REPLACE",
+      "source": "$APP/api/http.ts",
+      "destination": "UDP axios / useAxiosGet",
+      "files": 1,
+      "notes": "getJson, postJson, errorMessage."
+    },
+    {
+      "id": "M20",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "REPLACE",
+      "source": "$APP/store/theme.ts",
+      "destination": "UDP shell theme",
+      "files": 1,
+      "notes": "A manifest’s `theme` field maps to the UDP theme or is ignored."
+    },
+    {
+      "id": "M21",
+      "phase": 3,
+      "workstream": "W2",
+      "action": "REPLACE",
+      "source": "$APP/components/template/*, $APP/components/ui/{Card,InfoCurtain,Popover,primitives,cx}",
+      "destination": "UDP layout and components",
+      "files": 7,
+      "notes": "PowerReact chrome: page frame, cards, popover, tabs, chips. Use UDP’s."
+    },
+    {
+      "id": "A01",
+      "phase": 3,
+      "workstream": "W3",
+      "action": "COPY",
+      "source": "public/geo/{index.json, world-110m.topo.json, na-admin1.topo.json, na-tiles.json, README.md}",
+      "destination": "$STATIC/geo/",
+      "files": 5,
+      "notes": "Natural Earth, public domain (about 320 KB). Served from the app origin; no external map hosts."
+    },
+    {
+      "id": "A02",
+      "phase": 3,
+      "workstream": "W3",
+      "action": "COPY",
+      "source": "scripts/build-geo.mjs",
+      "destination": "packages/udp-react-enterprise-component-library/scripts/build-geo.mjs",
+      "files": 1,
+      "notes": "Rebuilds A01; devDependencies topojson-server, topojson-simplify, topojson-client. Writes to the A01 location (edit OUT)."
+    },
+    {
+      "id": "A03",
+      "phase": 3,
+      "workstream": "W3",
+      "action": "COPY",
+      "source": "public/manifests/{index, sample-manifest, condition-works, delivery-lifecycle, locations-performance}.json",
+      "destination": "$MANIFEST/__fixtures__/manifests/ and the C2 seed",
+      "files": 5,
+      "notes": "Illustrative samples. `dataSource` ids point to the demo model: replace per tenant."
+    },
+    {
+      "id": "A04",
+      "phase": 3,
+      "workstream": "W3",
+      "action": "ADAPT",
+      "source": "scripts/generate-manifest-schema.ts → public/manifests/manifest.schema.json",
+      "destination": "packages/udp-react-enterprise-component-library/scripts/ + published schema",
+      "files": 2,
+      "notes": "Regenerate the JSON Schema from M02; publish it where Univerus-Lens reads it. A test keeps it in sync."
+    },
+    {
+      "id": "A05",
+      "phase": 3,
+      "workstream": "W3",
+      "action": "COPY",
+      "source": "$APP/theme/tokens.css",
+      "destination": "$ENT/styles/univerus-theme.css",
+      "files": 1,
+      "notes": "Optional: the `--u-*` roles of Neo-Glass / Nocturne, loaded only on pages that want the approved Univerus look; with fonts @fontsource-variable/space-grotesk and /montserrat. Without it the bridge uses Fluent tokens."
+    },
+    {
+      "id": "S01",
+      "phase": 2,
+      "workstream": "W4",
+      "action": "REFERENCE",
+      "source": "server/routes/powerbi.ts (POST /powerbi/query), server/services/powerbi.ts (executeDaxQuery), server/config.ts (allowedDatasets)",
+      "destination": "UDP API: endpoint C1",
+      "files": 3,
+      "notes": "Contract in section 7. The UDP team implements it; the agent does not edit the API repo."
+    },
+    {
+      "id": "S02",
+      "phase": 3,
+      "workstream": "W4",
+      "action": "NEW",
+      "source": "—",
+      "destination": "UDP API: endpoint C2 (manifest store)",
+      "files": 0,
+      "notes": "Proposed contract in section 7."
+    },
+    {
+      "id": "S03",
+      "phase": 2,
+      "workstream": "W4",
+      "action": "NEW",
+      "source": "—",
+      "destination": "ConfigService keys (C4)",
+      "files": 0,
+      "notes": "Allowed datasets per tenant; optional map tile URL template + attribution (Azure Maps via AZURE_MAP_SUBSCRIPTION_KEY)."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "d3-array",
+      "version": "^3.2.4",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "d3-contour",
+      "version": "^4.0.2",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "d3-geo",
+      "version": "^3.1.1",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "d3-hexbin",
+      "version": "^0.2.2",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "d3-hierarchy",
+      "version": "^3.1.2",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "d3-scale",
+      "version": "^4.0.2",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "d3-selection",
+      "version": "^3.0.0",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "d3-shape",
+      "version": "^3.2.0",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "d3-time",
+      "version": "^3.1.0",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "d3-transition",
+      "version": "^3.0.1",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "d3-zoom",
+      "version": "^3.0.0",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "topojson-client",
+      "version": "^3.1.0",
+      "addTo": "$STENCIL_PKG",
+      "status": "New"
+    },
+    {
+      "name": "lucide",
+      "version": "^1.52.0",
+      "addTo": "$STENCIL_PKG",
+      "status": "New, unless V11 maps the icons to UDP’s registry"
+    },
+    {
+      "name": "xlsx",
+      "version": "0.18.5 (UDP’s)",
+      "addTo": "$STENCIL_PKG",
+      "status": "Present; keep it"
+    },
+    {
+      "name": "@types/d3-* (11), @types/geojson, @types/topojson-client",
+      "version": "as in PowerReact",
+      "addTo": "$STENCIL_PKG (dev)",
+      "status": "New"
+    },
+    {
+      "name": "zod",
+      "version": "^4.6.5",
+      "addTo": "$ENT package",
+      "status": "New"
+    },
+    {
+      "name": "zustand",
+      "version": "≥ 4.4 (UDP: ^4.3.7)",
+      "addTo": "$ENT package",
+      "status": "Present; confirm ≥ 4.4 for useShallow"
+    },
+    {
+      "name": "@tanstack/react-query",
+      "version": "^5",
+      "addTo": "$ENT package",
+      "status": "Present"
+    },
+    {
+      "name": "@types/geojson, @types/topojson-specification",
+      "version": "latest",
+      "addTo": "$ENT package (dev)",
+      "status": "New"
+    },
+    {
+      "name": "topojson-server, topojson-simplify, topojson-client",
+      "version": "^3",
+      "addTo": "$ENT package (dev, A02)",
+      "status": "New"
+    }
+  ],
+  "invariants": [
+    "Tags `udp-pbi-*`, classes `UdpPbi*`, event names (`dataPointClick`, `exportData`, `focusModeChange`, `viewChange`) and every public prop name.",
+    "Manifest component names `Univerus*` and `schemaVersion: 1`: they are the contract with Univerus-Lens.",
+    "Components are presentational: they never fetch, never build DAX. Data in as props, events out.",
+    "Colours only through `--pbi-*` roles; `--u-*` is read only in tokens-bridge.css; no literal colours.",
+    "Filters reach DAX only through `injectCrossFilters` (one `TREATAS` per filter); a clicked value is never concatenated into a query.",
+    "Destination layout mirrors $PKG under $STENCIL, so relative imports and `styleUrls` stay valid.",
+    "No secrets, `.env` files or tenant data move. Seed manifests use demo ids only."
+  ],
+  "gates": [
+    {
+      "phase": "P1 · Visual library",
+      "items": "V01–V16, R01–R03",
+      "gate": "G1 · Foundations ready (library)",
+      "checks": [
+        "pnpm --filter @univerus/udp-stencil-component-library build → succeeds; generated docs list 25 tags `udp-pbi-*`",
+        "pnpm --filter @univerus/udp-stencil-component-library test:unit → layout, util, SSR and token tests pass",
+        "grep -r \"var(--u-\" $STENCIL → matches only styles/tokens-bridge.css",
+        "Token guard tests (V15) pass: every `--pbi-*` bridged with a Fluent fallback; no literal colours in $STENCIL",
+        "Storybook: every family renders in Fluent light and `body.dark-theme`",
+        "pnpm --filter @univerus/udp-react-enterprise-component-library build → the 25 UdpPbi* wrappers are exported"
+      ]
+    },
+    {
+      "phase": "P2 · Query endpoint",
+      "items": "S01, S03 (UDP API team)",
+      "gate": "G1 · Foundations ready (data)",
+      "checks": [
+        "POST C1 with an allowed dataset → 200 and `rows`",
+        "POST C1 with another dataset → 403",
+        "Row-level-security model → rows scoped to the signed-in user"
+      ]
+    },
+    {
+      "phase": "P3 · Manifest reader",
+      "items": "M01–M16, M18–M21, A01–A05, S02",
+      "gate": "G2 · Pilot signed off",
+      "checks": [
+        "Manifest unit tests (M06) pass; the regenerated JSON Schema equals PowerReact’s `public/manifests/manifest.schema.json`",
+        "UdpManifestReportPage renders `condition-works` in Sample mode with no network request",
+        "Live: each visual issues one C1 call; a click re-queries the others with `TREATAS(` in the DAX",
+        "Maps load `/geo/*.topo.json` from the app origin only",
+        "One Lens report runs for a pilot tenant and is signed off"
+      ]
+    },
+    {
+      "phase": "P4 · Rollout",
+      "items": "M17",
+      "gate": "G3 · All tenants",
+      "checks": [
+        "ManifestVisualWidget placed on a dashboard; reports published through C2 for every tenant"
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "question": "Unit-test runner for the enterprise library (its `test` script is lint + build today)",
+      "proposal": "Add Vitest with a `test:unit` script (the manifest tests are Vitest)"
+    },
+    {
+      "id": "D2",
+      "question": "Icons: `lucide` or UDP’s icon registry (V11)",
+      "proposal": "UDP registry if it covers the 38 icons; else add `lucide`"
+    },
+    {
+      "id": "D3",
+      "question": "Identity for C1: user token or service principal",
+      "proposal": "User token (MSAL) for row-level-security or SSO models; service principal elsewhere"
+    },
+    {
+      "id": "D4",
+      "question": "Where manifests live (C2) and who publishes",
+      "proposal": "UDP API + database, per tenant, versioned; Lens publishes"
+    },
+    {
+      "id": "D5",
+      "question": "Static path for `/geo` in each host app (A01)",
+      "proposal": "The host app’s `public/geo/`"
+    },
+    {
+      "id": "D6",
+      "question": "Adopt `univerus-theme.css` (A05) for the approved Univerus look",
+      "proposal": "Yes on report pages (`frame=\"card\"`); Fluent fallback elsewhere"
+    }
+  ],
+  "exclusions": [
+    "PowerReact server (`server/**`): replaced by C1 and C2 in the UDP API.",
+    "App shell and pages unrelated to manifests: `src/components/{briefing,chat,embed,layout,visuals}`, `src/pages/*` except ManifestPreview (M18) and Gallery (content only, V13).",
+    "`src/store/daxLog.ts` (DAX inspector) and `src/store/filters.ts` beyond the cross-filter slice (M08).",
+    "Build and tooling of PowerReact: `stencil.config.ts`, Vite, Tailwind, Playwright config, `index.html`, `packages/udp-powerbi-visuals/{index.js, components/, hydrate/, dist/, docs/}`.",
+    "Agent skills in `.agents/` and `.claude/` (PowerReact-specific; UDP keeps its own `ai-skills`).",
+    "`.env`, credentials and any tenant data."
+  ],
+  "contracts": {
+    "C1": "POST {tenantV2ApiUrl}/powerbi/query\nAuthorization: Bearer <UDP user token>\n\nRequest  { \"query\": \"EVALUATE …\",            // one top-level EVALUATE (schema-checked)\n           \"workspaceId\": \"<uuid>\",\n           \"datasetId\":   \"<uuid>\" }          // must be in the tenant's allow-list\n\n200      { \"success\": true, \"rows\": [ { \"table[Column]\": …, \"[Measure]\": … } ],\n           \"rowCount\": 12, \"executionTimeMs\": 140 }\n403      { \"success\": false, \"error\": \"Dataset … is not allowed\", \"hint\": \"…\" }\n4xx/5xx  { \"success\": false, \"error\": \"DAX Query Execution failed\", \"hint\": \"…\", \"details\": … }\n\nUpstream: POST https://api.powerbi.com/v1.0/myorg/groups/{workspaceId}/datasets/{datasetId}/executeQueries\n          { \"queries\": [{ \"query\": … }], \"serializerSettings\": { \"includeNulls\": true },\n            \"impersonatedUserName\": \"<UPN>\" }    // only for row-level-security models\nLimits:   100,000 rows or 1,000,000 values, 15 MB, one table per query;\n          120 requests / minute / identity → cache by DAX text, per-user tokens.",
+    "C2": "GET  {tenantV2ApiUrl}/manifests              → [ { id, title, version, updatedAt } ]\nGET  {tenantV2ApiUrl}/manifests/{id}?version= → the manifest JSON\nPUT  {tenantV2ApiUrl}/manifests/{id}         → validates against manifest.schema.json,\n                                               stores a new version, returns { id, version }\nScope: per tenant. Keep the previous version for rollback.",
+    "wrapperPattern": "// $ENT/UI/powerbi-visuals/UdpPbiDonut.tsx — one per component (25)\nimport React from 'react';\nimport { UdpPbiDonut as StencilUdpPbiDonut, type JSX } from '@univerus/udp-react-stencil-component-library';\n\nexport const UdpPbiDonut: React.FC<Partial<JSX.UdpPbiDonut>> = (props) => <StencilUdpPbiDonut {...props} />;"
+  }
+}

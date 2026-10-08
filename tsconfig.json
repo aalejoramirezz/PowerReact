@@ -5,6 +5,7 @@
     { "path": "./tsconfig.test.json" },
     { "path": "./tsconfig.node.json" },
     { "path": "./server" },
-    { "path": "./e2e" }
+    { "path": "./e2e" },
+    { "path": "./packages/udp-powerbi-visuals/tsconfig.typecheck.json" }
   ]
 }

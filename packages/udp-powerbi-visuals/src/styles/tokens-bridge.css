@@ -1,0 +1,146 @@
+/*
+ * Token bridge: every role an element reads, as --pbi-<role>.
+ *
+ * Inside PowerReact the Univerus template defines --u-<role> (src/theme/tokens.css: Neo-Glass and
+ * Nocturne), so the visuals look exactly as approved. Inside UDP, where no --u-* exists, each role
+ * falls back to the Fluent token the platform themes (light / dark) — the same names
+ * udp-stencil-component-library uses — so the elements need no extra stylesheet there.
+ *
+ * Declared on :host (each element, so a pinned data-theme re-resolves inside its shadow root) and
+ * on :root / [data-theme] for the surfaces the app shares (src/theme/surfaces.css). Colours are
+ * token references only (noRawColors.test.ts); src/theme/tokensBridge.test.ts keeps this list complete.
+ * A new role: add it to tokens.css (both themes), then here in alphabetical order with its Fluent fallback.
+ */
+:host,
+:root,
+[data-theme] {
+  --pbi-ac: var(--u-ac, var(--colorNeutralForeground1));
+  --pbi-area: var(--u-area, var(--colorBrandBackground));
+  --pbi-area-opacity: var(--u-area-opacity, 0.24);
+  --pbi-axis: var(--u-axis, var(--colorNeutralForeground3));
+  --pbi-bad: var(--u-bad, var(--colorStatusDangerForeground1));
+  --pbi-bad-bg: var(--u-bad-bg, var(--colorStatusDangerBackground1));
+  --pbi-bad-text: var(--u-bad-text, var(--colorStatusDangerForeground1));
+  --pbi-bar-1: var(--u-bar-1, var(--colorBrandBackground));
+  --pbi-bar-2: var(--u-bar-2, var(--colorBrandBackground));
+  --pbi-bar-3: var(--u-bar-3, var(--colorBrandBackgroundHover));
+  --pbi-bar-glow: var(--u-bar-glow, none);
+  --pbi-btn-bg: var(--u-btn-bg, var(--colorNeutralBackground1));
+  --pbi-btn-bg-hover: var(--u-btn-bg-hover, var(--colorNeutralBackground1Hover));
+  --pbi-btn-border: var(--u-btn-border, var(--colorNeutralStroke1));
+  --pbi-btn-text: var(--u-btn-text, var(--colorNeutralForeground1));
+  --pbi-card-bg: var(--u-card-bg, var(--colorNeutralBackground1));
+  --pbi-card-blur: var(--u-card-blur, 0px);
+  --pbi-card-border: var(--u-card-border, var(--colorNeutralStroke2));
+  --pbi-card-hover-border: var(--u-card-hover-border, var(--colorNeutralStroke1Hover));
+  --pbi-card-hover-lift: var(--u-card-hover-lift, 0px);
+  --pbi-card-hover-shadow: var(--u-card-hover-shadow, var(--shadow8));
+  --pbi-card-pad: var(--u-card-pad, var(--spacingHorizontalL));
+  --pbi-card-radius: var(--u-card-radius, var(--borderRadiusXLarge));
+  --pbi-card-shadow: var(--u-card-shadow, var(--shadow4));
+  --pbi-card-solid: var(--u-card-solid, var(--colorNeutralBackground1));
+  --pbi-curtain-accent: var(--u-curtain-accent, var(--colorBrandStroke1));
+  --pbi-curtain-bg: var(--u-curtain-bg, var(--colorNeutralBackground1));
+  --pbi-curtain-glow: var(--u-curtain-glow, none);
+  --pbi-delta-down: var(--u-delta-down, var(--colorStatusDangerForeground1));
+  --pbi-delta-up: var(--u-delta-up, var(--colorStatusSuccessForeground1));
+  --pbi-div-1: var(--u-div-1, var(--colorStatusDangerBackground3));
+  --pbi-div-2: var(--u-div-2, color-mix(in srgb, var(--colorStatusDangerBackground3) 55%, var(--colorNeutralBackground1)));
+  --pbi-div-3: var(--u-div-3, color-mix(in srgb, var(--colorStatusDangerBackground3) 25%, var(--colorNeutralBackground1)));
+  --pbi-div-4: var(--u-div-4, var(--colorNeutralBackground3));
+  --pbi-div-5: var(--u-div-5, color-mix(in srgb, var(--colorBrandBackground) 25%, var(--colorNeutralBackground1)));
+  --pbi-div-6: var(--u-div-6, color-mix(in srgb, var(--colorBrandBackground) 60%, var(--colorNeutralBackground1)));
+  --pbi-div-7: var(--u-div-7, var(--colorBrandBackground));
+  --pbi-div-text-1: var(--u-div-text-1, var(--colorNeutralForegroundOnBrand));
+  --pbi-div-text-2: var(--u-div-text-2, var(--colorNeutralForeground1));
+  --pbi-div-text-3: var(--u-div-text-3, var(--colorNeutralForeground1));
+  --pbi-div-text-4: var(--u-div-text-4, var(--colorNeutralForeground1));
+  --pbi-div-text-5: var(--u-div-text-5, var(--colorNeutralForeground1));
+  --pbi-div-text-6: var(--u-div-text-6, var(--colorNeutralForeground1));
+  --pbi-div-text-7: var(--u-div-text-7, var(--colorNeutralForegroundOnBrand));
+  --pbi-ease: var(--u-ease, var(--curveDecelerateMax));
+  --pbi-focus: var(--u-focus, var(--colorStrokeFocus2));
+  --pbi-focus-ring: var(--u-focus-ring, 0 0 0 2px var(--colorStrokeFocus2));
+  --pbi-font-body: var(--u-font-body, var(--fontFamilyBase));
+  --pbi-font-display: var(--u-font-display, var(--fontFamilyNumeric, var(--fontFamilyBase)));
+  --pbi-ghost-bg: var(--u-ghost-bg, var(--colorSubtleBackground));
+  --pbi-ghost-border: var(--u-ghost-border, var(--colorTransparentStroke));
+  --pbi-ghost-hover: var(--u-ghost-hover, var(--colorSubtleBackgroundHover));
+  --pbi-grid: var(--u-grid, var(--colorNeutralStroke3));
+  --pbi-grid-dash: var(--u-grid-dash, none);
+  --pbi-input-bg: var(--u-input-bg, var(--colorNeutralBackground1));
+  --pbi-input-border: var(--u-input-border, var(--colorNeutralStroke1));
+  --pbi-input-placeholder: var(--u-input-placeholder, var(--colorNeutralForeground4));
+  --pbi-interaction: var(--u-interaction, var(--colorBrandForeground1));
+  --pbi-kpi-pad: var(--u-kpi-pad, var(--spacingHorizontalL));
+  --pbi-label: var(--u-label, var(--colorNeutralForeground3));
+  --pbi-map-border: var(--u-map-border, var(--colorNeutralBackground1));
+  --pbi-map-graticule: var(--u-map-graticule, var(--colorNeutralStroke3));
+  --pbi-map-land: var(--u-map-land, var(--colorNeutralBackground4, var(--colorNeutralBackground3)));
+  --pbi-map-nodata: var(--u-map-nodata, var(--colorNeutralBackground2));
+  --pbi-map-outline: var(--u-map-outline, var(--colorNeutralStroke1));
+  --pbi-map-shade: var(--u-map-shade, var(--colorNeutralStroke2));
+  --pbi-map-water: var(--u-map-water, color-mix(in srgb, var(--colorBrandBackground) 6%, var(--colorNeutralBackground2)));
+  --pbi-mark-bg: var(--u-mark-bg, var(--colorBrandBackground));
+  --pbi-mark-fg: var(--u-mark-fg, var(--colorNeutralForegroundOnBrand));
+  --pbi-modal-shadow: var(--u-modal-shadow, var(--shadow64));
+  --pbi-neutral: var(--u-neutral, var(--colorNeutralStroke1));
+  --pbi-ok: var(--u-ok, var(--colorStatusSuccessForeground1));
+  --pbi-ok-bg: var(--u-ok-bg, var(--colorStatusSuccessBackground1));
+  --pbi-ok-text: var(--u-ok-text, var(--colorStatusSuccessForeground1));
+  --pbi-overlay: var(--u-overlay, var(--colorBackgroundOverlay));
+  --pbi-panel-border: var(--u-panel-border, var(--colorNeutralStroke2));
+  --pbi-panel-shadow: var(--u-panel-shadow, var(--shadow16));
+  --pbi-panel-solid: var(--u-panel-solid, var(--colorNeutralBackground1));
+  --pbi-primary: var(--u-primary, var(--colorBrandBackground));
+  --pbi-row-alt: var(--u-row-alt, var(--colorNeutralBackground2));
+  --pbi-row-hover: var(--u-row-hover, var(--colorSubtleBackgroundHover));
+  --pbi-row-line: var(--u-row-line, var(--colorNeutralStroke3));
+  --pbi-row-selected: var(--u-row-selected, var(--colorBrandBackground2));
+  --pbi-scrollbar: var(--u-scrollbar, var(--colorScrollbarOverlay));
+  --pbi-secondary: var(--u-secondary, var(--colorNeutralForeground3));
+  --pbi-seq-1: var(--u-seq-1, color-mix(in srgb, var(--colorBrandBackground) 12%, var(--colorNeutralBackground1)));
+  --pbi-seq-2: var(--u-seq-2, color-mix(in srgb, var(--colorBrandBackground) 26%, var(--colorNeutralBackground1)));
+  --pbi-seq-3: var(--u-seq-3, color-mix(in srgb, var(--colorBrandBackground) 40%, var(--colorNeutralBackground1)));
+  --pbi-seq-4: var(--u-seq-4, color-mix(in srgb, var(--colorBrandBackground) 54%, var(--colorNeutralBackground1)));
+  --pbi-seq-5: var(--u-seq-5, color-mix(in srgb, var(--colorBrandBackground) 68%, var(--colorNeutralBackground1)));
+  --pbi-seq-6: var(--u-seq-6, color-mix(in srgb, var(--colorBrandBackground) 84%, var(--colorNeutralBackground1)));
+  --pbi-seq-7: var(--u-seq-7, var(--colorBrandBackground));
+  --pbi-seq-text-1: var(--u-seq-text-1, var(--colorNeutralForeground1));
+  --pbi-seq-text-2: var(--u-seq-text-2, var(--colorNeutralForeground1));
+  --pbi-seq-text-3: var(--u-seq-text-3, var(--colorNeutralForeground1));
+  --pbi-seq-text-4: var(--u-seq-text-4, var(--colorNeutralForeground1));
+  --pbi-seq-text-5: var(--u-seq-text-5, var(--colorNeutralForegroundOnBrand));
+  --pbi-seq-text-6: var(--u-seq-text-6, var(--colorNeutralForegroundOnBrand));
+  --pbi-seq-text-7: var(--u-seq-text-7, var(--colorNeutralForegroundOnBrand));
+  --pbi-series-1: var(--u-series-1, var(--colorBrandBackground));
+  --pbi-series-2: var(--u-series-2, var(--colorPaletteTealForeground2));
+  --pbi-series-3: var(--u-series-3, var(--colorPaletteSteelForeground2));
+  --pbi-series-4: var(--u-series-4, var(--colorPaletteSeafoamForeground2));
+  --pbi-series-5: var(--u-series-5, var(--colorPaletteBlueForeground2));
+  --pbi-series-6: var(--u-series-6, var(--colorPaletteMarigoldForeground2));
+  --pbi-subtitle: var(--u-subtitle, var(--colorNeutralForeground3));
+  --pbi-tab-active-bg: var(--u-tab-active-bg, var(--colorBrandBackground));
+  --pbi-tab-active-border: var(--u-tab-active-border, var(--colorBrandStroke1));
+  --pbi-tab-active-text: var(--u-tab-active-text, var(--colorNeutralForegroundOnBrand));
+  --pbi-tab-bg: var(--u-tab-bg, var(--colorNeutralBackground1));
+  --pbi-tab-border: var(--u-tab-border, var(--colorNeutralStroke1));
+  --pbi-tab-hover-bg: var(--u-tab-hover-bg, var(--colorSubtleBackgroundHover));
+  --pbi-tab-hover-text: var(--u-tab-hover-text, var(--colorNeutralForeground1));
+  --pbi-tab-radius: var(--u-tab-radius, var(--borderRadiusMedium));
+  --pbi-tab-text: var(--u-tab-text, var(--colorNeutralForeground2));
+  --pbi-td-text: var(--u-td-text, var(--colorNeutralForeground1));
+  --pbi-text: var(--u-text, var(--colorNeutralForeground1));
+  --pbi-text-soft: var(--u-text-soft, var(--colorNeutralForeground2));
+  --pbi-th-bg: var(--u-th-bg, var(--colorNeutralBackground2));
+  --pbi-th-text: var(--u-th-text, var(--colorNeutralForeground2));
+  --pbi-title: var(--u-title, var(--colorNeutralForeground1));
+  --pbi-tooltip-bg: var(--u-tooltip-bg, var(--colorNeutralBackgroundInverted, var(--colorNeutralForeground1)));
+  --pbi-tooltip-muted: var(--u-tooltip-muted, var(--colorNeutralForegroundInverted));
+  --pbi-tooltip-shadow: var(--u-tooltip-shadow, var(--shadow8));
+  --pbi-tooltip-text: var(--u-tooltip-text, var(--colorNeutralForegroundInverted));
+  --pbi-track: var(--u-track, var(--colorNeutralBackground3));
+  --pbi-warn: var(--u-warn, var(--colorStatusWarningForeground1));
+  --pbi-warn-bg: var(--u-warn-bg, var(--colorStatusWarningBackground1));
+  --pbi-warn-text: var(--u-warn-text, var(--colorStatusWarningForeground1));
+}

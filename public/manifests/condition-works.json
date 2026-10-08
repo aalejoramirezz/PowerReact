@@ -1,0 +1,1341 @@
+{
+  "$schema": "./manifest.schema.json",
+  "schemaVersion": 1,
+  "id": "condition-works",
+  "title": "Condition & Works (manifest)",
+  "eyebrow": "Asset Management · manifest",
+  "description": "Lens pages p_condition and p_works on the extended vocabulary: slicers and a report filter, risk matrix with engine totals, histogram, Likert condition profile, scatter, stacked columns, crew heatmap. Sample rows are illustrative.",
+  "theme": "auto",
+  "dataSource": {
+    "workspaceId": "ef45c53d-42d4-48c6-be79-380b8d890c80",
+    "semanticModelId": "0db033d0-4f4e-4d72-a280-007d6f17e2ec"
+  },
+  "layout": {
+    "columns": 12,
+    "rowMinHeight": 120
+  },
+  "filters": [
+    {
+      "field": "'asset_register'[Community]",
+      "label": "Community",
+      "mode": "dropdown"
+    }
+  ],
+  "visuals": [
+    {
+      "id": "s-group",
+      "component": "UniverusSlicer",
+      "grid": {
+        "colSpan": 4
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS('asset_register'[Asset_Class_Group], \"Assets\", [Asset Count])\nORDER BY 'asset_register'[Asset_Class_Group]"
+      },
+      "fields": {
+        "value": "'asset_register'[Asset_Class_Group]",
+        "count": "[Assets]"
+      },
+      "props": {
+        "title": "Class group",
+        "mode": "auto",
+        "allLabel": "All groups"
+      },
+      "sample": [
+        {
+          "asset_register[Asset_Class_Group]": "Core",
+          "[Assets]": 970
+        },
+        {
+          "asset_register[Asset_Class_Group]": "Transport",
+          "[Assets]": 456
+        },
+        {
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "[Assets]": 5160
+        },
+        {
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "[Assets]": 43800
+        }
+      ]
+    },
+    {
+      "id": "s-criticality",
+      "component": "UniverusSlicer",
+      "grid": {
+        "colSpan": 4
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS('asset_register'[Criticality], KEEPFILTERS(TREATAS({\"Very High\", \"High\", \"Medium\", \"Low\"}, 'asset_register'[Criticality])), \"Assets\", [Asset Count])\nORDER BY 'asset_register'[Criticality]"
+      },
+      "fields": {
+        "value": "'asset_register'[Criticality]",
+        "count": "[Assets]"
+      },
+      "props": {
+        "title": "Criticality",
+        "mode": "dropdown"
+      },
+      "sample": [
+        {
+          "asset_register[Criticality]": "Very High",
+          "[Assets]": 5978
+        },
+        {
+          "asset_register[Criticality]": "High",
+          "[Assets]": 74
+        },
+        {
+          "asset_register[Criticality]": "Medium",
+          "[Assets]": 16
+        },
+        {
+          "asset_register[Criticality]": "Low",
+          "[Assets]": 3
+        }
+      ]
+    },
+    {
+      "id": "s-crew",
+      "component": "UniverusSlicer",
+      "grid": {
+        "colSpan": 4
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS('work_request'[Crew], \"Work requests\", [WRs Raised])\nORDER BY 'work_request'[Crew]"
+      },
+      "fields": {
+        "value": "'work_request'[Crew]",
+        "count": "[Work requests]"
+      },
+      "props": {
+        "title": "Crew",
+        "mode": "dropdown",
+        "allLabel": "All crews"
+      },
+      "sample": [
+        {
+          "work_request[Crew]": "North crew",
+          "[Work requests]": 96
+        },
+        {
+          "work_request[Crew]": "South crew",
+          "[Work requests]": 74
+        },
+        {
+          "work_request[Crew]": "East crew",
+          "[Work requests]": 51
+        },
+        {
+          "work_request[Crew]": "Facilities crew",
+          "[Work requests]": 34
+        }
+      ]
+    },
+    {
+      "id": "k-assessed",
+      "component": "UniverusKpiCard",
+      "grid": {
+        "colSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nROW(\"Assessed\", [Assessed Assets], \"Coverage\", [Condition Coverage %])"
+      },
+      "fields": {
+        "value": "[Assessed]",
+        "meter": "[Coverage]"
+      },
+      "props": {
+        "title": "Assessed Assets",
+        "icon": "clipboard-check",
+        "meterLabel": "Condition coverage",
+        "info": "Live assets with a condition assessment; the meter is the share of the register they cover.",
+        "calc": "[Assessed Assets] · [Condition Coverage %]"
+      },
+      "sample": [
+        {
+          "asset_register[Asset_Class_Group]": "Core",
+          "[Assessed]": 146,
+          "[Coverage]": 0.15
+        },
+        {
+          "asset_register[Asset_Class_Group]": "Transport",
+          "[Assessed]": 68,
+          "[Coverage]": 0.15
+        },
+        {
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "[Assessed]": 774,
+          "[Coverage]": 0.15
+        },
+        {
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "[Assessed]": 6570,
+          "[Coverage]": 0.15
+        }
+      ]
+    },
+    {
+      "id": "k-condition",
+      "component": "UniverusKpiCard",
+      "grid": {
+        "colSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nROW(\"Avg Condition\", [Avg Condition Index])"
+      },
+      "fields": {
+        "value": "[Avg Condition]"
+      },
+      "props": {
+        "title": "Avg Condition Index",
+        "icon": "gauge",
+        "format": {
+          "style": "decimal",
+          "decimals": 1
+        },
+        "goodWhen": "higher",
+        "info": "Average condition index of the assessed assets (index above 0 only).",
+        "calc": "[Avg Condition Index]"
+      },
+      "sample": [
+        {
+          "asset_register[Asset_Class_Group]": "Core",
+          "[Avg Condition]": 52.4
+        },
+        {
+          "asset_register[Asset_Class_Group]": "Transport",
+          "[Avg Condition]": 9.5
+        },
+        {
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "[Avg Condition]": 9.8
+        },
+        {
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "[Avg Condition]": 11.2
+        }
+      ]
+    },
+    {
+      "id": "k-open",
+      "component": "UniverusKpiCard",
+      "grid": {
+        "colSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nROW(\"Open\", [Open WRs], \"Overdue\", [Overdue WRs])"
+      },
+      "fields": {
+        "value": "[Open]"
+      },
+      "props": {
+        "title": "Open Work Requests",
+        "icon": "wrench",
+        "info": "Work requests not yet closed at refresh.",
+        "calc": "[Open WRs]"
+      },
+      "sample": [
+        {
+          "work_request[Crew]": "North crew",
+          "[Open]": 71,
+          "[Overdue]": 70
+        },
+        {
+          "work_request[Crew]": "South crew",
+          "[Open]": 58,
+          "[Overdue]": 58
+        },
+        {
+          "work_request[Crew]": "East crew",
+          "[Open]": 41,
+          "[Overdue]": 41
+        },
+        {
+          "work_request[Crew]": "Facilities crew",
+          "[Open]": 27,
+          "[Overdue]": 27
+        }
+      ]
+    },
+    {
+      "id": "k-age",
+      "component": "UniverusKpiCard",
+      "grid": {
+        "colSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nROW(\"Age\", [Avg Open Age (Days)])"
+      },
+      "fields": {
+        "value": "[Age]"
+      },
+      "props": {
+        "title": "Backlog Age",
+        "icon": "clock",
+        "format": {
+          "style": "decimal",
+          "decimals": 1
+        },
+        "caption": "avg days open",
+        "goodWhen": "lower",
+        "info": "Average days the open work requests have been waiting.",
+        "calc": "[Avg Open Age (Days)]"
+      },
+      "sample": [
+        {
+          "work_request[Crew]": "North crew",
+          "[Age]": 142.5
+        },
+        {
+          "work_request[Crew]": "South crew",
+          "[Age]": 128.1
+        },
+        {
+          "work_request[Crew]": "East crew",
+          "[Age]": 151.9
+        },
+        {
+          "work_request[Crew]": "Facilities crew",
+          "[Age]": 98.4
+        }
+      ]
+    },
+    {
+      "id": "risk",
+      "component": "UniverusMatrix",
+      "grid": {
+        "colSpan": 7,
+        "rowSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS(\n  ROLLUPADDISSUBTOTAL('asset_register'[Criticality], \"IsCritTotal\"),\n  ROLLUPADDISSUBTOTAL('asset_register'[Condition], \"IsCondTotal\"),\n  KEEPFILTERS(TREATAS({\"Very High\", \"High\", \"Medium\", \"Low\"}, 'asset_register'[Criticality])),\n  KEEPFILTERS(TREATAS({\"Excellent\", \"Good\", \"Average\", \"Poor\", \"Very Poor\"}, 'asset_register'[Condition])),\n  \"Assets\", [Asset Count]\n)"
+      },
+      "fields": {
+        "rows": [
+          "'asset_register'[Criticality]"
+        ],
+        "column": "'asset_register'[Condition]",
+        "values": [
+          {
+            "field": "[Assets]",
+            "label": "Assets",
+            "heatmap": "sequential"
+          }
+        ],
+        "rowTotals": [
+          "[IsCritTotal]"
+        ],
+        "columnTotal": "[IsCondTotal]"
+      },
+      "crossFilter": {
+        "field": "'asset_register'[Criticality]",
+        "emit": true,
+        "respect": true
+      },
+      "props": {
+        "title": "Risk matrix: criticality × condition",
+        "subtitle": "Assessed assets · darker = more · select a cell to filter the page",
+        "info": "Where risk concentrates: assets by criticality and condition grade. Totals come from the model (ROLLUPADDISSUBTOTAL).",
+        "calc": "[Asset Count] by Criticality × Condition",
+        "rowLevels": [
+          "Criticality"
+        ],
+        "columnHeader": "Condition",
+        "rowOrder": [
+          "Very High",
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "columnOrder": [
+          "Excellent",
+          "Good",
+          "Average",
+          "Poor",
+          "Very Poor"
+        ]
+      },
+      "sample": [
+        {
+          "asset_register[Criticality]": "Very High",
+          "asset_register[Condition]": "Excellent",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 5885
+        },
+        {
+          "asset_register[Criticality]": "Very High",
+          "asset_register[Condition]": "Good",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 1
+        },
+        {
+          "asset_register[Criticality]": "Very High",
+          "asset_register[Condition]": "Average",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 2
+        },
+        {
+          "asset_register[Criticality]": "Very High",
+          "asset_register[Condition]": "Poor",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 5
+        },
+        {
+          "asset_register[Criticality]": "Very High",
+          "asset_register[Condition]": "Very Poor",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 10
+        },
+        {
+          "asset_register[Criticality]": "Very High",
+          "asset_register[Condition]": null,
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": true,
+          "[Assets]": 5903
+        },
+        {
+          "asset_register[Criticality]": "High",
+          "asset_register[Condition]": "Excellent",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 2
+        },
+        {
+          "asset_register[Criticality]": "High",
+          "asset_register[Condition]": "Good",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 4
+        },
+        {
+          "asset_register[Criticality]": "High",
+          "asset_register[Condition]": "Average",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 6
+        },
+        {
+          "asset_register[Criticality]": "High",
+          "asset_register[Condition]": "Poor",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 3
+        },
+        {
+          "asset_register[Criticality]": "High",
+          "asset_register[Condition]": "Very Poor",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 59
+        },
+        {
+          "asset_register[Criticality]": "High",
+          "asset_register[Condition]": null,
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": true,
+          "[Assets]": 74
+        },
+        {
+          "asset_register[Criticality]": "Medium",
+          "asset_register[Condition]": "Average",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 1
+        },
+        {
+          "asset_register[Criticality]": "Medium",
+          "asset_register[Condition]": "Poor",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 1
+        },
+        {
+          "asset_register[Criticality]": "Medium",
+          "asset_register[Condition]": "Very Poor",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 14
+        },
+        {
+          "asset_register[Criticality]": "Medium",
+          "asset_register[Condition]": null,
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": true,
+          "[Assets]": 16
+        },
+        {
+          "asset_register[Criticality]": "Low",
+          "asset_register[Condition]": "Poor",
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": false,
+          "[Assets]": 3
+        },
+        {
+          "asset_register[Criticality]": "Low",
+          "asset_register[Condition]": null,
+          "[IsCritTotal]": false,
+          "[IsCondTotal]": true,
+          "[Assets]": 3
+        },
+        {
+          "asset_register[Criticality]": null,
+          "asset_register[Condition]": "Excellent",
+          "[IsCritTotal]": true,
+          "[IsCondTotal]": false,
+          "[Assets]": 5887
+        },
+        {
+          "asset_register[Criticality]": null,
+          "asset_register[Condition]": "Good",
+          "[IsCritTotal]": true,
+          "[IsCondTotal]": false,
+          "[Assets]": 5
+        },
+        {
+          "asset_register[Criticality]": null,
+          "asset_register[Condition]": "Average",
+          "[IsCritTotal]": true,
+          "[IsCondTotal]": false,
+          "[Assets]": 9
+        },
+        {
+          "asset_register[Criticality]": null,
+          "asset_register[Condition]": "Poor",
+          "[IsCritTotal]": true,
+          "[IsCondTotal]": false,
+          "[Assets]": 12
+        },
+        {
+          "asset_register[Criticality]": null,
+          "asset_register[Condition]": "Very Poor",
+          "[IsCritTotal]": true,
+          "[IsCondTotal]": false,
+          "[Assets]": 83
+        },
+        {
+          "asset_register[Criticality]": null,
+          "asset_register[Condition]": null,
+          "[IsCritTotal]": true,
+          "[IsCondTotal]": true,
+          "[Assets]": 5996
+        }
+      ]
+    },
+    {
+      "id": "ageing",
+      "component": "UniverusColumnChart",
+      "grid": {
+        "colSpan": 5,
+        "rowSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nADDCOLUMNS(\n  DATATABLE(\"Band\", STRING, \"Band Order\", INTEGER, {{\"0–7 days\", 1}, {\"8–30 days\", 2}, {\"31–90 days\", 3}, {\"90+ days\", 4}}),\n  \"Open\", SWITCH([Band Order], 1, [Open WRs Aged 0-7], 2, [Open WRs Aged 8-30], 3, [Open WRs Aged 31-90], [Open WRs Aged 90+])\n)\nORDER BY [Band Order]"
+      },
+      "fields": {
+        "category": "[Band]",
+        "value": "[Open]"
+      },
+      "props": {
+        "title": "Open work requests by age",
+        "subtitle": "Days since raised · at refresh",
+        "info": "How long open work requests have been waiting: one bar per age band, touching because the bands are continuous.",
+        "calc": "[Open WRs Aged 0-7] · [8-30] · [31-90] · [90+]",
+        "variant": "histogram",
+        "categoryLabel": "Age band"
+      },
+      "sample": [
+        {
+          "[Band]": "0–7 days",
+          "[Band Order]": 1,
+          "[Open]": 1
+        },
+        {
+          "[Band]": "8–30 days",
+          "[Band Order]": 2,
+          "[Open]": 20
+        },
+        {
+          "[Band]": "31–90 days",
+          "[Band Order]": 3,
+          "[Open]": 31
+        },
+        {
+          "[Band]": "90+ days",
+          "[Band Order]": 4,
+          "[Open]": 145
+        }
+      ]
+    },
+    {
+      "id": "profile",
+      "component": "UniverusStackedBars",
+      "grid": {
+        "colSpan": 12,
+        "rowSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS(\n  'asset_register'[Asset_Class],\n  'asset_register'[Condition],\n  KEEPFILTERS(TREATAS({\"Excellent\", \"Good\", \"Average\", \"Poor\", \"Very Poor\"}, 'asset_register'[Condition])),\n  \"Assessed\", [Assessed Assets]\n)\nORDER BY 'asset_register'[Asset_Class]"
+      },
+      "fields": {
+        "category": "'asset_register'[Asset_Class]",
+        "series": "'asset_register'[Condition]",
+        "value": "[Assessed]"
+      },
+      "crossFilter": {
+        "field": "'asset_register'[Asset_Class]",
+        "emit": true,
+        "respect": true
+      },
+      "props": {
+        "title": "Condition profile by asset class",
+        "subtitle": "Assessed assets · poor grades left of the axis, good grades right",
+        "info": "Share of each class’s assessed assets by condition grade; Average straddles the axis.",
+        "calc": "[Assessed Assets] by Class × Condition ÷ class total",
+        "layout": "diverging",
+        "palette": "diverging",
+        "seriesOrder": [
+          "Very Poor",
+          "Poor",
+          "Average",
+          "Good",
+          "Excellent"
+        ],
+        "negativeSeries": [
+          "Very Poor",
+          "Poor"
+        ],
+        "neutralSeries": [
+          "Average"
+        ],
+        "sort": "desc",
+        "topN": 10,
+        "categoryLabel": "Asset class"
+      },
+      "sample": [
+        {
+          "asset_register[Asset_Class]": "Water_Pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "asset_register[Condition]": "Very Poor",
+          "[Assessed]": 12
+        },
+        {
+          "asset_register[Asset_Class]": "Water_Pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "asset_register[Condition]": "Poor",
+          "[Assessed]": 30
+        },
+        {
+          "asset_register[Asset_Class]": "Water_Pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "asset_register[Condition]": "Average",
+          "[Assessed]": 210
+        },
+        {
+          "asset_register[Asset_Class]": "Water_Pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "asset_register[Condition]": "Good",
+          "[Assessed]": 520
+        },
+        {
+          "asset_register[Asset_Class]": "Water_Pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "asset_register[Condition]": "Excellent",
+          "[Assessed]": 840
+        },
+        {
+          "asset_register[Asset_Class]": "Stormwater_pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "asset_register[Condition]": "Very Poor",
+          "[Assessed]": 8
+        },
+        {
+          "asset_register[Asset_Class]": "Stormwater_pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "asset_register[Condition]": "Poor",
+          "[Assessed]": 22
+        },
+        {
+          "asset_register[Asset_Class]": "Stormwater_pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "asset_register[Condition]": "Average",
+          "[Assessed]": 160
+        },
+        {
+          "asset_register[Asset_Class]": "Stormwater_pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "asset_register[Condition]": "Good",
+          "[Assessed]": 430
+        },
+        {
+          "asset_register[Asset_Class]": "Stormwater_pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "asset_register[Condition]": "Excellent",
+          "[Assessed]": 650
+        },
+        {
+          "asset_register[Asset_Class]": "Sanitary_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Very Poor",
+          "[Assessed]": 4
+        },
+        {
+          "asset_register[Asset_Class]": "Sanitary_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Poor",
+          "[Assessed]": 11
+        },
+        {
+          "asset_register[Asset_Class]": "Sanitary_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Average",
+          "[Assessed]": 60
+        },
+        {
+          "asset_register[Asset_Class]": "Sanitary_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Good",
+          "[Assessed]": 190
+        },
+        {
+          "asset_register[Asset_Class]": "Sanitary_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Excellent",
+          "[Assessed]": 300
+        },
+        {
+          "asset_register[Asset_Class]": "Water_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Very Poor",
+          "[Assessed]": 9
+        },
+        {
+          "asset_register[Asset_Class]": "Water_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Poor",
+          "[Assessed]": 14
+        },
+        {
+          "asset_register[Asset_Class]": "Water_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Average",
+          "[Assessed]": 20
+        },
+        {
+          "asset_register[Asset_Class]": "Water_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Good",
+          "[Assessed]": 18
+        },
+        {
+          "asset_register[Asset_Class]": "Water_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Excellent",
+          "[Assessed]": 11
+        },
+        {
+          "asset_register[Asset_Class]": "Transport_Streetlights",
+          "asset_register[Asset_Class_Group]": "Transport",
+          "asset_register[Condition]": "Very Poor",
+          "[Assessed]": 3
+        },
+        {
+          "asset_register[Asset_Class]": "Transport_Streetlights",
+          "asset_register[Asset_Class_Group]": "Transport",
+          "asset_register[Condition]": "Poor",
+          "[Assessed]": 9
+        },
+        {
+          "asset_register[Asset_Class]": "Transport_Streetlights",
+          "asset_register[Asset_Class_Group]": "Transport",
+          "asset_register[Condition]": "Average",
+          "[Assessed]": 44
+        },
+        {
+          "asset_register[Asset_Class]": "Transport_Streetlights",
+          "asset_register[Asset_Class_Group]": "Transport",
+          "asset_register[Condition]": "Good",
+          "[Assessed]": 150
+        },
+        {
+          "asset_register[Asset_Class]": "Transport_Streetlights",
+          "asset_register[Asset_Class_Group]": "Transport",
+          "asset_register[Condition]": "Excellent",
+          "[Assessed]": 250
+        },
+        {
+          "asset_register[Asset_Class]": "Facility",
+          "asset_register[Asset_Class_Group]": "Core",
+          "asset_register[Condition]": "Very Poor",
+          "[Assessed]": 27
+        },
+        {
+          "asset_register[Asset_Class]": "Facility",
+          "asset_register[Asset_Class_Group]": "Core",
+          "asset_register[Condition]": "Poor",
+          "[Assessed]": 3
+        },
+        {
+          "asset_register[Asset_Class]": "Facility",
+          "asset_register[Asset_Class_Group]": "Core",
+          "asset_register[Condition]": "Average",
+          "[Assessed]": 2
+        },
+        {
+          "asset_register[Asset_Class]": "Facility",
+          "asset_register[Asset_Class_Group]": "Core",
+          "asset_register[Condition]": "Good",
+          "[Assessed]": 1
+        },
+        {
+          "asset_register[Asset_Class]": "Facility",
+          "asset_register[Asset_Class_Group]": "Core",
+          "asset_register[Condition]": "Excellent",
+          "[Assessed]": 1
+        },
+        {
+          "asset_register[Asset_Class]": "Fleet",
+          "asset_register[Asset_Class_Group]": "Core",
+          "asset_register[Condition]": "Excellent",
+          "[Assessed]": 3
+        },
+        {
+          "asset_register[Asset_Class]": "Parks_Bench",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Very Poor",
+          "[Assessed]": 2
+        },
+        {
+          "asset_register[Asset_Class]": "Parks_Bench",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Poor",
+          "[Assessed]": 6
+        },
+        {
+          "asset_register[Asset_Class]": "Parks_Bench",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Average",
+          "[Assessed]": 29
+        },
+        {
+          "asset_register[Asset_Class]": "Parks_Bench",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Good",
+          "[Assessed]": 52
+        },
+        {
+          "asset_register[Asset_Class]": "Parks_Bench",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "asset_register[Condition]": "Excellent",
+          "[Assessed]": 39
+        }
+      ]
+    },
+    {
+      "id": "scatter",
+      "component": "UniverusScatter",
+      "grid": {
+        "colSpan": 6,
+        "rowSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS(\n  'asset_register'[Asset_Class],\n  'asset_register'[Asset_Class_Group],\n  \"Avg Condition\", [Avg Condition Index],\n  \"Coverage\", [Condition Coverage %],\n  \"Assets\", [Asset Count]\n)"
+      },
+      "fields": {
+        "category": "'asset_register'[Asset_Class]",
+        "x": "[Avg Condition]",
+        "y": "[Coverage]",
+        "size": "[Assets]",
+        "group": "'asset_register'[Asset_Class_Group]"
+      },
+      "crossFilter": {
+        "field": "'asset_register'[Asset_Class]",
+        "emit": true,
+        "respect": true
+      },
+      "props": {
+        "title": "Condition index vs assessment coverage",
+        "subtitle": "By asset class · size = assets · colour = group",
+        "info": "Classes in the lower half lack condition evidence; the dashed line is the 80 % coverage target.",
+        "calc": "[Avg Condition Index] × [Condition Coverage %] · size [Asset Count]",
+        "format": {
+          "style": "percent",
+          "decimals": 0
+        },
+        "xFormat": {
+          "style": "decimal",
+          "decimals": 1
+        },
+        "xLabel": "Avg condition index",
+        "yLabel": "Coverage",
+        "sizeLabel": "Assets",
+        "yReference": {
+          "value": 0.8,
+          "label": "Target"
+        },
+        "yZero": true,
+        "categoryLabel": "Asset class"
+      },
+      "sample": [
+        {
+          "asset_register[Asset_Class]": "Water_Pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "[Avg Condition]": 9.7,
+          "[Coverage]": 0.93,
+          "[Assets]": 1744
+        },
+        {
+          "asset_register[Asset_Class]": "Stormwater_pipes",
+          "asset_register[Asset_Class_Group]": "Utility_Line",
+          "[Avg Condition]": 9.9,
+          "[Coverage]": 0.97,
+          "[Assets]": 1327
+        },
+        {
+          "asset_register[Asset_Class]": "Sanitary_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "[Avg Condition]": 9.9,
+          "[Coverage]": 0.96,
+          "[Assets]": 595
+        },
+        {
+          "asset_register[Asset_Class]": "Water_Points",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "[Avg Condition]": 4.4,
+          "[Coverage]": 0.85,
+          "[Assets]": 85
+        },
+        {
+          "asset_register[Asset_Class]": "Transport_Streetlights",
+          "asset_register[Asset_Class_Group]": "Transport",
+          "[Avg Condition]": 9.5,
+          "[Coverage]": 1,
+          "[Assets]": 456
+        },
+        {
+          "asset_register[Asset_Class]": "Facility",
+          "asset_register[Asset_Class_Group]": "Core",
+          "[Avg Condition]": 52.4,
+          "[Coverage]": 0.62,
+          "[Assets]": 54
+        },
+        {
+          "asset_register[Asset_Class]": "Fleet",
+          "asset_register[Asset_Class_Group]": "Core",
+          "[Avg Condition]": 1,
+          "[Coverage]": 0.004,
+          "[Assets]": 841
+        },
+        {
+          "asset_register[Asset_Class]": "Parks_Bench",
+          "asset_register[Asset_Class_Group]": "Utility_Point",
+          "[Avg Condition]": 28.9,
+          "[Coverage]": 0.98,
+          "[Assets]": 131
+        }
+      ]
+    },
+    {
+      "id": "basis",
+      "component": "UniverusColumnChart",
+      "grid": {
+        "colSpan": 6,
+        "rowSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS(\n  'Date'[Year Month],\n  \"Reactive\", [Reactive WRs by Raised Date],\n  \"Planned\", [Planned WRs by Raised Date],\n  \"Month Start\", IF(NOT ISBLANK([Reactive WRs by Raised Date]) || NOT ISBLANK([Planned WRs by Raised Date]), MIN('Date'[Date]))\n)\nORDER BY [Month Start]"
+      },
+      "fields": {
+        "category": "'Date'[Year Month]",
+        "values": [
+          {
+            "field": "[Reactive]",
+            "label": "Reactive"
+          },
+          {
+            "field": "[Planned]",
+            "label": "Planned"
+          }
+        ]
+      },
+      "crossFilter": {
+        "field": "'Date'[Year Month]",
+        "emit": true,
+        "respect": true
+      },
+      "props": {
+        "title": "Reactive vs planned work by month",
+        "subtitle": "Work requests raised · stacked by maintenance basis",
+        "info": "Planned (preventive) work against reactive work, by the month the request was raised.",
+        "calc": "[Reactive WRs by Raised Date] · [Planned WRs by Raised Date]",
+        "layout": "stacked",
+        "categoryLabel": "Month"
+      },
+      "sample": [
+        {
+          "Date[Year Month]": "Feb 2026",
+          "[Reactive]": 43,
+          "[Planned]": null
+        },
+        {
+          "Date[Year Month]": "Mar 2026",
+          "[Reactive]": 18,
+          "[Planned]": 1
+        },
+        {
+          "Date[Year Month]": "Apr 2026",
+          "[Reactive]": 87,
+          "[Planned]": 1
+        },
+        {
+          "Date[Year Month]": "May 2026",
+          "[Reactive]": 27,
+          "[Planned]": null
+        },
+        {
+          "Date[Year Month]": "Jun 2026",
+          "[Reactive]": 27,
+          "[Planned]": 2
+        },
+        {
+          "Date[Year Month]": "Jul 2026",
+          "[Reactive]": 35,
+          "[Planned]": null
+        },
+        {
+          "Date[Year Month]": "Aug 2026",
+          "[Reactive]": 54,
+          "[Planned]": 1
+        },
+        {
+          "Date[Year Month]": "Sep 2026",
+          "[Reactive]": 47,
+          "[Planned]": 2
+        }
+      ]
+    },
+    {
+      "id": "crew",
+      "component": "UniverusMatrix",
+      "grid": {
+        "colSpan": 7,
+        "rowSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS(\n  ROLLUPADDISSUBTOTAL('work_request'[Crew], \"IsCrewTotal\"),\n  ROLLUPADDISSUBTOTAL('wr_status'[Status], \"IsStatusTotal\"),\n  \"WRs\", [WRs Raised]\n)\nORDER BY 'work_request'[Crew], 'wr_status'[Status]"
+      },
+      "fields": {
+        "rows": [
+          "'work_request'[Crew]"
+        ],
+        "column": "'wr_status'[Status]",
+        "values": [
+          {
+            "field": "[WRs]",
+            "label": "Work requests",
+            "heatmap": "sequential"
+          }
+        ],
+        "rowTotals": [
+          "[IsCrewTotal]"
+        ],
+        "columnTotal": "[IsStatusTotal]"
+      },
+      "crossFilter": {
+        "field": "'work_request'[Crew]",
+        "emit": true,
+        "respect": true
+      },
+      "props": {
+        "title": "Crew workload by status",
+        "subtitle": "Work requests raised · darker = more · select a crew to filter the page",
+        "info": "Who carries the work and where it sits in its lifecycle; blank crew means unassigned.",
+        "calc": "[WRs Raised] by Crew × Status (totals from the model)",
+        "rowLevels": [
+          "Crew"
+        ],
+        "columnHeader": "Status",
+        "columnOrder": [
+          "New",
+          "Assigned",
+          "In Progress",
+          "Closed"
+        ]
+      },
+      "sample": [
+        {
+          "work_request[Crew]": "North crew",
+          "wr_status[Status]": "New",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 20
+        },
+        {
+          "work_request[Crew]": "North crew",
+          "wr_status[Status]": "Assigned",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 18
+        },
+        {
+          "work_request[Crew]": "North crew",
+          "wr_status[Status]": "In Progress",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 12
+        },
+        {
+          "work_request[Crew]": "North crew",
+          "wr_status[Status]": "Closed",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 46
+        },
+        {
+          "work_request[Crew]": "North crew",
+          "wr_status[Status]": null,
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": true,
+          "[WRs]": 96
+        },
+        {
+          "work_request[Crew]": "South crew",
+          "wr_status[Status]": "New",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 14
+        },
+        {
+          "work_request[Crew]": "South crew",
+          "wr_status[Status]": "Assigned",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 15
+        },
+        {
+          "work_request[Crew]": "South crew",
+          "wr_status[Status]": "In Progress",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 9
+        },
+        {
+          "work_request[Crew]": "South crew",
+          "wr_status[Status]": "Closed",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 36
+        },
+        {
+          "work_request[Crew]": "South crew",
+          "wr_status[Status]": null,
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": true,
+          "[WRs]": 74
+        },
+        {
+          "work_request[Crew]": "East crew",
+          "wr_status[Status]": "New",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 10
+        },
+        {
+          "work_request[Crew]": "East crew",
+          "wr_status[Status]": "Assigned",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 9
+        },
+        {
+          "work_request[Crew]": "East crew",
+          "wr_status[Status]": "In Progress",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 8
+        },
+        {
+          "work_request[Crew]": "East crew",
+          "wr_status[Status]": "Closed",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 24
+        },
+        {
+          "work_request[Crew]": "East crew",
+          "wr_status[Status]": null,
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": true,
+          "[WRs]": 51
+        },
+        {
+          "work_request[Crew]": "Facilities crew",
+          "wr_status[Status]": "New",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 6
+        },
+        {
+          "work_request[Crew]": "Facilities crew",
+          "wr_status[Status]": "Assigned",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 5
+        },
+        {
+          "work_request[Crew]": "Facilities crew",
+          "wr_status[Status]": "In Progress",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 4
+        },
+        {
+          "work_request[Crew]": "Facilities crew",
+          "wr_status[Status]": "Closed",
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": false,
+          "[WRs]": 19
+        },
+        {
+          "work_request[Crew]": "Facilities crew",
+          "wr_status[Status]": null,
+          "[IsCrewTotal]": false,
+          "[IsStatusTotal]": true,
+          "[WRs]": 34
+        },
+        {
+          "work_request[Crew]": null,
+          "wr_status[Status]": "New",
+          "[IsCrewTotal]": true,
+          "[IsStatusTotal]": false,
+          "[WRs]": 50
+        },
+        {
+          "work_request[Crew]": null,
+          "wr_status[Status]": "Assigned",
+          "[IsCrewTotal]": true,
+          "[IsStatusTotal]": false,
+          "[WRs]": 47
+        },
+        {
+          "work_request[Crew]": null,
+          "wr_status[Status]": "In Progress",
+          "[IsCrewTotal]": true,
+          "[IsStatusTotal]": false,
+          "[WRs]": 33
+        },
+        {
+          "work_request[Crew]": null,
+          "wr_status[Status]": "Closed",
+          "[IsCrewTotal]": true,
+          "[IsStatusTotal]": false,
+          "[WRs]": 125
+        },
+        {
+          "work_request[Crew]": null,
+          "wr_status[Status]": null,
+          "[IsCrewTotal]": true,
+          "[IsStatusTotal]": true,
+          "[WRs]": 255
+        }
+      ]
+    },
+    {
+      "id": "status",
+      "component": "UniverusStackedBars",
+      "grid": {
+        "colSpan": 5,
+        "rowSpan": 3
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS('wr_status'[Status], 'work_request'[Priority_Resolved], \"Open\", [Open WRs])\nORDER BY 'wr_status'[Status]"
+      },
+      "fields": {
+        "category": "'wr_status'[Status]",
+        "series": "'work_request'[Priority_Resolved]",
+        "value": "[Open]"
+      },
+      "crossFilter": {
+        "field": "'wr_status'[Status]",
+        "emit": true,
+        "respect": true
+      },
+      "props": {
+        "title": "Open work requests by status and priority",
+        "subtitle": "Open only · stacked by resolved priority",
+        "info": "Where the open backlog sits, split by its resolved priority (beyond six priorities the smallest fold into Other).",
+        "calc": "[Open WRs] by Status × Priority",
+        "layout": "stacked",
+        "sort": "desc",
+        "categoryLabel": "Status"
+      },
+      "sample": [
+        {
+          "wr_status[Status]": "New",
+          "work_request[Priority_Resolved]": "Meter read",
+          "[Open]": 69
+        },
+        {
+          "wr_status[Status]": "New",
+          "work_request[Priority_Resolved]": "Repair",
+          "[Open]": 12
+        },
+        {
+          "wr_status[Status]": "New",
+          "work_request[Priority_Resolved]": "Inspection",
+          "[Open]": 6
+        },
+        {
+          "wr_status[Status]": "New",
+          "work_request[Priority_Resolved]": "Other",
+          "[Open]": 10
+        },
+        {
+          "wr_status[Status]": "Assigned",
+          "work_request[Priority_Resolved]": "Meter read",
+          "[Open]": 2
+        },
+        {
+          "wr_status[Status]": "Assigned",
+          "work_request[Priority_Resolved]": "Repair",
+          "[Open]": 4
+        },
+        {
+          "wr_status[Status]": "Assigned",
+          "work_request[Priority_Resolved]": "Inspection",
+          "[Open]": 2
+        },
+        {
+          "wr_status[Status]": "Assigned",
+          "work_request[Priority_Resolved]": "Other",
+          "[Open]": 6
+        },
+        {
+          "wr_status[Status]": "In Progress",
+          "work_request[Priority_Resolved]": "Meter read",
+          "[Open]": 1
+        },
+        {
+          "wr_status[Status]": "In Progress",
+          "work_request[Priority_Resolved]": "Repair",
+          "[Open]": 3
+        },
+        {
+          "wr_status[Status]": "In Progress",
+          "work_request[Priority_Resolved]": "Inspection",
+          "[Open]": 2
+        },
+        {
+          "wr_status[Status]": "In Progress",
+          "work_request[Priority_Resolved]": "Other",
+          "[Open]": 2
+        }
+      ]
+    }
+  ]
+}

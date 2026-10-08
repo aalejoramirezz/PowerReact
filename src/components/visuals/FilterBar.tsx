@@ -1,23 +1,9 @@
 import type React from 'react';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { useFilterStore } from '../../store/filters';
-import { Tab, Tabs } from '../ui/primitives';
+import { RemovableChip, Tab, Tabs } from '../ui/primitives';
 import { AVAILABLE_GROUPS } from './constants';
-
-const RemovableChip: React.FC<{ label: string; value: string; onRemove: () => void; removeLabel: string }> = ({
-  label,
-  value,
-  onRemove,
-  removeLabel,
-}) => (
-  <span className="u-chip" data-tone="accent">
-    {label}: <strong className="font-bold">{value}</strong>
-    <button type="button" onClick={onRemove} className="-mr-1 grid h-4 w-4 cursor-pointer place-items-center rounded" title={removeLabel}>
-      <X className="h-3 w-3" />
-    </button>
-  </span>
-);
 
 /** Bring the chosen filter fully into view when the row scrolls (phones). */
 const reveal = (e: React.MouseEvent<HTMLElement>) => e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' });

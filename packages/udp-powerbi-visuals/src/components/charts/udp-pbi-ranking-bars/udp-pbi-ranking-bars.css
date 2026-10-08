@@ -1,0 +1,34 @@
+.rb-row {
+  display: grid;
+  grid-template-columns: minmax(72px, 24%) 1fr 64px;
+  align-items: center;
+  gap: 16px;
+  height: 34px;
+  padding: 0 4px;
+  border-radius: 6px;
+}
+.rb-row .u-bar-track {
+  height: 10px;
+}
+/* Lollipop: a hairline track and stem ending in a dot (no gradient pill) */
+.rb-row .u-bar-track[data-mark='lollipop'] {
+  height: 2px;
+  overflow: visible;
+}
+.u-bar-track[data-mark='lollipop'] .u-bar-fill {
+  position: relative;
+  background: var(--pbi-primary);
+  box-shadow: none;
+}
+.u-bar-track[data-mark='lollipop'] .u-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--pbi-primary);
+  box-shadow: 0 0 0 2px var(--pbi-card-solid);
+  transform: translateY(-50%);
+}

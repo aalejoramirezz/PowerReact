@@ -3,7 +3,7 @@
 The instructions for every AI coding agent working in this repository are in [AGENTS.md](AGENTS.md). Read it first and follow it exactly.
 
 In particular:
-- Before any UI or visual work, load the `powerreact-design-system` skill; before wiring data to a visual, also load `powerreact-visual-builder`.
+- Before any UI or visual work, load the `powerreact-design-system` skill; before wiring data to a visual, also load `powerreact-visual-builder`; for manifests (`/manifest-preview`, `src/lib/manifest`), load `powerreact-manifest`.
 - For interaction, motion and polish also load the vendored `better-ui` and `emil-design-eng` skills; the Univerus contract takes precedence over them.
 - Skills live in `.agents/skills/` (canonical) and are mirrored to `.claude/skills/` by `npm run skills:sync`; never edit the mirror.
 - Colours come only from `src/theme/tokens.css`; every change must work in both themes (Neo-Glass and Nocturne).

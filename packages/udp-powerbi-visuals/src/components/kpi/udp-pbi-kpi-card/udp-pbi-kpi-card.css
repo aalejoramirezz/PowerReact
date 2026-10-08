@@ -1,0 +1,20 @@
+/* The KPI card's own visual: the thin meter under the number */
+.kpi-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.kpi-meter .u-mini-meter {
+  min-width: 24px;
+  flex: 1 1 0%;
+}
+.kpi-meter__text {
+  flex: none;
+  font: 500 11px/1 var(--pbi-font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--pbi-label);
+}
+.kpi-focus .kpi-meter {
+  max-width: 420px;
+}

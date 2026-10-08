@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildClassesQuery, buildGroupsQuery, buildKpiQuery, CLASS_LIMIT, daxString, treatAs } from './daxBuilder';
+import { buildClassesQuery, buildGroupsQuery, buildKpiQuery, CLASS_LIMIT, daxLiteral, daxString, treatAs } from './daxBuilder';
 
 describe('daxString', () => {
   it('wraps values in quotes and doubles embedded quotes', () => {
@@ -11,6 +11,31 @@ describe('daxString', () => {
     const literal = daxString('x"}), EVALUATE ROW("pwned", 1) //');
     expect(literal).toBe('"x""}), EVALUATE ROW(""pwned"", 1) //"');
     expect(treatAs('x"}', 'T[C]')).toBe('TREATAS({"x""}"}, T[C])');
+  });
+});
+
+describe('daxLiteral / treatAs', () => {
+  it('writes typed literals', () => {
+    expect(daxLiteral('Core')).toBe('"Core"');
+    expect(daxLiteral(2024)).toBe('2024');
+    expect(daxLiteral(-0.5)).toBe('-0.5');
+    expect(daxLiteral(1e21)).toBe('1000000000000000000000');
+    expect(daxLiteral(false)).toBe('FALSE()');
+    expect(() => daxLiteral(Number.NaN)).toThrow(/non-finite/);
+  });
+
+  it('writes a datetime from executeQueries back as a date (and only that exact shape)', () => {
+    expect(daxLiteral('2026-08-03T00:00:00')).toBe('DATE(2026, 8, 3)');
+    expect(daxLiteral('2026-08-03T14:05:00')).toBe('DATE(2026, 8, 3) + TIME(14, 5, 0)');
+    expect(daxLiteral('2026-08-03')).toBe('"2026-08-03"');
+    expect(daxLiteral('2026-08-03T00:00:00") , ALL(x')).toBe('"2026-08-03T00:00:00"") , ALL(x"');
+  });
+
+  it('applies one or several values of a column', () => {
+    expect(treatAs('Core', "'g'[G]")).toBe(`TREATAS({"Core"}, 'g'[G])`);
+    expect(treatAs(['Core', 'Transport'], "'g'[G]")).toBe(`TREATAS({"Core", "Transport"}, 'g'[G])`);
+    expect(treatAs([2023, 2024], "'d'[Year]")).toBe(`TREATAS({2023, 2024}, 'd'[Year])`);
+    expect(() => treatAs([], "'g'[G]")).toThrow(/at least one value/);
   });
 });
 

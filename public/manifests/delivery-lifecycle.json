@@ -1,0 +1,1392 @@
+{
+  "$schema": "./manifest.schema.json",
+  "schemaVersion": 1,
+  "id": "delivery-lifecycle",
+  "title": "Delivery & Lifecycle (manifest)",
+  "eyebrow": "Asset Management · manifest",
+  "description": "Flows, hierarchies, calendars, lifecycles and distributions: backlog bridge, daily intake calendar, inventory treemap, condition boxplot, raised vs closed dot plot, lollipop ranking, funding gap and warranty timeline. Sample rows are illustrative.",
+  "theme": "auto",
+  "dataSource": {
+    "workspaceId": "ef45c53d-42d4-48c6-be79-380b8d890c80",
+    "semanticModelId": "0db033d0-4f4e-4d72-a280-007d6f17e2ec"
+  },
+  "layout": {
+    "columns": 12,
+    "rowMinHeight": 120
+  },
+  "filters": [
+    {
+      "field": "'asset_class_group'[Asset_Class_Group]",
+      "label": "Class group",
+      "mode": "dropdown"
+    }
+  ],
+  "visuals": [
+    {
+      "id": "bridge",
+      "component": "UniverusWaterfall",
+      "grid": {
+        "colSpan": 5
+      },
+      "query": {
+        "dax": "EVALUATE\nVAR StartOpen = [Open WRs 7 Days Ago]\nVAR EndOpen = [Open WRs]\nVAR Raised = CALCULATE(COUNTROWS('work_request'), 'work_request'[Raised_Date] >= TODAY() - 6, 'work_request'[Raised_Date] < TODAY() + 1)\nVAR Closed = CALCULATE(COUNTROWS('work_request'), 'work_request'[Closed_Date] >= TODAY() - 6, 'work_request'[Closed_Date] < TODAY() + 1)\nRETURN\n  UNION(\n    ROW(\"Order\", 1, \"Step\", \"A week ago\", \"Kind\", \"start\", \"Value\", StartOpen),\n    ROW(\"Order\", 2, \"Step\", \"Raised\", \"Kind\", \"delta\", \"Value\", Raised),\n    ROW(\"Order\", 3, \"Step\", \"Closed\", \"Kind\", \"delta\", \"Value\", -Closed),\n    ROW(\"Order\", 4, \"Step\", \"Other\", \"Kind\", \"delta\", \"Value\", EndOpen - StartOpen - Raised + Closed),\n    ROW(\"Order\", 5, \"Step\", \"Open now\", \"Kind\", \"end\", \"Value\", EndOpen)\n  )\nORDER BY [Order]"
+      },
+      "fields": {
+        "category": "[Step]",
+        "value": "[Value]",
+        "kind": "[Kind]"
+      },
+      "props": {
+        "title": "Backlog bridge",
+        "subtitle": "Open work requests · last 7 days",
+        "info": "How the open backlog moved this week: requests raised add to it, closures take away, and \"Other\" (cancellations, merges, reopenings) reconciles the two levels. Fewer open requests is better.",
+        "calc": "[Open WRs 7 Days Ago] → raised − closed ± other → [Open WRs]",
+        "goodWhen": "lower",
+        "baseline": "auto",
+        "categoryLabel": "Step",
+        "format": {
+          "style": "integer"
+        },
+        "export": {
+          "fileName": "backlog-bridge"
+        }
+      },
+      "sample": [
+        {
+          "[Order]": 1,
+          "[Step]": "A week ago",
+          "[Kind]": "start",
+          "[Value]": 196
+        },
+        {
+          "[Order]": 2,
+          "[Step]": "Raised",
+          "[Kind]": "delta",
+          "[Value]": 5
+        },
+        {
+          "[Order]": 3,
+          "[Step]": "Closed",
+          "[Kind]": "delta",
+          "[Value]": -4
+        },
+        {
+          "[Order]": 4,
+          "[Step]": "Other",
+          "[Kind]": "delta",
+          "[Value]": 0
+        },
+        {
+          "[Order]": 5,
+          "[Step]": "Open now",
+          "[Kind]": "end",
+          "[Value]": 197
+        }
+      ]
+    },
+    {
+      "id": "intake",
+      "component": "UniverusCalendarHeatmap",
+      "grid": {
+        "colSpan": 7
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS(\n  'Date'[Date],\n  FILTER(ALL('Date'[Date]), 'Date'[Date] > EDATE(TODAY(), -6) && 'Date'[Date] <= TODAY()),\n  \"Raised\", [WRs Raised] + 0\n)\nORDER BY 'Date'[Date]"
+      },
+      "fields": {
+        "date": "'Date'[Date]",
+        "value": "[Raised]"
+      },
+      "crossFilter": {
+        "field": "'Date'[Date]"
+      },
+      "props": {
+        "title": "Work requests raised per day",
+        "subtitle": "Last six months · click a day to filter",
+        "info": "Daily intake of work requests by raised date. Darker days had more requests; weekends and quiet spells show as gaps. Click a day to see what was raised then.",
+        "calc": "[WRs Raised] by Date",
+        "valueLabel": "Raised",
+        "format": {
+          "style": "integer"
+        },
+        "export": {
+          "fileName": "requests-per-day"
+        }
+      },
+      "sample": [
+        {
+          "Date[Date]": "2026-04-07T00:00:00",
+          "[Raised]": 8
+        },
+        {
+          "Date[Date]": "2026-04-08T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-04-09T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-04-10T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-04-11T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-04-12T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-04-13T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-04-14T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-04-15T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-04-16T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-04-17T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-04-18T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-04-19T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-04-20T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-04-21T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-04-22T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-04-23T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-04-24T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-04-25T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-04-26T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-04-27T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-04-28T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-04-29T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-04-30T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-05-01T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-05-02T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-05-03T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-05-04T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-05-05T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-05-06T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-05-07T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-05-08T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-05-09T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-05-10T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-05-11T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-05-12T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-05-13T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-05-14T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-05-15T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-05-16T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-05-17T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-05-18T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-05-19T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-05-20T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-05-21T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-05-22T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-05-23T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-05-24T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-05-25T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-05-26T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-05-27T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-05-28T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-05-29T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-05-30T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-05-31T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-06-01T00:00:00",
+          "[Raised]": 8
+        },
+        {
+          "Date[Date]": "2026-06-02T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-06-03T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-06-04T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-06-05T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-06-06T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-06-07T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-06-08T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-06-09T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-06-10T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-06-11T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-06-12T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-06-13T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-06-14T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-06-15T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-06-16T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-06-17T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-06-18T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-06-19T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-06-20T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-06-21T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-06-22T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-06-23T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-06-24T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-06-25T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-06-26T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-06-27T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-06-28T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-06-29T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-06-30T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-07-01T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-07-02T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-07-03T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-07-04T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-07-05T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-07-06T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-07-07T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-07-08T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-07-09T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-07-10T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-07-11T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-07-12T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-07-13T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-07-14T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-07-15T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-07-16T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-07-17T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-07-18T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-07-19T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-07-20T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-07-21T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-07-22T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-07-23T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-07-24T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-07-25T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-07-26T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-07-27T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-07-28T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-07-29T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-07-30T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-07-31T00:00:00",
+          "[Raised]": 8
+        },
+        {
+          "Date[Date]": "2026-08-01T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-08-02T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-08-03T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-08-04T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-08-05T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-08-06T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-08-07T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-08-08T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-08-09T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-08-10T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-08-11T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-08-12T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-08-13T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-08-14T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-08-15T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-08-16T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-08-17T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-08-18T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-08-19T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-08-20T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-08-21T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-08-22T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-08-23T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-08-24T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-08-25T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-08-26T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-08-27T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-08-28T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-08-29T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-08-30T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-08-31T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-09-01T00:00:00",
+          "[Raised]": 1
+        },
+        {
+          "Date[Date]": "2026-09-02T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-09-03T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-09-04T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-09-05T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-09-06T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-09-07T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-09-08T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-09-09T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-09-10T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-09-11T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-09-12T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-09-13T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-09-14T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-09-15T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-09-16T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-09-17T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-09-18T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-09-19T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-09-20T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-09-21T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-09-22T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-09-23T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-09-24T00:00:00",
+          "[Raised]": 8
+        },
+        {
+          "Date[Date]": "2026-09-25T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-09-26T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-09-27T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-09-28T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-09-29T00:00:00",
+          "[Raised]": 7
+        },
+        {
+          "Date[Date]": "2026-09-30T00:00:00",
+          "[Raised]": 5
+        },
+        {
+          "Date[Date]": "2026-10-01T00:00:00",
+          "[Raised]": 3
+        },
+        {
+          "Date[Date]": "2026-10-02T00:00:00",
+          "[Raised]": 6
+        },
+        {
+          "Date[Date]": "2026-10-03T00:00:00",
+          "[Raised]": 0
+        },
+        {
+          "Date[Date]": "2026-10-04T00:00:00",
+          "[Raised]": 2
+        },
+        {
+          "Date[Date]": "2026-10-05T00:00:00",
+          "[Raised]": 4
+        },
+        {
+          "Date[Date]": "2026-10-06T00:00:00",
+          "[Raised]": 0
+        }
+      ]
+    },
+    {
+      "id": "inventory",
+      "component": "UniverusTreemap",
+      "grid": {
+        "colSpan": 7
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS('asset_class_group'[Asset_Class_Group], 'asset_class'[Asset_Class], \"Assets\", [Asset Count], \"Condition\", [Avg Condition Index])\nORDER BY 'asset_class_group'[Asset_Class_Group], [Assets] DESC"
+      },
+      "fields": {
+        "levels": [
+          "'asset_class_group'[Asset_Class_Group]",
+          "'asset_class'[Asset_Class]"
+        ],
+        "value": "[Assets]",
+        "tooltips": [
+          {
+            "field": "[Condition]",
+            "label": "Avg condition index",
+            "format": {
+              "style": "decimal",
+              "decimals": 1
+            }
+          }
+        ]
+      },
+      "crossFilter": {
+        "field": "'asset_class_group'[Asset_Class_Group]"
+      },
+      "props": {
+        "title": "Inventory by group and class",
+        "subtitle": "Asset count · click a class or a group to filter",
+        "info": "Each rectangle is an asset class sized by its asset count, nested in its class group. Click a class to filter the page to it, or a group header for the whole group.",
+        "calc": "[Asset Count] by Asset_Class_Group › Asset_Class",
+        "levelLabels": [
+          "Group",
+          "Class"
+        ],
+        "format": {
+          "style": "integer"
+        },
+        "export": {
+          "fileName": "inventory-treemap"
+        }
+      },
+      "sample": [
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Fleet",
+          "[Assets]": 841,
+          "[Condition]": 1
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Facility",
+          "[Assets]": 34,
+          "[Condition]": 79.9
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Plant",
+          "[Assets]": 25,
+          "[Condition]": 61.8
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "asset_class[Asset_Class]": "Meters",
+          "[Assets]": 32,
+          "[Condition]": 94
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Transport",
+          "asset_class[Asset_Class]": "Streetlights",
+          "[Assets]": 456,
+          "[Condition]": 9.5
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Sanitary_Pipes",
+          "[Assets]": 2095,
+          "[Condition]": 9.9
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Water_Pipes",
+          "[Assets]": 1744,
+          "[Condition]": 9.7
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "asset_class[Asset_Class]": "Stormwater_Pipes",
+          "[Assets]": 1327,
+          "[Condition]": 10
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Water_Meters",
+          "[Assets]": 11582,
+          "[Condition]": 3
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Hydrants",
+          "[Assets]": 1070,
+          "[Condition]": 10
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Sanitary_Points",
+          "[Assets]": 595,
+          "[Condition]": 9.9
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "asset_class[Asset_Class]": "Parks_Benches",
+          "[Assets]": 131,
+          "[Condition]": 28.9
+        }
+      ]
+    },
+    {
+      "id": "condition",
+      "component": "UniverusBoxplot",
+      "grid": {
+        "colSpan": 5
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS(\n  'asset_class_group'[Asset_Class_Group],\n  \"Min\", MINX(FILTER('asset_register', 'asset_register'[Condition_Index] > 0), 'asset_register'[Condition_Index]),\n  \"Q1\", PERCENTILEX.INC(FILTER('asset_register', 'asset_register'[Condition_Index] > 0), 'asset_register'[Condition_Index], 0.25),\n  \"Median\", PERCENTILEX.INC(FILTER('asset_register', 'asset_register'[Condition_Index] > 0), 'asset_register'[Condition_Index], 0.5),\n  \"Q3\", PERCENTILEX.INC(FILTER('asset_register', 'asset_register'[Condition_Index] > 0), 'asset_register'[Condition_Index], 0.75),\n  \"Max\", MAXX(FILTER('asset_register', 'asset_register'[Condition_Index] > 0), 'asset_register'[Condition_Index]),\n  \"Mean\", AVERAGEX(FILTER('asset_register', 'asset_register'[Condition_Index] > 0), 'asset_register'[Condition_Index]),\n  \"Assessed\", COUNTROWS(FILTER('asset_register', 'asset_register'[Condition_Index] > 0))\n)\nORDER BY [Median] DESC"
+      },
+      "fields": {
+        "category": "'asset_class_group'[Asset_Class_Group]",
+        "min": "[Min]",
+        "q1": "[Q1]",
+        "median": "[Median]",
+        "q3": "[Q3]",
+        "max": "[Max]",
+        "mean": "[Mean]",
+        "count": "[Assessed]"
+      },
+      "crossFilter": {
+        "field": "'asset_class_group'[Asset_Class_Group]"
+      },
+      "props": {
+        "title": "Condition index by group",
+        "subtitle": "Assessed assets · quartiles, range and mean",
+        "info": "The spread of the condition index across assessed assets in each group: the box holds the middle half, the line is the median, the diamond the mean, whiskers reach the lowest and highest scores. Statistics are computed by the engine.",
+        "calc": "PERCENTILEX.INC over assets with Condition_Index > 0",
+        "categoryLabel": "Group",
+        "format": {
+          "style": "integer"
+        },
+        "export": {
+          "fileName": "condition-distribution"
+        }
+      },
+      "sample": [
+        {
+          "asset_class_group[Asset_Class_Group]": "Core",
+          "[Min]": 1,
+          "[Q1]": 58,
+          "[Median]": 85,
+          "[Q3]": 95,
+          "[Max]": 100,
+          "[Mean]": 74.2,
+          "[Assessed]": 134
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "rd_line",
+          "[Min]": 45,
+          "[Q1]": 55,
+          "[Median]": 65,
+          "[Q3]": 72.5,
+          "[Max]": 80,
+          "[Mean]": 63.3,
+          "[Assessed]": 3
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Line",
+          "[Min]": 1,
+          "[Q1]": 10,
+          "[Median]": 10,
+          "[Q3]": 10,
+          "[Max]": 90,
+          "[Mean]": 9.9,
+          "[Assessed]": 4942
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Utility_Point",
+          "[Min]": 1,
+          "[Q1]": 10,
+          "[Median]": 10,
+          "[Q3]": 10,
+          "[Max]": 77,
+          "[Mean]": 11.1,
+          "[Assessed]": 1819
+        },
+        {
+          "asset_class_group[Asset_Class_Group]": "Transport",
+          "[Min]": 1,
+          "[Q1]": 10,
+          "[Median]": 10,
+          "[Q3]": 10,
+          "[Max]": 10,
+          "[Mean]": 9.5,
+          "[Assessed]": 456
+        }
+      ]
+    },
+    {
+      "id": "throughput",
+      "component": "UniverusDotPlot",
+      "grid": {
+        "colSpan": 6
+      },
+      "query": {
+        "dax": "EVALUATE\nTOPN(\n  8,\n  FILTER(\n    SUMMARIZECOLUMNS(\n      'work_request'[Service_Type],\n      \"Raised\", CALCULATE(COUNTROWS('work_request'), 'work_request'[Raised_Date] >= TODAY() - 89, 'work_request'[Raised_Date] < TODAY() + 1) + 0,\n      \"Closed\", CALCULATE(COUNTROWS('work_request'), 'work_request'[Closed_Date] >= TODAY() - 89, 'work_request'[Closed_Date] < TODAY() + 1) + 0\n    ),\n    [Raised] + [Closed] > 0\n  ),\n  [Raised] + [Closed], DESC\n)\nORDER BY [Raised] DESC"
+      },
+      "fields": {
+        "category": "'work_request'[Service_Type]",
+        "from": "[Raised]",
+        "to": "[Closed]"
+      },
+      "crossFilter": {
+        "field": "'work_request'[Service_Type]"
+      },
+      "props": {
+        "title": "Raised vs closed by service type",
+        "subtitle": "Last 90 days · closing more than raised shrinks the backlog",
+        "info": "For each service type, requests raised (hollow) and closed (solid) in the last 90 days. A teal connector means more were closed than raised; red means the backlog grew.",
+        "calc": "COUNTROWS(work_request) by Raised_Date and Closed_Date, last 90 days",
+        "fromLabel": "Raised",
+        "toLabel": "Closed",
+        "goodWhen": "higher",
+        "categoryLabel": "Service type",
+        "format": {
+          "style": "integer"
+        },
+        "export": {
+          "fileName": "raised-vs-closed"
+        }
+      },
+      "sample": [
+        {
+          "work_request[Service_Type]": "Water",
+          "[Raised]": 85,
+          "[Closed]": 49
+        },
+        {
+          "work_request[Service_Type]": "Wastewater",
+          "[Raised]": 4,
+          "[Closed]": 2
+        },
+        {
+          "work_request[Service_Type]": "Process Water",
+          "[Raised]": 4,
+          "[Closed]": 2
+        },
+        {
+          "work_request[Service_Type]": "Irrigation",
+          "[Raised]": 3,
+          "[Closed]": 2
+        },
+        {
+          "work_request[Service_Type]": "Roads",
+          "[Raised]": 2,
+          "[Closed]": 1
+        },
+        {
+          "work_request[Service_Type]": "Trails",
+          "[Raised]": 2,
+          "[Closed]": 1
+        },
+        {
+          "work_request[Service_Type]": "Buildings",
+          "[Raised]": 2,
+          "[Closed]": 1
+        },
+        {
+          "work_request[Service_Type]": "Other",
+          "[Raised]": 3,
+          "[Closed]": 0
+        }
+      ]
+    },
+    {
+      "id": "open-by-service",
+      "component": "UniverusRankingBars",
+      "grid": {
+        "colSpan": 6
+      },
+      "query": {
+        "dax": "EVALUATE\nSUMMARIZECOLUMNS('work_request'[Service_Type], \"Open\", [Open WRs])\nORDER BY [Open] DESC"
+      },
+      "fields": {
+        "category": "'work_request'[Service_Type]",
+        "value": "[Open]"
+      },
+      "crossFilter": {
+        "field": "'work_request'[Service_Type]"
+      },
+      "props": {
+        "title": "Open work requests by service type",
+        "subtitle": "Current backlog",
+        "info": "Open work requests (new, assigned or in triage) by service type, largest first.",
+        "calc": "[Open WRs] by Service_Type",
+        "topN": 8,
+        "mark": "lollipop",
+        "format": {
+          "style": "integer"
+        },
+        "export": {
+          "fileName": "open-by-service"
+        }
+      },
+      "sample": [
+        {
+          "work_request[Service_Type]": "Water",
+          "[Open]": 172
+        },
+        {
+          "work_request[Service_Type]": "Wastewater",
+          "[Open]": 2
+        },
+        {
+          "work_request[Service_Type]": "Process Water",
+          "[Open]": 2
+        },
+        {
+          "work_request[Service_Type]": "Irrigation",
+          "[Open]": 1
+        },
+        {
+          "work_request[Service_Type]": "Roads",
+          "[Open]": 1
+        },
+        {
+          "work_request[Service_Type]": "Trails",
+          "[Open]": 1
+        },
+        {
+          "work_request[Service_Type]": "Buildings",
+          "[Open]": 1
+        },
+        {
+          "work_request[Service_Type]": "Other",
+          "[Open]": 3
+        }
+      ]
+    },
+    {
+      "id": "funding-gap",
+      "component": "UniverusTrendChart",
+      "grid": {
+        "colSpan": 6
+      },
+      "query": {
+        "dax": "EVALUATE\nFILTER(\n  SUMMARIZECOLUMNS('budget_by_assetclass'[Year], \"Need\", [Renewal Need (Forecast)], \"Budget\", [Renewal Budget]),\n  NOT ISBLANK([Need]) && NOT ISBLANK([Budget])\n)\nORDER BY 'budget_by_assetclass'[Year]"
+      },
+      "fields": {
+        "category": "'budget_by_assetclass'[Year]",
+        "value": "[Need]",
+        "comparison": "[Budget]"
+      },
+      "props": {
+        "title": "Renewal need vs budget",
+        "subtitle": "Forecast by year · shortfall shaded red",
+        "info": "Forecast renewal need against the renewal budget for each year. Red shading marks years where need runs above the budget (a funding shortfall); teal marks headroom.",
+        "calc": "[Renewal Need (Forecast)] vs [Renewal Budget] by budget year",
+        "seriesLabel": "Renewal need",
+        "comparisonLabel": "Budget",
+        "gap": true,
+        "goodWhen": "lower",
+        "format": {
+          "style": "compact"
+        },
+        "export": {
+          "fileName": "funding-gap"
+        }
+      },
+      "sample": [
+        {
+          "budget_by_assetclass[Year]": 2026,
+          "[Need]": 5892,
+          "[Budget]": 257500
+        },
+        {
+          "budget_by_assetclass[Year]": 2027,
+          "[Need]": 1288267,
+          "[Budget]": 265225
+        },
+        {
+          "budget_by_assetclass[Year]": 2028,
+          "[Need]": 57265,
+          "[Budget]": 273182
+        },
+        {
+          "budget_by_assetclass[Year]": 2029,
+          "[Need]": 6407,
+          "[Budget]": 281377
+        },
+        {
+          "budget_by_assetclass[Year]": 2030,
+          "[Need]": 6579,
+          "[Budget]": 289819
+        },
+        {
+          "budget_by_assetclass[Year]": 2031,
+          "[Need]": 6750,
+          "[Budget]": 298513
+        },
+        {
+          "budget_by_assetclass[Year]": 2032,
+          "[Need]": 158333,
+          "[Budget]": 307468
+        },
+        {
+          "budget_by_assetclass[Year]": 2033,
+          "[Need]": 7093,
+          "[Budget]": 316693
+        },
+        {
+          "budget_by_assetclass[Year]": 2034,
+          "[Need]": 7265,
+          "[Budget]": 326193
+        },
+        {
+          "budget_by_assetclass[Year]": 2035,
+          "[Need]": 7437,
+          "[Budget]": 335979
+        }
+      ]
+    },
+    {
+      "id": "warranties",
+      "component": "UniverusTimeline",
+      "grid": {
+        "colSpan": 6
+      },
+      "query": {
+        "dax": "EVALUATE\nFILTER(\n  SUMMARIZECOLUMNS(\n    'asset_class'[Asset_Class],\n    'warranty'[warranty_name],\n    \"Start\", MIN('warranty'[warranty_start_date]),\n    \"End\", MAX('warranty'[warranty_end_date]),\n    \"Assets\", COUNTROWS('warranty'),\n    \"Tone\", VAR e = MAX('warranty'[warranty_end_date]) RETURN IF(ISBLANK(e), BLANK(), SWITCH(TRUE(), e < TODAY(), \"bad\", e < TODAY() + 365, \"warn\", \"ok\"))\n  ),\n  [End] <= TODAY() + 10 * 365\n)\nORDER BY 'asset_class'[Asset_Class], [Start]"
+      },
+      "fields": {
+        "item": "'warranty'[warranty_name]",
+        "start": "[Start]",
+        "end": "[End]",
+        "lane": "'asset_class'[Asset_Class]",
+        "tone": "[Tone]",
+        "tooltips": [
+          {
+            "field": "[Assets]",
+            "label": "Assets covered",
+            "format": {
+              "style": "integer"
+            }
+          }
+        ]
+      },
+      "props": {
+        "title": "Warranty coverage",
+        "subtitle": "By asset class · lapsed and ending within 10 years",
+        "info": "Each bar is a warranty, from its start to its end date, grouped by asset class. Red warranties have lapsed, amber end within a year, teal are active. Warranties ending more than ten years out are left out to keep the scale readable.",
+        "calc": "MIN(warranty_start_date) → MAX(warranty_end_date) per warranty; tone against TODAY()",
+        "toneLabels": {
+          "ok": "Active",
+          "warn": "Ends within a year",
+          "bad": "Lapsed"
+        },
+        "categoryLabel": "Warranty",
+        "laneLabel": "Asset class",
+        "export": {
+          "fileName": "warranty-coverage"
+        }
+      },
+      "sample": [
+        {
+          "asset_class[Asset_Class]": "Meters",
+          "warranty[warranty_name]": "Sub-meter warranty",
+          "[Start]": "2018-09-18T00:00:00",
+          "[End]": "2030-09-18T00:00:00",
+          "[Assets]": 24,
+          "[Tone]": "ok"
+        },
+        {
+          "asset_class[Asset_Class]": "Meters",
+          "warranty[warranty_name]": "Common-area meter warranty",
+          "[Start]": "2018-09-12T00:00:00",
+          "[End]": "2030-09-14T00:00:00",
+          "[Assets]": 8,
+          "[Tone]": "ok"
+        },
+        {
+          "asset_class[Asset_Class]": "Plant",
+          "warranty[warranty_name]": "Boiler limited warranty",
+          "[Start]": "2018-08-22T00:00:00",
+          "[End]": "2028-08-22T00:00:00",
+          "[Assets]": 2,
+          "[Tone]": "ok"
+        },
+        {
+          "asset_class[Asset_Class]": "Plant",
+          "warranty[warranty_name]": "Circulation pump warranty",
+          "[Start]": "2018-08-10T00:00:00",
+          "[End]": "2020-08-10T00:00:00",
+          "[Assets]": 3,
+          "[Tone]": "bad"
+        },
+        {
+          "asset_class[Asset_Class]": "Plant",
+          "warranty[warranty_name]": "Heat exchanger warranty",
+          "[Start]": "2018-08-15T00:00:00",
+          "[End]": "2023-08-15T00:00:00",
+          "[Assets]": 3,
+          "[Tone]": "bad"
+        },
+        {
+          "asset_class[Asset_Class]": "Plant",
+          "warranty[warranty_name]": "Controls hardware warranty",
+          "[Start]": "2018-09-05T00:00:00",
+          "[End]": "2019-09-05T00:00:00",
+          "[Assets]": 1,
+          "[Tone]": "bad"
+        },
+        {
+          "asset_class[Asset_Class]": "Distribution",
+          "warranty[warranty_name]": "Copper pipe warranty",
+          "[Start]": "2018-07-25T00:00:00",
+          "[End]": "2028-07-25T00:00:00",
+          "[Assets]": 1,
+          "[Tone]": "ok"
+        },
+        {
+          "asset_class[Asset_Class]": "Distribution",
+          "warranty[warranty_name]": "Valve actuator warranty",
+          "[Start]": "2018-07-28T00:00:00",
+          "[End]": "2023-07-28T00:00:00",
+          "[Assets]": 1,
+          "[Tone]": "bad"
+        }
+      ]
+    }
+  ]
+}
